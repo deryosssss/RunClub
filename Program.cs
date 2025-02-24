@@ -1,15 +1,33 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using RunClubAPI.Models;
-using RunClubAPI.Interfaces;
-using RunClub.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using RunClubAPI.Models;
+using RunClubAPI.Interfaces;
+using RunClub.DTOs;
+using RunClub.Services;
+using RunClub.Repositories;
 using RunClub.Controllers;
+using Microsoft.Extensions.Logging; // Ensure this is included
+using RunClubAPI.Middleware; // Import the Middleware namespace
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.AddEventSourceLogger();
+
+var app = builder.Build();
+
+// Get logger from ILoggerFactory
+var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+var logger = loggerFactory.CreateLogger<Program>();
+
+logger.LogInformation("Application is Starting...");
 
 // Add services
 builder.Services.AddControllers();
@@ -23,20 +41,21 @@ builder.Services.AddScoped<EnrollmentRepository>();
 builder.Services.AddScoped<ProgressRecordRepository>();
 builder.Services.AddScoped<RoleRepository>();
 
-// // Add Swagger for API documentation
+// Add Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "RunClub API", Version = "v1" });
 });
 
+// Configure Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<RunClubContext>()
     .AddDefaultTokenProviders();
 
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<EmailService>();
-    builder.Services.AddScoped<RolesController>();
+builder.Services.AddScoped<RolesController>();
 
 // Register DbContext with SQLite
 builder.Services.AddDbContext<RunClubContext>(options =>
@@ -64,7 +83,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-var app = builder.Build();
+// Log that the app is running
+logger.LogInformation("Application is Running...");
 
 // Configure Middleware
 if (app.Environment.IsDevelopment())
@@ -73,13 +93,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseHttpsRedirection();
-app.UseAuthentication();  // Correct Order
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-app.Run();
 
+app.Run();
 
 
 

@@ -8,42 +8,71 @@ namespace RunClub.Services
     public class UserService : IUserService
     {
         private readonly RunClubContext _context;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(RunClubContext context)
+        public UserService(RunClubContext context, ILogger<UserService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
         {
-            return await _context.Users.ToListAsync();
-        }
+            _logger.LogInformation("Fetching all users...");
 
-        public async Task<User> GetUserByIdAsync(int id)
-        {
-            return await _context.Users.FindAsync(id);
-        }
-
-        public async Task AddUserAsync(User user)
-        {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task UpdateUserAsync(int id, User user)
-        {
-            _context.Entry(user).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task DeleteUserAsync(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
+            try
             {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
+                var users = await _context.Users.Include(u => u.Role).ToListAsync();
+
+                if (!users.Any())
+                {
+                    _logger.LogWarning("No users found in the database.");
+                }
+
+                return users.Select(u => new UserDTO
+                {
+                    UserId = u.UserId,
+                    Name = u.Name,
+                    Email = u.Email,
+                    RoleId = u.RoleId
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching all users.");
+                throw; // Re-throw the exception to be handled by higher layers
+            }
+        }
+
+        public async Task<UserDTO> GetUserByIdAsync(int id)
+        {
+            _logger.LogInformation("Fetching user with ID {UserId}", id);
+
+            try
+            {
+                var user = await _context.Users.Include(u => u.Role)
+                    .FirstOrDefaultAsync(u => u.UserId == id);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("User with ID {UserId} not found.", id);
+                    return null;
+                }
+
+                return new UserDTO
+                {
+                    UserId = user.UserId,
+                    Name = user.Name,
+                    Email = user.Email,
+                    RoleId = user.RoleId
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching user with ID {UserId}", id);
+                throw; // Re-throw the exception for higher-level handling
             }
         }
     }
 }
+
