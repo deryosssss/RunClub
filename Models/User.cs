@@ -15,5 +15,9 @@ namespace RunClubAPI.Models
 
         public List<Enrollment>? Enrollments { get; set; }
         public List<ProgressRecord>? ProgressRecords { get; set; }
+
+            // ✅ New Fields for Token Refresh
+    public string RefreshToken { get; set; }
+    public DateTime RefreshTokenExpiry { get; set; }
     }
 }
