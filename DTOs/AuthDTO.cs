@@ -1,6 +1,6 @@
 using RunClubAPI.Models;
 
-namespace RunClub.DTOs
+namespace RunClubAPI.DTOs
     {
     public class LoginDTO
     {

@@ -1,11 +1,15 @@
 using Microsoft.IdentityModel.Tokens;
 using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
-using RunClub.DTOs;
+using RunClubAPI.DTOs;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
 
 public class AuthService : IAuthService
 {
@@ -20,25 +24,50 @@ public class AuthService : IAuthService
         _logger = logger;
     }
 
-    public async Task<AuthResponseDTO> AuthenticateUserAsync(LoginDTO loginDto)
+    // User Registration
+    public async Task<bool> RegisterAsync(string username, string password)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
+        if (await _context.Users.AnyAsync(u => u.Email == username))
         {
-            _logger.LogWarning("Invalid login attempt for email: {Email}", loginDto.Email);
+            _logger.LogWarning("Registration failed. Email already in use: {Email}", username);
+            return false;
+        }
+
+        var user = new User
+        {
+            Email = username,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            RoleId = 2 // Assuming "User" role has an ID of 2 in the database
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("User registered successfully: {Email}", username);
+        return true;
+    }
+
+    // User Login
+    public async Task<AuthResponseDTO> LoginAsync(string username, string password)
+    {
+        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == username);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        {
+            _logger.LogWarning("Invalid login attempt for email: {Email}", username);
             return null;
         }
 
         var token = GenerateJwtToken(user);
         var refreshToken = GenerateRefreshToken();
+
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-
         await _context.SaveChangesAsync();
 
         return new AuthResponseDTO { Token = token, RefreshToken = refreshToken };
     }
 
+    // Refresh Token Logic
     public async Task<AuthResponseDTO> RefreshTokenAsync(RefreshTokenRequest request)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == request.RefreshToken);
@@ -58,6 +87,7 @@ public class AuthService : IAuthService
         return new AuthResponseDTO { Token = newToken, RefreshToken = newRefreshToken };
     }
 
+    // Revoke Refresh Token
     public async Task RevokeRefreshTokenAsync(string userId)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId.ToString() == userId);
@@ -68,6 +98,7 @@ public class AuthService : IAuthService
         }
     }
 
+    // Generate JWT Token
     private string GenerateJwtToken(User user)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
@@ -90,8 +121,10 @@ public class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    // Generate Refresh Token
     private string GenerateRefreshToken()
     {
         return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
     }
 }
+

@@ -1,7 +1,6 @@
-using Org.BouncyCastle.Asn1.Cms;
 using RunClubAPI.Models;
 
-namespace RunClub.DTOs
+namespace RunClubAPI.DTOs
 {
     public class ProgressRecordDTO
     {

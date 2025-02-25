@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RunClubAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b41c4b0b61181d750ef6990b8470edb0c947a4d4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+760fa8eba698533dcd97331f8dab20dabd8f69d3")]
 [assembly: System.Reflection.AssemblyProductAttribute("RunClubAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RunClubAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

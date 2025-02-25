@@ -8,7 +8,7 @@ using RunClubAPI.Models;
 using RunClubAPI.Interfaces;
 using RunClub.Services;
 using RunClub.Repositories;
-using RunClub.Middleware;
+using RunClubAPI.Middleware;
 using AspNetCoreRateLimit;
 using Microsoft.Extensions.Logging;
 
@@ -60,11 +60,11 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 // ✅ JWT Authentication Configuration
-var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
-    ?? throw new ArgumentNullException("JWT_KEY is missing!");
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new ArgumentNullException("JWT Key is missing!");
 
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
-    ?? throw new ArgumentNullException("JWT_ISSUER is missing!");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? throw new ArgumentNullException("JWT Issuer is missing!");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -84,6 +84,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // ✅ Dependency Injection (DI) for Services & Repositories
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IProgressRecordService, ProgressRecordService>();

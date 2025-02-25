@@ -1,7 +1,6 @@
 using RunClubAPI.Models;
-using System.ComponentModel.DataAnnotations;
 
-namespace RunClub.DTOs
+namespace RunClubAPI.DTOs
 {
     public class UserDTO
     {
