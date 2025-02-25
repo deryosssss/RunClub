@@ -2,17 +2,24 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace RunClubAPI.Models
 {
-    public class RunClubContext : IdentityDbContext<IdentityUser>
+    // Custom User class
+    public class User : IdentityUser
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        // Add other custom properties if needed
+    }
+
+    public class RunClubContext : IdentityDbContext<User> // Use 'User' as the custom Identity user class
     {
         public RunClubContext(DbContextOptions<RunClubContext> options)
             : base(options)
         {
         }
 
-        public DbSet<User> Users { get; set; }
+        // Define DbSets for your entities
         public DbSet<Role> Roles { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
@@ -22,29 +29,12 @@ namespace RunClubAPI.Models
         {
             base.OnModelCreating(modelBuilder); // Ensure Identity tables are correctly created
 
-            // Manually configure the Identity entity primary keys if necessary
-            modelBuilder.Entity<IdentityUserLogin<string>>()
-                .HasKey(u => new { u.UserId, u.LoginProvider, u.ProviderKey });
-
-            modelBuilder.Entity<IdentityUserRole<string>>()
-                .HasKey(u => new { u.UserId, u.RoleId });
-
-            modelBuilder.Entity<IdentityUserClaim<string>>()
-                .HasKey(u => u.Id);
-
-            modelBuilder.Entity<IdentityRoleClaim<string>>()
-                .HasKey(r => r.Id);
-
-            modelBuilder.Entity<IdentityUserToken<string>>()
-                .HasKey(u => new { u.UserId, u.LoginProvider, u.Name });
-            
             // Seeding roles
             modelBuilder.Entity<IdentityRole>().HasData(
-                new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },
-                new IdentityRole { Id = "2", Name = "Coach", NormalizedName = "COACH" },
-                new IdentityRole { Id = "3", Name = "Runner", NormalizedName = "RUNNER" }
+                new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" },
+                new IdentityRole { Name = "Coach", NormalizedName = "COACH" },
+                new IdentityRole { Name = "Runner", NormalizedName = "RUNNER" }
             );
         }
     }
-
 }
