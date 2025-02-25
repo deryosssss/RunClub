@@ -1,7 +1,0 @@
-/Users/deryabaglan/Desktop/masters/web development/RunClub/obj/Debug/net9.0/RunClub.csproj.AssemblyReference.cache
-/Users/deryabaglan/Desktop/masters/web development/RunClub/obj/Debug/net9.0/RunClub.GeneratedMSBuildEditorConfig.editorconfig
-/Users/deryabaglan/Desktop/masters/web development/RunClub/obj/Debug/net9.0/RunClub.AssemblyInfoInputs.cache
-/Users/deryabaglan/Desktop/masters/web development/RunClub/obj/Debug/net9.0/RunClub.AssemblyInfo.cs
-/Users/deryabaglan/Desktop/masters/web development/RunClub/obj/Debug/net9.0/RunClub.csproj.CoreCompileInputs.cache
-/Users/deryabaglan/Desktop/masters/web development/RunClub/obj/Debug/net9.0/RunClub.MvcApplicationPartsAssemblyInfo.cs
-/Users/deryabaglan/Desktop/masters/web development/RunClub/obj/Debug/net9.0/RunClub.MvcApplicationPartsAssemblyInfo.cache

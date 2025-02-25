@@ -1,10 +1,20 @@
+using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
-using Microsoft.EntityFrameworkCore;
 
-namespace RunClub.Repositories
+namespace RunClubAPI.Repositories
 {
-    public class EnrollmentRepository : EnrollmentRepository
+    public class EnrollmentRepository : IEnrollmentRepository
     {
-        
+        private readonly RunClubContext _context;
+
+        public EnrollmentRepository(RunClubContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<List<Enrollment>> GetAllEnrollmentsAsync()
+        {
+            return await _context.Enrollments.ToListAsync();
+        }
     }
 }

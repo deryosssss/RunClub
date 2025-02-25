@@ -2,6 +2,7 @@ using RunClubAPI.Models;
 using RunClub.DTOs;
 using RunClubAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace RunClub.Services
 {
@@ -18,71 +19,100 @@ namespace RunClub.Services
 
         public async Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10)
         {
-            _logger.LogInformation($"Fetching enrollments (Page {pageNumber}, Page Size {pageSize})");
-
-            var enrollments = await _context.Enrollments
-                .AsNoTracking()
-                .Skip((pageNumber - 1) * pageSize) // ✅ Pagination: Skip previous pages
-                .Take(pageSize)  // ✅ Pagination: Limit results per page
-                .ToListAsync();
-
-            if (!enrollments.Any())
+            try
             {
-                _logger.LogWarning("No enrollments found in the system.");
+                _logger.LogInformation($"Fetching enrollments (Page {pageNumber}, Page Size {pageSize})");
+
+                var enrollments = await _context.Enrollments
+                    .AsNoTracking()
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                if (!enrollments.Any())
+                {
+                    _logger.LogWarning("No enrollments found.");
+                }
+
+                return enrollments.Select(e => new EnrollmentDTO
+                {
+                    EnrollmentId = e.EnrollmentId,
+                    UserId = e.UserId,
+                    EventId = e.EventId
+                }).ToList();
             }
-
-            return enrollments.Select(e => new EnrollmentDTO
+            catch (Exception ex)
             {
-                EnrollmentId = e.EnrollmentId,
-                UserId = e.UserId,
-                EventId = e.EventId
-            }).ToList();
+                _logger.LogError(ex, "Error fetching enrollments.");
+                throw new ApplicationException("An error occurred while retrieving enrollments.");
+            }
         }
-
 
         public async Task<EnrollmentDTO> GetEnrollmentByIdAsync(int id)
         {
-            _logger.LogInformation($"Fetching enrollment with ID {id}");
-
-            var enrollment = await _context.Enrollments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.EnrollmentId == id);
-
-            if (enrollment == null)
+            try
             {
-                _logger.LogError($"Enrollment with ID {id} does not exist.");
-                return null;
+                _logger.LogInformation($"Fetching enrollment with ID {id}");
+
+                var enrollment = await _context.Enrollments
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.EnrollmentId == id);
+
+                if (enrollment == null)
+                {
+                    _logger.LogWarning($"Enrollment with ID {id} not found.");
+                    return null;
+                }
+
+                return new EnrollmentDTO
+                {
+                    EnrollmentId = enrollment.EnrollmentId,
+                    UserId = enrollment.UserId,
+                    EventId = enrollment.EventId
+                };
             }
-
-            return new EnrollmentDTO
+            catch (Exception ex)
             {
-                EnrollmentId = enrollment.EnrollmentId,
-                UserId = enrollment.UserId,
-                EventId = enrollment.EventId
-            };
+                _logger.LogError(ex, $"Error fetching enrollment with ID {id}");
+                throw new ApplicationException($"An error occurred while retrieving enrollment {id}.");
+            }
         }
 
         public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
         {
-            _logger.LogInformation($"Fetching enrollments for Event ID {eventId}");
-
-            var enrollments = await _context.Enrollments
-                .AsNoTracking()
-                .Where(e => e.EventId == eventId) // ✅ Filtering
-                .ToListAsync();
-
-            if (!enrollments.Any())
+            try
             {
-                _logger.LogWarning($"No enrollments found for Event ID {eventId}.");
+                _logger.LogInformation($"Fetching enrollments for Event ID {eventId}");
+
+                bool eventExists = await _context.Events.AnyAsync(e => e.EventId == eventId);
+                if (!eventExists)
+                {
+                    _logger.LogWarning($"Event with ID {eventId} does not exist.");
+                    return Enumerable.Empty<EnrollmentDTO>(); 
+                }
+
+                var enrollments = await _context.Enrollments
+                    .AsNoTracking()
+                    .Where(e => e.EventId == eventId)
+                    .ToListAsync();
+
+                if (!enrollments.Any())
+                {
+                    _logger.LogWarning($"No enrollments found for Event ID {eventId}.");
+                }
+
+                return enrollments.Select(e => new EnrollmentDTO
+                {
+                    EnrollmentId = e.EnrollmentId,
+                    UserId = e.UserId,
+                    EventId = e.EventId
+                }).ToList();
             }
-
-            return enrollments.Select(e => new EnrollmentDTO
+            catch (Exception ex)
             {
-                EnrollmentId = e.EnrollmentId,
-                UserId = e.UserId,
-                EventId = e.EventId
-            }).ToList();
+                _logger.LogError(ex, $"Error fetching enrollments for event ID {eventId}");
+                throw new ApplicationException($"An error occurred while retrieving enrollments for event {eventId}.");
+            }
         }
-
     }
 }

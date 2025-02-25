@@ -7,7 +7,10 @@ namespace RunClubAPI.Models
 {
     public class RunClubContext : IdentityDbContext<IdentityUser>
     {
-        public RunClubContext(DbContextOptions<RunClubContext> options) : base(options) {}
+        public RunClubContext(DbContextOptions<RunClubContext> options)
+            : base(options)
+        {
+        }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }

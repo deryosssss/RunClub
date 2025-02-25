@@ -6,32 +6,29 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using RunClubAPI.Models;
 using RunClubAPI.Interfaces;
-using RunClub.DTOs;
 using RunClub.Services;
 using RunClub.Repositories;
-using RunClub.Controllers;
-using Microsoft.Extensions.Logging; // Ensure this is included
-using RunClubAPI.Middleware; // Import the Middleware namespace
+using RunClub.Middleware;
 using AspNetCoreRateLimit;
-
-
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load Environment Variables
+// ✅ Load Environment Variables
 builder.Configuration.AddEnvironmentVariables();
 
-// Configure Services
-builder.Services.AddControllers();
-
-// Add Logging
+// ✅ Configure Logging
 builder.Services.AddLogging(logging =>
 {
     logging.ClearProviders();
     logging.AddConsole();
+    logging.AddDebug();
 });
 
-// CORS Configuration
+// ✅ Add Controllers
+builder.Services.AddControllers();
+
+// ✅ Configure CORS
 var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(",") ?? new string[] { "http://localhost:3000" };
 builder.Services.AddCors(options =>
 {
@@ -43,19 +40,31 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configure Database Connection
-builder.Services.AddDbContext<RunClubContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("RunClubDb") ??
-                      throw new ArgumentNullException("Database connection string is missing!")));
+// ✅ Configure Database Connection
+var connectionString = builder.Configuration.GetConnectionString("RunClubDb")
+    ?? throw new ArgumentNullException("Database connection string is missing!");
 
-// Register Identity Services
+builder.Services.AddDbContext<RunClubContext>(options =>
+    options.UseSqlite(connectionString));
+
+// ✅ Apply Database Migrations Automatically
+using (var scope = builder.Services.BuildServiceProvider().CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<RunClubContext>();
+    dbContext.Database.Migrate();
+}
+
+// ✅ Register Identity Services
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<RunClubContext>()
     .AddDefaultTokenProviders();
 
-// JWT Authentication Configuration
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key is missing!");
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer is missing!");
+// ✅ JWT Authentication Configuration
+var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY") 
+    ?? throw new ArgumentNullException("JWT_KEY is missing!");
+
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") 
+    ?? throw new ArgumentNullException("JWT_ISSUER is missing!");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -74,60 +83,74 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Dependency Injection for Services and Repositories
+// ✅ Dependency Injection (DI) for Services & Repositories
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IProgressRecordService, ProgressRecordService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 
-builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<EnrollmentRepository>();
-builder.Services.AddScoped<ProgressRecordRepository>();
-builder.Services.AddScoped<RoleRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+builder.Services.AddScoped<IProgressRecordRepository, ProgressRecordRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 builder.Services.AddScoped<EmailService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
-// Swagger Configuration
+// ✅ Configure Swagger for API Documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "RunClub API", Version = "v1" });
+
+    var securitySchema = new OpenApiSecurityScheme
+    {
+        Description = "Enter 'Bearer [space] your_token' below:",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+    };
+
+    c.AddSecurityDefinition("Bearer", securitySchema);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { securitySchema, new string[] { } }
+    });
 });
 
-// Rate Limiting
+// ✅ Configure Rate Limiting
 builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
-builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 
 var app = builder.Build();
 
-// Global Error Handling Middleware
-app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+// ✅ Global Error Handling Middleware
+app.UseGlobalExceptionHandler();
 
-// Enable Swagger in Development Mode
+// ✅ Enable Swagger in Development Mode
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Enforce HTTPS
+// ✅ Enforce HTTPS
 app.UseHttpsRedirection();
 
-// Apply Security Middleware
+// ✅ Apply Security Middleware
 app.UseCors("AllowSpecificOrigins");
 app.UseIpRateLimiting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseGlobalExceptionHandler();
 
-
-// Map Controllers
+// ✅ Map Controllers
 app.MapControllers();
 
 app.Run();
