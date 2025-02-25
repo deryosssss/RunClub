@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RunClubAPI.Models;
+using RunClub.DTOs;
+using RunClub.Services;
 
 namespace RunClub.Controllers
 {
@@ -22,9 +24,10 @@ namespace RunClub.Controllers
 
         // GET: api/Enrollments
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Enrollment>>> GetEnrollments()
+        public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollments(int pageNumber = 1, int pageSize = 10)
         {
-            return await _context.Enrollments.ToListAsync();
+            var enrollments = await _enrollmentService.GetAllEnrollmentsAsync(pageNumber, pageSize);
+            return Ok(enrollments);
         }
 
         // GET: api/Enrollments/5
@@ -39,6 +42,13 @@ namespace RunClub.Controllers
             }
 
             return enrollment;
+        }
+
+        [HttpGet("event/{eventId}")]
+        public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollmentsByEvent(int eventId)
+        {
+            var enrollments = await _enrollmentService.GetEnrollmentsByEventIdAsync(eventId);
+            return Ok(enrollments);
         }
 
         // PUT: api/Enrollments/5

@@ -4,7 +4,6 @@ using RunClubAPI.Interfaces;
 using RunClub.DTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RunClubAPI.Models;
 
 namespace RunClubAPI.Controllers
 {
@@ -22,10 +21,10 @@ namespace RunClubAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers(int pageNumber = 1, int pageSize = 10)
         {
-            _logger.LogInformation("Getting all users");
-            var users = await _userService.GetAllUsersAsync();
+            _logger.LogInformation($"Fetching users - Page: {pageNumber}, Size: {pageSize}");
+            var users = await _userService.GetAllUsersAsync(pageNumber, pageSize);
             return Ok(users);
         }
 
@@ -40,6 +39,14 @@ namespace RunClubAPI.Controllers
                 return NotFound();
             }
             return Ok(user);
+        }
+
+        [HttpGet("role/{roleId}")]
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersByRole(int roleId)
+        {
+            _logger.LogInformation($"Fetching users with Role ID {roleId}");
+            var users = await _userService.GetUsersByRoleAsync(roleId);
+            return Ok(users);
         }
 
         [HttpPost]

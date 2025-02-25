@@ -16,59 +16,73 @@ namespace RunClub.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync()
+        public async Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10)
         {
-            _logger.LogInformation("Fetching all enrollments...");
+            _logger.LogInformation($"Fetching enrollments (Page {pageNumber}, Page Size {pageSize})");
 
-            try
+            var enrollments = await _context.Enrollments
+                .AsNoTracking()
+                .Skip((pageNumber - 1) * pageSize) // ✅ Pagination: Skip previous pages
+                .Take(pageSize)  // ✅ Pagination: Limit results per page
+                .ToListAsync();
+
+            if (!enrollments.Any())
             {
-                var enrollments = await _context.Enrollments.ToListAsync();
-
-                if (!enrollments.Any())
-                {
-                    _logger.LogWarning("No enrollments found in the system.");
-                }
-
-                return enrollments.Select(e => new EnrollmentDTO
-                {
-                    EnrollmentId = e.EnrollmentId,
-                    UserId = e.UserId,
-                    EventId = e.EventId
-                }).ToList();
+                _logger.LogWarning("No enrollments found in the system.");
             }
-            catch (Exception ex)
+
+            return enrollments.Select(e => new EnrollmentDTO
             {
-                _logger.LogError(ex, "An error occurred while fetching all enrollments.");
-                throw; // Re-throw to allow higher-level handling
-            }
+                EnrollmentId = e.EnrollmentId,
+                UserId = e.UserId,
+                EventId = e.EventId
+            }).ToList();
         }
+
 
         public async Task<EnrollmentDTO> GetEnrollmentByIdAsync(int id)
         {
-            _logger.LogInformation("Fetching enrollment with ID {EnrollmentId}", id);
+            _logger.LogInformation($"Fetching enrollment with ID {id}");
 
-            try
+            var enrollment = await _context.Enrollments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.EnrollmentId == id);
+
+            if (enrollment == null)
             {
-                var enrollment = await _context.Enrollments.FindAsync(id);
-
-                if (enrollment == null)
-                {
-                    _logger.LogWarning("Enrollment with ID {EnrollmentId} does not exist.", id);
-                    return null;
-                }
-
-                return new EnrollmentDTO
-                {
-                    EnrollmentId = enrollment.EnrollmentId,
-                    UserId = enrollment.UserId,
-                    EventId = enrollment.EventId // Fixed incorrect field assignment
-                };
+                _logger.LogError($"Enrollment with ID {id} does not exist.");
+                return null;
             }
-            catch (Exception ex)
+
+            return new EnrollmentDTO
             {
-                _logger.LogError(ex, "An error occurred while fetching enrollment with ID {EnrollmentId}", id);
-                throw; // Re-throw for higher-level handling
-            }
+                EnrollmentId = enrollment.EnrollmentId,
+                UserId = enrollment.UserId,
+                EventId = enrollment.EventId
+            };
         }
+
+        public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
+        {
+            _logger.LogInformation($"Fetching enrollments for Event ID {eventId}");
+
+            var enrollments = await _context.Enrollments
+                .AsNoTracking()
+                .Where(e => e.EventId == eventId) // ✅ Filtering
+                .ToListAsync();
+
+            if (!enrollments.Any())
+            {
+                _logger.LogWarning($"No enrollments found for Event ID {eventId}.");
+            }
+
+            return enrollments.Select(e => new EnrollmentDTO
+            {
+                EnrollmentId = e.EnrollmentId,
+                UserId = e.UserId,
+                EventId = e.EventId
+            }).ToList();
+        }
+
     }
 }

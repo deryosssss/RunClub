@@ -1,102 +1,101 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RunClubAPI.Models;
+using Microsoft.Extensions.Logging;
+using RunClubAPI.Interfaces;
+using RunClub.DTOs;
 
-namespace RunClub.Controllers
+namespace RunClubAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = "Coach")] // Restricts access to users with "Coach" role
     public class ProgressRecordsController : ControllerBase
     {
-        private readonly RunClubContext _context;
+        private readonly IProgressRecordService _progressRecordService;
+        private readonly ILogger<ProgressRecordsController> _logger;
 
-        public ProgressRecordsController(RunClubContext context)
+        public ProgressRecordsController(IProgressRecordService progressRecordService, ILogger<ProgressRecordsController> logger)
         {
-            _context = context;
+            _progressRecordService = progressRecordService;
+            _logger = logger;
         }
 
-        // GET: api/ProgressRecords
+        // ✅ GET: api/ProgressRecords
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProgressRecord>>> GetProgressRecords()
+        public async Task<ActionResult<IEnumerable<ProgressRecordDTO>>> GetProgressRecords()
         {
-            return await _context.ProgressRecords.ToListAsync();
+            _logger.LogInformation("Fetching all progress records...");
+            var progressRecords = await _progressRecordService.GetAllProgressRecordsAsync();
+            return Ok(progressRecords);
         }
 
-        // GET: api/ProgressRecords/5
+        // ✅ GET: api/ProgressRecords/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProgressRecord>> GetProgressRecord(int id)
+        public async Task<ActionResult<ProgressRecordDTO>> GetProgressRecord(int id)
         {
-            var progressRecord = await _context.ProgressRecords.FindAsync(id);
+            _logger.LogInformation($"Fetching progress record with ID {id}");
+            var progressRecord = await _progressRecordService.GetProgressRecordByIdAsync(id);
 
             if (progressRecord == null)
             {
+                _logger.LogWarning($"Progress record with ID {id} not found.");
                 return NotFound($"Progress record with ID {id} not found.");
             }
 
             return Ok(progressRecord);
         }
 
-        // PUT: api/ProgressRecords/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutProgressRecord(int id, ProgressRecord progress)
+        // ✅ POST: api/ProgressRecords
+        [HttpPost]
+        public async Task<ActionResult<ProgressRecordDTO>> PostProgressRecord(ProgressRecordDTO progressRecordDto)
         {
-            if (id != progress.ProgressRecordId)
+            _logger.LogInformation("Attempting to add a new progress record...");
+
+            var createdRecord = await _progressRecordService.AddProgressRecordAsync(progressRecordDto);
+
+            if (createdRecord == null)
+            {
+                return BadRequest(new { message = "Invalid User ID. Cannot add progress record." });
+            }
+
+            return CreatedAtAction(nameof(GetProgressRecord), new { id = createdRecord.ProgressRecordId }, createdRecord);
+        }
+
+        // ✅ PUT: api/ProgressRecords/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutProgressRecord(int id, ProgressRecordDTO progressRecordDto)
+        {
+            if (id != progressRecordDto.ProgressRecordId)
             {
                 return BadRequest("ProgressRecord ID mismatch.");
             }
 
-            _context.Entry(progress).State = EntityState.Modified;
+            _logger.LogInformation($"Updating progress record with ID {id}");
+            var updateSuccess = await _progressRecordService.UpdateProgressRecordAsync(id, progressRecordDto);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await ProgressRecordExists(id))
-                {
-                    return NotFound($"Progress record with ID {id} not found.");
-                }
-                return StatusCode(500, "A database error occurred while updating the record.");
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/ProgressRecords
-        [HttpPost]
-        public async Task<ActionResult<ProgressRecord>> PostProgressRecord(ProgressRecord progressRecord)
-        {
-            _context.ProgressRecords.Add(progressRecord);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetProgressRecord), new { id = progressRecord.ProgressRecordId }, progressRecord);
-        }
-
-        // DELETE: api/ProgressRecords/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProgressRecord(int id)
-        {
-            var progressRecord = await _context.ProgressRecords.FindAsync(id);
-            if (progressRecord == null)
+            if (!updateSuccess)
             {
                 return NotFound($"Progress record with ID {id} not found.");
             }
 
-            _context.ProgressRecords.Remove(progressRecord);
-            await _context.SaveChangesAsync();
-
             return NoContent();
         }
 
-        private async Task<bool> ProgressRecordExists(int id)
+        // ✅ DELETE: api/ProgressRecords/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProgressRecord(int id)
         {
-            return await _context.ProgressRecords.AnyAsync(e => e.ProgressRecordId == id);
+            _logger.LogInformation($"Attempting to delete progress record with ID {id}");
+            var deleteSuccess = await _progressRecordService.DeleteProgressRecordAsync(id);
+
+            if (!deleteSuccess)
+            {
+                return NotFound($"Progress record with ID {id} not found.");
+            }
+
+            return NoContent();
         }
     }
 }

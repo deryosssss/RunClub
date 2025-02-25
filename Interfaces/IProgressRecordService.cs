@@ -7,6 +7,8 @@ namespace RunClubAPI.Interfaces
     {
         Task<IEnumerable<ProgressRecordDTO>> GetAllProgressRecordsAsync();
         Task<ProgressRecordDTO> GetProgressRecordByIdAsync(int id);
-        Task AddProgressRecordAsync(ProgressRecordDTO progressRecord);
+        Task<ProgressRecordDTO> AddProgressRecordAsync(ProgressRecordDTO progressRecordDto);
+        Task<bool> DeleteProgressRecordAsync(int id);
+        Task<bool> UpdateProgressRecordAsync(int id, ProgressRecordDTO progressRecordDto);
     }
 }

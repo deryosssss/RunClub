@@ -6,11 +6,13 @@ namespace RunClubAPI.Models
     public class ProgressRecord
     {
         public int ProgressRecordId { get; set; }
-        public int UserId { get; set; }  // Foreign Key
+        public int UserId { get; set; }
+        public DateTime ProgressDateTime { get; set; }
+        public int DistanceCovered { get; set; }
+        public int TimeTaken { get; set; }
 
-        public required string ProgressDetails { get; set; }
-        public DateTime DateUpdated { get; set; }
-
-        public required User User { get; set; } // Ensuring non-nullable navigation property
+        // ✅ Allow User to be null by making it nullable
+        public User? User { get; set; } 
     }
+
 }
