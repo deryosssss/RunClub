@@ -12,6 +12,8 @@ using RunClubAPI.Middleware;
 using AspNetCoreRateLimit;
 using Microsoft.Extensions.Logging;
 using RunClubAPI.DTOs;
+using Xunit;
+
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,4 +1,6 @@
 namespace RunClubAPI.Tests;
+using Xunit;
+
 
 public class UnitTest1
 {

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "oYbzd6u8woA=",
+  "dgSpecHash": "ogtWif4/9V0=",
   "success": true,
   "projectFilePath": "/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/RunClubAPI.csproj",
   "expectedPackageFiles": [
@@ -134,7 +134,8 @@
     "/Users/deryabaglan/.nuget/packages/xunit.assert/2.9.3/xunit.assert.2.9.3.nupkg.sha512",
     "/Users/deryabaglan/.nuget/packages/xunit.core/2.9.3/xunit.core.2.9.3.nupkg.sha512",
     "/Users/deryabaglan/.nuget/packages/xunit.extensibility.core/2.9.3/xunit.extensibility.core.2.9.3.nupkg.sha512",
-    "/Users/deryabaglan/.nuget/packages/xunit.extensibility.execution/2.9.3/xunit.extensibility.execution.2.9.3.nupkg.sha512"
+    "/Users/deryabaglan/.nuget/packages/xunit.extensibility.execution/2.9.3/xunit.extensibility.execution.2.9.3.nupkg.sha512",
+    "/Users/deryabaglan/.nuget/packages/xunit.runner.visualstudio/3.0.2/xunit.runner.visualstudio.3.0.2.nupkg.sha512"
   ],
   "logs": []
 }
