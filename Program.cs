@@ -12,8 +12,6 @@ using RunClubAPI.Middleware;
 using AspNetCoreRateLimit;
 using Microsoft.Extensions.Logging;
 using RunClubAPI.DTOs;
-using Xunit;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,7 +46,7 @@ var connectionString = builder.Configuration.GetConnectionString("RunClubDb")
     ?? throw new ArgumentNullException("Database connection string is missing!");
 
 builder.Services.AddDbContext<RunClubContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseSqlite(connectionString)); // Or UseSqlServer(connectionString) for SQL Server
 
 // ✅ Register Identity Services
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
@@ -124,21 +122,24 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
+
+// Register the necessary rate limit services
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
 
 // ✅ Build Application
 var app = builder.Build();
 
-// ✅ Apply Database Migrations Automatically (Fixed)
+// ✅ Apply Database Migrations Automatically
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<RunClubContext>();
     dbContext.Database.Migrate();
 }
 
-// ✅ Global Error Handling Middleware
+// ✅ Global Error Handling Middleware (Ensure you have implemented this middleware)
 app.UseGlobalExceptionHandler();
 
 // ✅ Enable Swagger in Development Mode
@@ -153,7 +154,7 @@ app.UseHttpsRedirection();
 
 // ✅ Apply Security Middleware
 app.UseCors("AllowSpecificOrigins");
-app.UseIpRateLimiting();
+app.UseIpRateLimiting(); // Make sure this middleware is applied after necessary services are added
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -162,5 +163,3 @@ app.MapControllers();
 
 // ✅ Run Application
 app.Run();
-
-
