@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using RunClubAPI.Interfaces;
-using RunClub.DTOs;
+using RunClubAPI.DTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

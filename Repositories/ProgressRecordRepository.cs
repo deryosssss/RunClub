@@ -1,5 +1,7 @@
 using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
+using Microsoft.EntityFrameworkCore;
+using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Repositories
 {

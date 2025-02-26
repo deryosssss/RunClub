@@ -6,11 +6,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using RunClubAPI.Models;
 using RunClubAPI.Interfaces;
-using RunClub.Services;
-using RunClub.Repositories;
+using RunClubAPI.Services;
+using RunClubAPI.Repositories;
 using RunClubAPI.Middleware;
 using AspNetCoreRateLimit;
 using Microsoft.Extensions.Logging;
+using RunClubAPI.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,13 +48,6 @@ var connectionString = builder.Configuration.GetConnectionString("RunClubDb")
 builder.Services.AddDbContext<RunClubContext>(options =>
     options.UseSqlite(connectionString));
 
-// ✅ Apply Database Migrations Automatically
-using (var scope = builder.Services.BuildServiceProvider().CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<RunClubContext>();
-    dbContext.Database.Migrate();
-}
-
 // ✅ Register Identity Services
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<RunClubContext>()
@@ -83,18 +77,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// ✅ Dependency Injection (DI) for Services & Repositories
+// ✅ Register Services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 builder.Services.AddScoped<IProgressRecordService, ProgressRecordService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 
+// ✅ Register Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 builder.Services.AddScoped<IProgressRecordRepository, ProgressRecordRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
+// ✅ Register Other Services
 builder.Services.AddScoped<EmailService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
@@ -130,7 +126,15 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
 
+// ✅ Build Application
 var app = builder.Build();
+
+// ✅ Apply Database Migrations Automatically (Fixed)
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<RunClubContext>();
+    dbContext.Database.Migrate();
+}
 
 // ✅ Global Error Handling Middleware
 app.UseGlobalExceptionHandler();
@@ -154,5 +158,7 @@ app.UseAuthorization();
 // ✅ Map Controllers
 app.MapControllers();
 
+// ✅ Run Application
 app.Run();
+
 

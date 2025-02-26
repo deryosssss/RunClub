@@ -8,7 +8,7 @@ namespace RunClubAPI.DTOs
         public int UserId { get; set; }
         public string ProgressDetails { get; set; }
         public DateTime  ProgressDateTime { get; set; }
-        public int DistanceCovered  { get; set; }
-        public int TimeTaken { get; set; }
+        public double DistanceCovered  { get; set; }
+        public double TimeTaken { get; set; }
     }
 }

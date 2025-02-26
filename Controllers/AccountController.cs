@@ -12,8 +12,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using RunClubAPI.Models;
+using RunClubAPI.Services;
 
-namespace RunClub.Controllers
+namespace RunClubAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

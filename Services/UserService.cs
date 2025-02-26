@@ -3,7 +3,7 @@ using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace RunClub.Services
+namespace RunClubAPI.Services
 {
     public class UserService : IUserService
     {
@@ -36,13 +36,13 @@ namespace RunClub.Services
             {
                 UserId = u.UserId,
                 Name = u.Name,
-                Email = u.Email,
+                Email = u.Email!,
                 RoleId = u.RoleId
             }).ToList();
         }
 
-        // ✅ Fetch user by ID
-        public async Task<UserDTO> GetUserByIdAsync(int id)
+        // ✅ Fetch user by ID (Fixed possible null reference return)
+        public async Task<UserDTO?> GetUserByIdAsync(int id)
         {
             _logger.LogInformation($"Fetching user with ID {id}");
 
@@ -58,7 +58,7 @@ namespace RunClub.Services
             {
                 UserId = user.UserId,
                 Name = user.Name,
-                Email = user.Email,
+                Email = user.Email!,
                 RoleId = user.RoleId
             };
         }
@@ -79,12 +79,12 @@ namespace RunClub.Services
             {
                 UserId = u.UserId,
                 Name = u.Name,
-                Email = u.Email,
+                Email = u.Email!,
                 RoleId = u.RoleId
             }).ToList();
         }
 
-        // ✅ Create a new user
+        // ✅ Create a new user (Fixed RefreshToken issue)
         public async Task<UserDTO> CreateUserAsync(UserDTO userDto)
         {
             _logger.LogInformation("Creating new user.");
@@ -93,7 +93,9 @@ namespace RunClub.Services
             {
                 Name = userDto.Name,
                 Email = userDto.Email,
-                RoleId = userDto.RoleId
+                RoleId = userDto.RoleId,
+                RefreshToken = Guid.NewGuid().ToString(), // Ensures RefreshToken is not null
+                RefreshTokenExpiry = DateTime.UtcNow.AddDays(7) // Example expiration
             };
 
             _context.Users.Add(newUser);
@@ -103,7 +105,7 @@ namespace RunClub.Services
             {
                 UserId = newUser.UserId,
                 Name = newUser.Name,
-                Email = newUser.Email,
+                Email = newUser.Email!,
                 RoleId = newUser.RoleId
             };
         }
@@ -126,7 +128,7 @@ namespace RunClub.Services
             user.RoleId = userDto.RoleId;
 
             _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); // Ensures changes are saved
         }
 
         // ✅ Delete a user
@@ -146,5 +148,3 @@ namespace RunClub.Services
         }
     }
 }
-
-

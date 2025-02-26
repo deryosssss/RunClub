@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 using System.Text.Json;
+using RunClubAPI.Middleware;
 using System.Threading.Tasks;
 
 namespace RunClubAPI.Middleware
@@ -40,31 +41,25 @@ namespace RunClubAPI.Middleware
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            var response = _env.IsDevelopment()
-                ? new
-                {
-                    message = exception.Message,
-                    detail = exception.StackTrace,
-                    traceId = context.TraceIdentifier
-                }
-                : new
-                {
-                    message = "An unexpected error occurred. Please try again later.",
-                    traceId = context.TraceIdentifier
-                };
+            var response = new
+            {
+                message = _env.IsDevelopment() ? exception.Message : "An unexpected error occurred. Please try again later.",
+                detail = _env.IsDevelopment() ? exception.StackTrace : (string?)null, // Use nullable string for 'detail'
+                traceId = context.TraceIdentifier
+            };
 
             var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
             await context.Response.WriteAsync(jsonResponse);
         }
     }
+}
 
-    // ✅ Extension Method for Cleaner Startup Configuration
-    public static class GlobalExceptionHandlerMiddlewareExtensions
+// ✅ Extension Method for Cleaner Startup Configuration
+public static class GlobalExceptionHandlerMiddlewareExtensions
+{
+    public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app)
     {
-        public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app)
-        {
-            return app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
-        }
+        return app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
     }
 }

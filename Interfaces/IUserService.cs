@@ -1,5 +1,5 @@
 using RunClubAPI.Models;
-using RunClub.DTOs;
+using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Interfaces
 {

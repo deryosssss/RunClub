@@ -4,7 +4,7 @@ using RunClubAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace RunClub.Services
+namespace RunClubAPI.Services
 {
     public class EnrollmentService : IEnrollmentService
     {
@@ -48,7 +48,21 @@ namespace RunClub.Services
             }
         }
 
-        public async Task<EnrollmentDTO> GetEnrollmentByIdAsync(int id)
+        public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
+        {
+            return await _context.Enrollments
+                .Where(e => e.EventId == eventId)
+                .Select(e => new EnrollmentDTO
+                {
+                    EnrollmentId = e.EnrollmentId,
+                    EventId = e.EventId,
+                    UserId = e.UserId,
+                    EnrollmentDate = e.EnrollmentDate
+                })
+                .ToListAsync();
+        }
+
+        public async Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id) // Ensure nullable return type
         {
             try
             {
@@ -78,40 +92,72 @@ namespace RunClub.Services
             }
         }
 
-        public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
+
+        public async Task AddEnrollmentAsync(EnrollmentDTO enrollmentDto)
         {
+            _logger.LogInformation("Adding a new enrollment...");
+
             try
             {
-                _logger.LogInformation($"Fetching enrollments for Event ID {eventId}");
+                // First, check if the User and Event exist
+                var user = await _context.Users.FindAsync(enrollmentDto.UserId);
+                var eventEntity = await _context.Events.FindAsync(enrollmentDto.EventId);
 
-                bool eventExists = await _context.Events.AnyAsync(e => e.EventId == eventId);
-                if (!eventExists)
+                if (user == null)
                 {
-                    _logger.LogWarning($"Event with ID {eventId} does not exist.");
-                    return Enumerable.Empty<EnrollmentDTO>(); 
+                    _logger.LogWarning($"User with ID {enrollmentDto.UserId} not found.");
+                    throw new ApplicationException("User not found.");
                 }
 
-                var enrollments = await _context.Enrollments
-                    .AsNoTracking()
-                    .Where(e => e.EventId == eventId)
-                    .ToListAsync();
-
-                if (!enrollments.Any())
+                if (eventEntity == null)
                 {
-                    _logger.LogWarning($"No enrollments found for Event ID {eventId}.");
+                    _logger.LogWarning($"Event with ID {enrollmentDto.EventId} not found.");
+                    throw new ApplicationException("Event not found.");
                 }
 
-                return enrollments.Select(e => new EnrollmentDTO
+                // Create a new Enrollment object
+                var enrollment = new Enrollment
                 {
-                    EnrollmentId = e.EnrollmentId,
-                    UserId = e.UserId,
-                    EventId = e.EventId
-                }).ToList();
+                    UserId = enrollmentDto.UserId,
+                    EventId = enrollmentDto.EventId,
+                    User = user,       // Set the User navigation property
+                    Event = eventEntity // Set the Event navigation property
+                };
+
+                // Add the enrollment to the context
+                _context.Enrollments.Add(enrollment);
+
+                // Save the changes to the database
+                await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error fetching enrollments for event ID {eventId}");
-                throw new ApplicationException($"An error occurred while retrieving enrollments for event {eventId}.");
+                _logger.LogError($"Error adding enrollment: {ex.Message}");
+                throw new ApplicationException("An error occurred while adding enrollment.");
+            }
+        }
+
+        public async Task DeleteEnrollmentAsync(int id)
+        {
+            _logger.LogInformation($"Deleting enrollment with ID {id}");
+
+            var enrollment = await _context.Enrollments.FindAsync(id);
+            if (enrollment == null)
+            {
+                _logger.LogWarning($"Enrollment with ID {id} not found.");
+                return;
+            }
+
+            _context.Enrollments.Remove(enrollment);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting enrollment: {ex.Message}");
+                throw new ApplicationException("An error occurred while deleting enrollment.");
             }
         }
     }

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using RunClubAPI.Interfaces;
-using RunClub.DTOs;
+using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Controllers
 {

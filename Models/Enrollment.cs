@@ -6,6 +6,7 @@ namespace RunClubAPI.Models
     public class Enrollment
     {
         public int EnrollmentId { get; set; }
+        public DateOnly EnrollmentDate { get; set; }
         public int UserId { get; set; }  // Foreign Key
         public int EventId { get; set; } // Foreign Key
         

@@ -3,7 +3,7 @@ using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace RunClub.Services
+namespace RunClubAPI.Services
 {
     public class RoleService : IRoleService
     {

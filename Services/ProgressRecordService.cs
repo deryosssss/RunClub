@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace RunClub.Services
+namespace RunClubAPI.Services
 {
     public class ProgressRecordService : IProgressRecordService
     {
@@ -26,44 +26,28 @@ namespace RunClub.Services
             _logger.LogInformation("Fetching all progress records...");
 
             var progressRecords = await _context.ProgressRecords.AsNoTracking().ToListAsync();
-            var result = new List<ProgressRecordDTO>();
 
-            foreach (var pr in progressRecords)
-            {
-                result.Add(new ProgressRecordDTO
-                {
-                    ProgressRecordId = pr.ProgressRecordId,
-                    UserId = pr.UserId,
-                    ProgressDateTime = pr.ProgressDateTime,
-                    DistanceCovered = pr.DistanceCovered,
-                    TimeTaken = pr.TimeTaken
-                });
-            }
-
-            if (result.Count == 0)
+            if (!progressRecords.Any())
             {
                 _logger.LogWarning("No progress records found in the system.");
             }
 
-            return result;
+            return progressRecords.Select(pr => new ProgressRecordDTO
+            {
+                ProgressRecordId = pr.ProgressRecordId,
+                UserId = pr.UserId,
+                ProgressDateTime = pr.ProgressDateTime,
+                DistanceCovered = pr.DistanceCovered,
+                TimeTaken = pr.TimeTaken
+            }).ToList();
         }
 
-        // ✅ Fetch progress record by ID
-        public async Task<ProgressRecordDTO> GetProgressRecordByIdAsync(int id)
+        // ✅ Fetch progress record by ID (Fixed possible null reference return)
+        public async Task<ProgressRecordDTO?> GetProgressRecordByIdAsync(int id)
         {
             _logger.LogInformation($"Fetching progress record with ID {id}");
 
-            var progressRecords = await _context.ProgressRecords.AsNoTracking().ToListAsync();
-            ProgressRecord progressRecord = null;
-
-            foreach (var pr in progressRecords)
-            {
-                if (pr.ProgressRecordId == id)
-                {
-                    progressRecord = pr;
-                    break;
-                }
-            }
+            var progressRecord = await _context.ProgressRecords.AsNoTracking().FirstOrDefaultAsync(pr => pr.ProgressRecordId == id);
 
             if (progressRecord == null)
             {
@@ -82,27 +66,16 @@ namespace RunClub.Services
         }
 
         // ✅ Add new progress record
-        public async Task<ProgressRecordDTO> AddProgressRecordAsync(ProgressRecordDTO progressRecordDto)
+        public async Task<ProgressRecordDTO?> AddProgressRecordAsync(ProgressRecordDTO progressRecordDto)
         {
             _logger.LogInformation("Adding a new progress record...");
 
             // ✅ Validate User existence before proceeding
-            var users = await _context.Users.ToListAsync();
-            bool userExists = false;
-
-            foreach (var user in users)
-            {
-                if (user.UserId == progressRecordDto.UserId)
-                {
-                    userExists = true;
-                    break;
-                }
-            }
-
+            var userExists = await _context.Users.AnyAsync(u => u.UserId == progressRecordDto.UserId);
             if (!userExists)
             {
                 _logger.LogWarning($"User with ID {progressRecordDto.UserId} not found.");
-                return null; // Handle in controller
+                return null;
             }
 
             var progressRecord = new ProgressRecord
@@ -118,8 +91,14 @@ namespace RunClub.Services
                 _context.ProgressRecords.Add(progressRecord);
                 await _context.SaveChangesAsync();
 
-                progressRecordDto.ProgressRecordId = progressRecord.ProgressRecordId;
-                return progressRecordDto;
+                return new ProgressRecordDTO
+                {
+                    ProgressRecordId = progressRecord.ProgressRecordId,
+                    UserId = progressRecord.UserId,
+                    ProgressDateTime = progressRecord.ProgressDateTime,
+                    DistanceCovered = progressRecord.DistanceCovered,
+                    TimeTaken = progressRecord.TimeTaken
+                };
             }
             catch (Exception ex)
             {
@@ -133,17 +112,7 @@ namespace RunClub.Services
         {
             _logger.LogInformation($"Updating progress record with ID {id}");
 
-            var progressRecords = await _context.ProgressRecords.ToListAsync();
-            ProgressRecord existingRecord = null;
-
-            foreach (var pr in progressRecords)
-            {
-                if (pr.ProgressRecordId == id)
-                {
-                    existingRecord = pr;
-                    break;
-                }
-            }
+            var existingRecord = await _context.ProgressRecords.FindAsync(id);
 
             if (existingRecord == null)
             {
@@ -172,17 +141,7 @@ namespace RunClub.Services
         {
             _logger.LogInformation($"Attempting to delete progress record with ID {id}");
 
-            var progressRecords = await _context.ProgressRecords.ToListAsync();
-            ProgressRecord progressRecord = null;
-
-            foreach (var pr in progressRecords)
-            {
-                if (pr.ProgressRecordId == id)
-                {
-                    progressRecord = pr;
-                    break;
-                }
-            }
+            var progressRecord = await _context.ProgressRecords.FindAsync(id);
 
             if (progressRecord == null)
             {
@@ -205,3 +164,4 @@ namespace RunClub.Services
         }
     }
 }
+

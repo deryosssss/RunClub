@@ -1,8 +1,10 @@
-using RunClubAPI.Models;
-using RunClub.DTOs;
+using RunClubAPI.Interfaces;  // Reference to IUserRepository
+using RunClubAPI.Models;      // For the User model
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace RunClub.Repositories
+namespace RunClubAPI.Repositories  // Use the appropriate namespace for repositories
 {
     public class UserRepository : IUserRepository
     {
@@ -46,4 +48,5 @@ namespace RunClub.Repositories
         }
     }
 }
+
 

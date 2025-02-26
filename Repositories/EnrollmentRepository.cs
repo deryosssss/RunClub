@@ -1,5 +1,8 @@
-using RunClubAPI.Interfaces;
-using RunClubAPI.Models;
+using RunClubAPI.Interfaces;  // For IEnrollmentRepository
+using RunClubAPI.Models;      // For Enrollment
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RunClubAPI.Repositories
 {
@@ -18,3 +21,4 @@ namespace RunClubAPI.Repositories
         }
     }
 }
+

@@ -1,4 +1,4 @@
-using RunClub.DTOs;
+using RunClubAPI.DTOs;
 using RunClubAPI.Models;
 
 namespace RunClubAPI.Interfaces

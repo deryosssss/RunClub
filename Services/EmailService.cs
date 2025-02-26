@@ -3,7 +3,9 @@ using MailKit.Security;
 using MimeKit;
 using Microsoft.Extensions.Options;
 //code
-public class EmailService
+namespace RunClubAPI.Services
+{    
+    public class EmailService
 {
     private readonly EmailSettings _emailSettings;
     public EmailService(IOptions<EmailSettings> emailSettings)
@@ -30,4 +32,5 @@ public class EmailService
             client.Disconnect(true);
         }
     }
+}
 }

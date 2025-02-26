@@ -1,8 +1,0 @@
-/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/obj/Release/net8.0/RunClubAPI.csproj.AssemblyReference.cache
-/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/obj/Release/net8.0/RunClubAPI.GeneratedMSBuildEditorConfig.editorconfig
-/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/obj/Release/net8.0/RunClubAPI.AssemblyInfoInputs.cache
-/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/obj/Release/net8.0/RunClubAPI.AssemblyInfo.cs
-/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/obj/Release/net8.0/RunClubAPI.csproj.CoreCompileInputs.cache
-/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/obj/Release/net8.0/RunClubAPI.MvcApplicationPartsAssemblyInfo.cs
-/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/obj/Release/net8.0/RunClubAPI.MvcApplicationPartsAssemblyInfo.cache
-/Users/deryabaglan/Desktop/masters/web development/RunClubAPI/obj/Release/net8.0/RunClubAPI.sourcelink.json

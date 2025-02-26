@@ -9,7 +9,7 @@ using RunClubAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 
 
-namespace RunClub.Controllers
+namespace RunClubAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

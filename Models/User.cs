@@ -1,23 +1,25 @@
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 
 namespace RunClubAPI.Models
 {
-    public class User
+    public class User : IdentityUser
     {
-        public int UserId { get; set; }
-        public required string Name { get; set; } = string.Empty;
-        public required string Email { get; set; } = string.Empty;
+        // Custom fields
+        public int UserId { get; set; } // Ensure this exists
+        public string Name { get; set; } = string.Empty; // Fix nullability issue
+        public override string Email { get; set; } = string.Empty; // Fix hiding inherited Email
         public int RoleId { get; set; }
         public Role? Role { get; set; }
 
+        // Related entities
+        public List<Enrollment> Enrollments { get; set; } = new();
+        public List<ProgressRecord> ProgressRecords { get; set; } = new();
 
-        public List<Enrollment>? Enrollments { get; set; }
-        public List<ProgressRecord>? ProgressRecords { get; set; }
-
-            // ✅ New Fields for Token Refresh
-    public string RefreshToken { get; set; }
-    public DateTime RefreshTokenExpiry { get; set; }
+        // Token Refresh fields
+        public string RefreshToken { get; set; } = string.Empty;
+        public DateTime RefreshTokenExpiry { get; set; }
     }
 }
+

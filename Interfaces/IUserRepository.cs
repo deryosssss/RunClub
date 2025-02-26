@@ -1,6 +1,8 @@
-using RunClubAPI.Models;
+using RunClubAPI.Models;  // For the User model.
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace RunClub.Repositories
+namespace RunClubAPI.Interfaces  // Use the appropriate namespace for interfaces
 {
     public interface IUserRepository
     {

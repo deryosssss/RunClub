@@ -18,4 +18,9 @@ namespace RunClubAPI.DTOs
     {
         public string RefreshToken { get; set; }
     }
+
+        public class RevokeTokenRequest
+    {
+        public string UserId { get; set; }  // The ID of the user whose refresh token should be revoked
+    }
 }

@@ -6,20 +6,23 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RunClubAPI.Models;
-using RunClub.DTOs;
-using RunClub.Services;
+using RunClubAPI.DTOs;
+using RunClubAPI.Services;
+using RunClubAPI.Interfaces; // Add this if not already included
 
-namespace RunClub.Controllers
+namespace RunClubAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class EnrollmentsController : ControllerBase
     {
         private readonly RunClubContext _context;
+        private readonly IEnrollmentService _enrollmentService;  // Add this line
 
-        public EnrollmentsController(RunClubContext context)
+        public EnrollmentsController(RunClubContext context, IEnrollmentService enrollmentService)  // Inject IEnrollmentService
         {
             _context = context;
+            _enrollmentService = enrollmentService;  // Assign injected service
         }
 
         // GET: api/Enrollments
@@ -44,6 +47,7 @@ namespace RunClub.Controllers
             return enrollment;
         }
 
+        // GET: api/Enrollments/event/{eventId}
         [HttpGet("event/{eventId}")]
         public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollmentsByEvent(int eventId)
         {
@@ -52,7 +56,6 @@ namespace RunClub.Controllers
         }
 
         // PUT: api/Enrollments/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutEnrollment(int id, Enrollment enrollment)
         {
@@ -83,7 +86,6 @@ namespace RunClub.Controllers
         }
 
         // POST: api/Enrollments
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Enrollment>> PostEnrollment(Enrollment enrollment)
         {
@@ -115,3 +117,4 @@ namespace RunClub.Controllers
         }
     }
 }
+

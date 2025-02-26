@@ -3,24 +3,27 @@ using Moq;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using RunClub.Controllers; // ✅ Add this if missing
+using RunClubAPI.Controllers;
 using RunClubAPI.Interfaces;
-using RunClub.DTOs;
+using RunClubAPI.DTOs;
+using Microsoft.Extensions.Logging; // Make sure this is included
 
-namespace RunClub.Tests
+namespace RunClubAPI.Tests
 {
     public class ProgressRecordsControllerTests
     {
         private readonly Mock<IProgressRecordService> _mockService;
+        private readonly Mock<ILogger<ProgressRecordsController>> _mockLogger; // Add logger mock
         private readonly ProgressRecordsController _controller;
 
         public ProgressRecordsControllerTests()
         {
             _mockService = new Mock<IProgressRecordService>();
-            _controller = new ProgressRecordsController(_mockService.Object);
+            _mockLogger = new Mock<ILogger<ProgressRecordsController>>(); // Initialize logger mock
+            _controller = new ProgressRecordsController(_mockService.Object, _mockLogger.Object); // Pass both mocks
         }
 
-        // ✅ Test 1: Get All Progress Records
+        // Test 1: Get All Progress Records
         [Fact]
         public async Task GetProgressRecords_ReturnsListOfRecords()
         {
@@ -40,7 +43,7 @@ namespace RunClub.Tests
             Assert.Equal(2, returnRecords.Count);
         }
 
-        // ✅ Test 2: Get Progress Record By ID (Found)
+        // Test 2: Get Progress Record By ID (Found)
         [Fact]
         public async Task GetProgressRecordById_ExistingId_ReturnsOk()
         {
@@ -56,12 +59,12 @@ namespace RunClub.Tests
             Assert.Equal(1, returnRecord.ProgressRecordId);
         }
 
-        // ✅ Test 3: Get Progress Record By ID (Not Found)
+        // Test 3: Get Progress Record By ID (Not Found)
         [Fact]
         public async Task GetProgressRecordById_NonExistingId_ReturnsNotFound()
         {
             _mockService.Setup(service => service.GetProgressRecordByIdAsync(99))
-                        .ReturnsAsync((ProgressRecordDTO?)null); // ✅ Fix nullability issue
+                        .ReturnsAsync((ProgressRecordDTO?)null); // Explicitly cast to nullable
 
             var result = await _controller.GetProgressRecord(99);
 
