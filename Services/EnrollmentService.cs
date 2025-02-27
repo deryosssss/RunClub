@@ -3,6 +3,10 @@ using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace RunClubAPI.Services
 {
@@ -23,11 +27,24 @@ namespace RunClubAPI.Services
             {
                 _logger.LogInformation($"Fetching enrollments (Page {pageNumber}, Page Size {pageSize})");
 
+                // Check if the DbSet is available
+                if (_context.Enrollments == null)
+                {
+                    _logger.LogError("The Enrollments DbSet is null.");
+                    throw new ApplicationException("The Enrollments DbSet is not accessible.");
+                }
+
+                // Validate page number and size
+                if (pageNumber <= 0 || pageSize <= 0)
+                {
+                    _logger.LogWarning("Invalid page number or page size.");
+                    throw new ArgumentException("Page number and page size must be greater than 0.");
+                }
+
+                // Simplify query for debugging purposes (remove pagination temporarily)
                 var enrollments = await _context.Enrollments
                     .AsNoTracking()
-                    .Skip((pageNumber - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
+                    .ToListAsync(); // Fetch all enrollments for debugging
 
                 if (!enrollments.Any())
                 {
@@ -41,6 +58,11 @@ namespace RunClubAPI.Services
                     EventId = e.EventId
                 }).ToList();
             }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Invalid parameters provided for pagination.");
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching enrollments.");
@@ -48,18 +70,29 @@ namespace RunClubAPI.Services
             }
         }
 
+
+
+
         public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
         {
-            return await _context.Enrollments
-                .Where(e => e.EventId == eventId)
-                .Select(e => new EnrollmentDTO
-                {
-                    EnrollmentId = e.EnrollmentId,
-                    EventId = e.EventId,
-                    UserId = e.UserId,
-                    EnrollmentDate = e.EnrollmentDate
-                })
-                .ToListAsync();
+            try
+            {
+                return await _context.Enrollments
+                    .Where(e => e.EventId == eventId)
+                    .Select(e => new EnrollmentDTO
+                    {
+                        EnrollmentId = e.EnrollmentId,
+                        EventId = e.EventId,
+                        UserId = e.UserId,
+                        EnrollmentDate = e.EnrollmentDate
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching enrollments for EventId {eventId}.");
+                throw new ApplicationException("An error occurred while retrieving enrollments for the event.");
+            }
         }
 
         public async Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id) // Ensure nullable return type
@@ -91,7 +124,6 @@ namespace RunClubAPI.Services
                 throw new ApplicationException($"An error occurred while retrieving enrollment {id}.");
             }
         }
-
 
         public async Task AddEnrollmentAsync(EnrollmentDTO enrollmentDto)
         {

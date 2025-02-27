@@ -30,7 +30,7 @@ builder.Services.AddLogging(logging =>
 builder.Services.AddControllers();
 
 // ✅ Configure CORS
-var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(",") ?? new string[] { "http://localhost:3000" };
+var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(",") ?? new string[] { "http://localhost:5187" };
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins", policy =>
