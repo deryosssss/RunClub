@@ -1,14 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RunClubAPI.Models;
 using RunClubAPI.DTOs;
-using RunClubAPI.Services;
-using RunClubAPI.Interfaces; // Add this if not already included
+using RunClubAPI.Interfaces;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RunClubAPI.Controllers
 {
@@ -16,16 +10,14 @@ namespace RunClubAPI.Controllers
     [ApiController]
     public class EnrollmentsController : ControllerBase
     {
-        private readonly RunClubContext _context;
-        private readonly IEnrollmentService _enrollmentService;  // Add this line
+        private readonly IEnrollmentService _enrollmentService;
 
-        public EnrollmentsController(RunClubContext context, IEnrollmentService enrollmentService)  // Inject IEnrollmentService
+        public EnrollmentsController(IEnrollmentService enrollmentService)
         {
-            _context = context;
-            _enrollmentService = enrollmentService;  // Assign injected service
+            _enrollmentService = enrollmentService;
         }
 
-        // GET: api/Enrollments
+        // ✅ GET all enrollments (Paginated)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollments(int pageNumber = 1, int pageSize = 10)
         {
@@ -33,21 +25,18 @@ namespace RunClubAPI.Controllers
             return Ok(enrollments);
         }
 
-        // GET: api/Enrollments/5
+        // ✅ GET enrollment by ID
         [HttpGet("{id}")]
-        public async Task<ActionResult<Enrollment>> GetEnrollment(int id)
+        public async Task<ActionResult<EnrollmentDTO>> GetEnrollment(int id)
         {
-            var enrollment = await _context.Enrollments.FindAsync(id);
-
+            var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
             if (enrollment == null)
-            {
                 return NotFound();
-            }
 
-            return enrollment;
+            return Ok(enrollment);
         }
 
-        // GET: api/Enrollments/event/{eventId}
+        // ✅ GET enrollments for a specific event
         [HttpGet("event/{eventId}")]
         public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollmentsByEvent(int eventId)
         {
@@ -55,65 +44,24 @@ namespace RunClubAPI.Controllers
             return Ok(enrollments);
         }
 
-        // PUT: api/Enrollments/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutEnrollment(int id, Enrollment enrollment)
-        {
-            if (id != enrollment.EnrollmentId)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(enrollment).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EnrollmentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Enrollments
+        // ✅ POST create a new enrollment
         [HttpPost]
-        public async Task<ActionResult<Enrollment>> PostEnrollment(Enrollment enrollment)
+        public async Task<IActionResult> PostEnrollment(EnrollmentDTO enrollmentDto)
         {
-            _context.Enrollments.Add(enrollment);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetEnrollment", new { id = enrollment.EnrollmentId }, enrollment);
+            await _enrollmentService.CreateEnrollmentAsync(enrollmentDto);
+            return CreatedAtAction(nameof(GetEnrollment), new { id = enrollmentDto.EnrollmentId }, enrollmentDto);
         }
 
-        // DELETE: api/Enrollments/5
+        // ✅ DELETE enrollment
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEnrollment(int id)
         {
-            var enrollment = await _context.Enrollments.FindAsync(id);
+            var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
             if (enrollment == null)
-            {
                 return NotFound();
-            }
 
-            _context.Enrollments.Remove(enrollment);
-            await _context.SaveChangesAsync();
-
+            await _enrollmentService.DeleteEnrollmentAsync(id);
             return NoContent();
-        }
-
-        private bool EnrollmentExists(int id)
-        {
-            return _context.Enrollments.Any(e => e.EnrollmentId == id);
         }
     }
 }

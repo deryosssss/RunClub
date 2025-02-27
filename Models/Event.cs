@@ -1,17 +1,13 @@
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-
 namespace RunClubAPI.Models
 {
     public class Event
     {
         public int EventId { get; set; }
-        
-        public required string EventName { get; set; }
-        public required string Description { get; set; }
-        public DateTime EventDate { get; set; }
-        public required string Location { get; set; }
-
-        public List<Enrollment> Enrollments { get; set; } = new();
+        public string EventName { get; set; }
+        public string Description { get; set; }
+        public DateOnly EventDate { get; set; }
+        public TimeOnly EventTime { get; set; } // ✅ Ensure this is correct
+        public string Location { get; set; }
+        public ICollection<Enrollment>? Enrollments { get; set; } // ✅ Ensure nullable
     }
 }

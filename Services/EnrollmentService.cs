@@ -1,196 +1,127 @@
-using RunClubAPI.Models;
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
+using RunClubAPI.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace RunClubAPI.Services
+public class EnrollmentService : IEnrollmentService
 {
-    public class EnrollmentService : IEnrollmentService
+    private readonly RunClubContext _context;
+
+    public EnrollmentService(RunClubContext context)
     {
-        private readonly RunClubContext _context;
-        private readonly ILogger<EnrollmentService> _logger;
+        _context = context;
+    }
 
-        public EnrollmentService(RunClubContext context, ILogger<EnrollmentService> logger)
+    // ✅ GET All Enrollments (Paginated)
+    public async Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10)
+    {
+        return await _context.Enrollments
+            .OrderBy(e => e.EnrollmentDate)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(e => new EnrollmentDTO
+            {
+                EnrollmentId = e.EnrollmentId,
+                EnrollmentDate = e.EnrollmentDate,  // ✅ Proper DateOnly handling
+                UserId = e.UserId,
+                EventId = e.EventId
+            })
+            .ToListAsync();
+    }
+
+    // ✅ GET Enrollment By ID
+    public async Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id)
+    {
+        var enrollment = await _context.Enrollments.FindAsync(id);
+        if (enrollment == null) return null;
+
+        return new EnrollmentDTO
         {
-            _context = context;
-            _logger = logger;
-        }
+            EnrollmentId = enrollment.EnrollmentId,
+            EnrollmentDate = enrollment.EnrollmentDate,  // ✅ Correctly returning DateOnly
+            UserId = enrollment.UserId,
+            EventId = enrollment.EventId
+        };
+    }
 
-        public async Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10)
+    // ✅ GET Enrollments By Event
+    public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
+    {
+        return await _context.Enrollments
+            .Where(e => e.EventId == eventId)
+            .Select(e => new EnrollmentDTO
+            {
+                EnrollmentId = e.EnrollmentId,
+                EnrollmentDate = e.EnrollmentDate,  // ✅ Ensure correct handling
+                UserId = e.UserId,
+                EventId = e.EventId
+            })
+            .ToListAsync();
+    }
+
+    // ✅ CREATE Enrollment
+    public async Task<EnrollmentDTO> CreateEnrollmentAsync(EnrollmentDTO enrollmentDto)
+    {
+        var enrollment = new Enrollment
         {
-            try
-            {
-                _logger.LogInformation($"Fetching enrollments (Page {pageNumber}, Page Size {pageSize})");
-
-                // Check if the DbSet is available
-                if (_context.Enrollments == null)
-                {
-                    _logger.LogError("The Enrollments DbSet is null.");
-                    throw new ApplicationException("The Enrollments DbSet is not accessible.");
-                }
-
-                // Validate page number and size
-                if (pageNumber <= 0 || pageSize <= 0)
-                {
-                    _logger.LogWarning("Invalid page number or page size.");
-                    throw new ArgumentException("Page number and page size must be greater than 0.");
-                }
-
-                // Simplify query for debugging purposes (remove pagination temporarily)
-                var enrollments = await _context.Enrollments
-                    .AsNoTracking()
-                    .ToListAsync(); // Fetch all enrollments for debugging
-
-                if (!enrollments.Any())
-                {
-                    _logger.LogWarning("No enrollments found.");
-                }
-
-                return enrollments.Select(e => new EnrollmentDTO
-                {
-                    EnrollmentId = e.EnrollmentId,
-                    UserId = e.UserId,
-                    EventId = e.EventId
-                }).ToList();
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "Invalid parameters provided for pagination.");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching enrollments.");
-                throw new ApplicationException("An error occurred while retrieving enrollments.");
-            }
-        }
+            EnrollmentDate = enrollmentDto.EnrollmentDate,
+            UserId = enrollmentDto.UserId,
+            EventId = enrollmentDto.EventId,
+            User = await _context.Users.FindAsync(enrollmentDto.UserId) 
+                ?? throw new ArgumentException("User not found"),
+            Event = await _context.Events.FindAsync(enrollmentDto.EventId) 
+                ?? throw new ArgumentException("Event not found")
+        };
 
 
+        _context.Enrollments.Add(enrollment);
+        await _context.SaveChangesAsync();
 
-
-        public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
+        return new EnrollmentDTO
         {
-            try
-            {
-                return await _context.Enrollments
-                    .Where(e => e.EventId == eventId)
-                    .Select(e => new EnrollmentDTO
-                    {
-                        EnrollmentId = e.EnrollmentId,
-                        EventId = e.EventId,
-                        UserId = e.UserId,
-                        EnrollmentDate = e.EnrollmentDate
-                    })
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error fetching enrollments for EventId {eventId}.");
-                throw new ApplicationException("An error occurred while retrieving enrollments for the event.");
-            }
-        }
+            EnrollmentId = enrollment.EnrollmentId,
+            EnrollmentDate = enrollment.EnrollmentDate,
+            UserId = enrollment.UserId,
+            EventId = enrollment.EventId
+        };
+    }
 
-        public async Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id) // Ensure nullable return type
+    // ✅ UPDATE Enrollment
+    public async Task<bool> UpdateEnrollmentAsync(int id, EnrollmentDTO enrollmentDto)
+    {
+        var enrollment = await _context.Enrollments.FindAsync(id);
+        if (enrollment == null) return false;
+
+        enrollment.EnrollmentDate = enrollmentDto.EnrollmentDate;  // ✅ Ensure DateOnly is updated
+        enrollment.UserId = enrollmentDto.UserId;
+        enrollment.EventId = enrollmentDto.EventId;
+
+        _context.Entry(enrollment).State = EntityState.Modified;
+
+        try
         {
-            try
-            {
-                _logger.LogInformation($"Fetching enrollment with ID {id}");
-
-                var enrollment = await _context.Enrollments
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(e => e.EnrollmentId == id);
-
-                if (enrollment == null)
-                {
-                    _logger.LogWarning($"Enrollment with ID {id} not found.");
-                    return null;
-                }
-
-                return new EnrollmentDTO
-                {
-                    EnrollmentId = enrollment.EnrollmentId,
-                    UserId = enrollment.UserId,
-                    EventId = enrollment.EventId
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error fetching enrollment with ID {id}");
-                throw new ApplicationException($"An error occurred while retrieving enrollment {id}.");
-            }
+            await _context.SaveChangesAsync();
+            return true;
         }
-
-        public async Task AddEnrollmentAsync(EnrollmentDTO enrollmentDto)
+        catch (DbUpdateConcurrencyException)
         {
-            _logger.LogInformation("Adding a new enrollment...");
-
-            try
-            {
-                // First, check if the User and Event exist
-                var user = await _context.Users.FindAsync(enrollmentDto.UserId);
-                var eventEntity = await _context.Events.FindAsync(enrollmentDto.EventId);
-
-                if (user == null)
-                {
-                    _logger.LogWarning($"User with ID {enrollmentDto.UserId} not found.");
-                    throw new ApplicationException("User not found.");
-                }
-
-                if (eventEntity == null)
-                {
-                    _logger.LogWarning($"Event with ID {enrollmentDto.EventId} not found.");
-                    throw new ApplicationException("Event not found.");
-                }
-
-                // Create a new Enrollment object
-                var enrollment = new Enrollment
-                {
-                    UserId = enrollmentDto.UserId,
-                    EventId = enrollmentDto.EventId,
-                    User = user,       // Set the User navigation property
-                    Event = eventEntity // Set the Event navigation property
-                };
-
-                // Add the enrollment to the context
-                _context.Enrollments.Add(enrollment);
-
-                // Save the changes to the database
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error adding enrollment: {ex.Message}");
-                throw new ApplicationException("An error occurred while adding enrollment.");
-            }
+            return false;
         }
+    }
 
-        public async Task DeleteEnrollmentAsync(int id)
-        {
-            _logger.LogInformation($"Deleting enrollment with ID {id}");
+    // ✅ DELETE Enrollment
+    public async Task<bool> DeleteEnrollmentAsync(int id)
+    {
+        var enrollment = await _context.Enrollments.FindAsync(id);
+        if (enrollment == null) return false;
 
-            var enrollment = await _context.Enrollments.FindAsync(id);
-            if (enrollment == null)
-            {
-                _logger.LogWarning($"Enrollment with ID {id} not found.");
-                return;
-            }
+        _context.Enrollments.Remove(enrollment);
+        await _context.SaveChangesAsync();
 
-            _context.Enrollments.Remove(enrollment);
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting enrollment: {ex.Message}");
-                throw new ApplicationException("An error occurred while deleting enrollment.");
-            }
-        }
+        return true;
     }
 }

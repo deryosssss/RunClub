@@ -1,5 +1,6 @@
 using RunClubAPI.DTOs;
-using RunClubAPI.Models;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RunClubAPI.Interfaces
 {
@@ -8,11 +9,12 @@ namespace RunClubAPI.Interfaces
         Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10);
         Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id);
         Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId);
-        Task AddEnrollmentAsync(EnrollmentDTO enrollment);
-        Task DeleteEnrollmentAsync(int id);
+        Task<EnrollmentDTO> CreateEnrollmentAsync(EnrollmentDTO enrollmentDto);
+        Task<bool> UpdateEnrollmentAsync(int id, EnrollmentDTO enrollmentDto);
+        Task<bool> DeleteEnrollmentAsync(int id);
     }
-
 }
+
 
 /* Why These Values?
 Page Number (1): By convention, pagination often starts at 1, as users generally expect the first page to be numbered as 1. Page 0 would be unusual in most pagination systems, and it's more natural to start from 1.

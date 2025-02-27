@@ -1,150 +1,152 @@
-using RunClubAPI.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using RunClubAPI.Models;
 
-namespace RunClubAPI.Services
+public class UserService : IUserService
 {
-    public class UserService : IUserService
+    private readonly RunClubContext _context;
+
+    public UserService(RunClubContext context)
     {
-        private readonly RunClubContext _context;
-        private readonly ILogger<UserService> _logger;
+        _context = context;
+    }
 
-        public UserService(RunClubContext context, ILogger<UserService> logger)
+    // ✅ Create User (With Role)
+    public async Task<UserDTO?> CreateUserAsync(UserDTO userDto)
+    {
+        if (string.IsNullOrEmpty(userDto.RoleId))
         {
-            _context = context;
-            _logger = logger;
+            return null; // 🚨 Ensure RoleId is provided
         }
 
-        // ✅ Fetch all users with pagination
-        public async Task<IEnumerable<UserDTO>> GetAllUsersAsync(int pageNumber, int pageSize)
+        // ✅ Fetch the Role from the database
+        var role = await _context.Roles.FindAsync(userDto.RoleId);
+        if (role == null)
         {
-            _logger.LogInformation($"Fetching users - Page: {pageNumber}, Size: {pageSize}");
-
-            var users = await _context.Users
-                .AsNoTracking()
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            if (!users.Any())
-            {
-                _logger.LogWarning("No users found.");
-            }
-
-            return users.Select(u => new UserDTO
-            {
-                UserId = u.UserId,
-                Name = u.Name,
-                Email = u.Email!,
-                RoleId = u.RoleId
-            }).ToList();
+            return null; // 🚨 Role not found
         }
 
-        // ✅ Fetch user by ID (Fixed possible null reference return)
-        public async Task<UserDTO?> GetUserByIdAsync(int id)
+        var user = new User
         {
-            _logger.LogInformation($"Fetching user with ID {id}");
+            Name = userDto.Name,
+            Email = userDto.Email,
+            RoleId = userDto.RoleId,  // ✅ Assign RoleId
+            Role = role  // ✅ Assign Role object
+        };
 
-            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == id);
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
 
-            if (user == null)
+        return new UserDTO
+        {
+            UserId = user.UserId,
+            Name = user.Name,
+            Email = user.Email,
+            RoleId = user.RoleId,
+            Role = new RoleDTO
             {
-                _logger.LogWarning($"User with ID {id} not found.");
-                return null;
+                RoleId = role.RoleId,
+                RoleName = role.RoleName,
+                RoleNormalizedName = role.RoleNormalizedName
             }
+        };
+    }
 
-            return new UserDTO
+    // ✅ Get All Users (With Pagination)
+    public async Task<IEnumerable<UserDTO>> GetAllUsersAsync(int pageNumber, int pageSize)
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Select(user => new UserDTO
             {
                 UserId = user.UserId,
                 Name = user.Name,
-                Email = user.Email!,
-                RoleId = user.RoleId
-            };
-        }
+                Email = user.Email,
+                RoleId = user.RoleId,
+                Role = user.Role != null ? new RoleDTO
+                {
+                    RoleId = user.Role.RoleId,
+                    RoleName = user.Role.RoleName,
+                    RoleNormalizedName = user.Role.RoleNormalizedName
+                } : null
+            })
+            .ToListAsync();
+    }
 
-        // ✅ Fetch users by Role ID
-        public async Task<IEnumerable<UserDTO>> GetUsersByRoleAsync(int roleId)
+    // ✅ Get User by ID
+    public async Task<UserDTO?> GetUserByIdAsync(int id)
+    {
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.UserId == id);
+
+        if (user == null) return null;
+
+        return new UserDTO
         {
-            _logger.LogInformation($"Fetching users with Role ID {roleId}");
-
-            var users = await _context.Users.AsNoTracking().Where(u => u.RoleId == roleId).ToListAsync();
-
-            if (!users.Any())
+            UserId = user.UserId,
+            Name = user.Name,
+            Email = user.Email,
+            RoleId = user.RoleId,
+            Role = user.Role != null ? new RoleDTO
             {
-                _logger.LogWarning($"No users found with Role ID {roleId}.");
-            }
+                RoleId = user.Role.RoleId,
+                RoleName = user.Role.RoleName,
+                RoleNormalizedName = user.Role.RoleNormalizedName
+            } : null
+        };
+    }
 
-            return users.Select(u => new UserDTO
+    // ✅ Update User
+    public async Task<bool> UpdateUserAsync(int id, UserDTO userDto)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null) return false;
+
+        user.Name = userDto.Name;
+        user.Email = userDto.Email;
+        user.RoleId = userDto.RoleId;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    // ✅ Delete User
+    public async Task<bool> DeleteUserAsync(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null) return false;
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    // ✅ Get Users by Role
+    public async Task<IEnumerable<UserDTO>> GetUsersByRoleAsync(string roleId)
+    {
+        return await _context.Users
+            .Where(u => u.RoleId == roleId)
+            .Include(u => u.Role)
+            .Select(user => new UserDTO
             {
-                UserId = u.UserId,
-                Name = u.Name,
-                Email = u.Email!,
-                RoleId = u.RoleId
-            }).ToList();
-        }
-
-        // ✅ Create a new user (Fixed RefreshToken issue)
-        public async Task<UserDTO> CreateUserAsync(UserDTO userDto)
-        {
-            _logger.LogInformation("Creating new user.");
-
-            var newUser = new User
-            {
-                Name = userDto.Name,
-                Email = userDto.Email,
-                RoleId = userDto.RoleId,
-                RefreshToken = Guid.NewGuid().ToString(), // Ensures RefreshToken is not null
-                RefreshTokenExpiry = DateTime.UtcNow.AddDays(7) // Example expiration
-            };
-
-            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
-
-            return new UserDTO
-            {
-                UserId = newUser.UserId,
-                Name = newUser.Name,
-                Email = newUser.Email!,
-                RoleId = newUser.RoleId
-            };
-        }
-
-        // ✅ Update an existing user
-        public async Task UpdateUserAsync(int id, UserDTO userDto)
-        {
-            _logger.LogInformation($"Updating user with ID {id}");
-
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
-            {
-                _logger.LogError($"User with ID {id} not found.");
-                return;
-            }
-
-            user.Name = userDto.Name;
-            user.Email = userDto.Email;
-            user.RoleId = userDto.RoleId;
-
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync(); // Ensures changes are saved
-        }
-
-        // ✅ Delete a user
-        public async Task DeleteUserAsync(int id)
-        {
-            _logger.LogInformation($"Deleting user with ID {id}");
-
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                _logger.LogError($"User with ID {id} not found.");
-                return;
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-        }
+                UserId = user.UserId,
+                Name = user.Name,
+                Email = user.Email,
+                RoleId = user.RoleId,
+                Role = user.Role != null ? new RoleDTO
+                {
+                    RoleId = user.Role.RoleId,
+                    RoleName = user.Role.RoleName,
+                    RoleNormalizedName = user.Role.RoleNormalizedName
+                } : null
+            })
+            .ToListAsync();
     }
 }

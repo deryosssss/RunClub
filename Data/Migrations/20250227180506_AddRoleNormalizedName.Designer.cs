@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RunClubAPI.Models;
 
@@ -10,9 +11,11 @@ using RunClubAPI.Models;
 namespace RunClub.Migrations
 {
     [DbContext(typeof(RunClubContext))]
-    partial class RunClubContextModelSnapshot : ModelSnapshot
+    [Migration("20250227180506_AddRoleNormalizedName")]
+    partial class AddRoleNormalizedName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.2");
@@ -45,19 +48,19 @@ namespace RunClub.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "d277e833-cb6a-4e69-aace-7a342b6c2cf9",
+                            Id = "78ffa353-52f8-4113-8204-856999bd3411",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "4ff98108-ed9c-4029-ac0c-dd30c531012b",
+                            Id = "674236fe-1b32-43b9-9473-e8d94c426e1d",
                             Name = "Coach",
                             NormalizedName = "COACH"
                         },
                         new
                         {
-                            Id = "1955c25b-0b3b-4bbc-8f4b-3219cb2943fa",
+                            Id = "6fee3675-42a2-4d77-8d58-f48b2e55b765",
                             Name = "Runner",
                             NormalizedName = "RUNNER"
                         });
@@ -202,11 +205,14 @@ namespace RunClub.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("EventDate")
+                    b.Property<DateOnly>("EventDate")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("EventName")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("EventTime")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Location")
@@ -227,7 +233,14 @@ namespace RunClub.Migrations
                     b.Property<double>("DistanceCovered")
                         .HasColumnType("REAL");
 
-                    b.Property<DateTime>("ProgressDateTime")
+                    b.Property<DateOnly>("ProgressDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProgressDetails")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeOnly>("ProgressTime")
                         .HasColumnType("TEXT");
 
                     b.Property<double>("TimeTaken")
@@ -248,11 +261,14 @@ namespace RunClub.Migrations
 
             modelBuilder.Entity("RunClubAPI.Models.Role", b =>
                 {
-                    b.Property<int>("RoleId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("RoleId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("RoleName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RoleNormalizedName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -315,8 +331,9 @@ namespace RunClub.Migrations
                     b.Property<DateTime>("RefreshTokenExpiry")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("RoleId")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("RoleId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RunClubAPI.Services
@@ -36,13 +37,14 @@ namespace RunClubAPI.Services
             {
                 ProgressRecordId = pr.ProgressRecordId,
                 UserId = pr.UserId,
-                ProgressDateTime = pr.ProgressDateTime,
+                ProgressDate = pr.ProgressDate.ToString("yyyy-MM-dd"),  // Store as string (ISO format)
+                ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),    // Store as string (24-hour format)
                 DistanceCovered = pr.DistanceCovered,
                 TimeTaken = pr.TimeTaken
             }).ToList();
         }
 
-        // ✅ Fetch progress record by ID (Fixed possible null reference return)
+        // ✅ Fetch progress record by ID
         public async Task<ProgressRecordDTO?> GetProgressRecordByIdAsync(int id)
         {
             _logger.LogInformation($"Fetching progress record with ID {id}");
@@ -59,7 +61,8 @@ namespace RunClubAPI.Services
             {
                 ProgressRecordId = progressRecord.ProgressRecordId,
                 UserId = progressRecord.UserId,
-                ProgressDateTime = progressRecord.ProgressDateTime,
+                ProgressDate = progressRecord.ProgressDate.ToString("yyyy-MM-dd"),
+                ProgressTime = progressRecord.ProgressTime.ToString("HH:mm:ss"),
                 DistanceCovered = progressRecord.DistanceCovered,
                 TimeTaken = progressRecord.TimeTaken
             };
@@ -78,10 +81,19 @@ namespace RunClubAPI.Services
                 return null;
             }
 
+            // ✅ Convert string date/time to `DateOnly` and `TimeOnly`
+            if (!DateOnly.TryParse(progressRecordDto.ProgressDate, out var parsedDate) ||
+                !TimeOnly.TryParse(progressRecordDto.ProgressTime, out var parsedTime))
+            {
+                _logger.LogWarning("Invalid date or time format provided.");
+                return null;
+            }
+
             var progressRecord = new ProgressRecord
             {
                 UserId = progressRecordDto.UserId,
-                ProgressDateTime = progressRecordDto.ProgressDateTime,
+                ProgressDate = parsedDate,
+                ProgressTime = parsedTime,
                 DistanceCovered = progressRecordDto.DistanceCovered,
                 TimeTaken = progressRecordDto.TimeTaken
             };
@@ -95,7 +107,8 @@ namespace RunClubAPI.Services
                 {
                     ProgressRecordId = progressRecord.ProgressRecordId,
                     UserId = progressRecord.UserId,
-                    ProgressDateTime = progressRecord.ProgressDateTime,
+                    ProgressDate = progressRecord.ProgressDate.ToString("yyyy-MM-dd"),
+                    ProgressTime = progressRecord.ProgressTime.ToString("HH:mm:ss"),
                     DistanceCovered = progressRecord.DistanceCovered,
                     TimeTaken = progressRecord.TimeTaken
                 };
@@ -120,7 +133,16 @@ namespace RunClubAPI.Services
                 return false;
             }
 
-            existingRecord.ProgressDateTime = progressRecordDto.ProgressDateTime;
+            // ✅ Convert string date/time to `DateOnly` and `TimeOnly`
+            if (!DateOnly.TryParse(progressRecordDto.ProgressDate, out var parsedDate) ||
+                !TimeOnly.TryParse(progressRecordDto.ProgressTime, out var parsedTime))
+            {
+                _logger.LogWarning("Invalid date or time format provided.");
+                return false;
+            }
+
+            existingRecord.ProgressDate = parsedDate;
+            existingRecord.ProgressTime = parsedTime;
             existingRecord.DistanceCovered = progressRecordDto.DistanceCovered;
             existingRecord.TimeTaken = progressRecordDto.TimeTaken;
 

@@ -1,17 +1,16 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RunClubAPI.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")] // Ensure only Admins can manage roles
+    [Authorize(Roles = "Admin")] // Only Admins can manage roles
     public class RolesController : ControllerBase
     {
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -23,7 +22,7 @@ namespace RunClubAPI.Controllers
             _userManager = userManager;
         }
 
-        // GET: api/Roles
+        // ✅ Get all roles
         [HttpGet]
         public async Task<ActionResult<IEnumerable<string>>> GetRoles()
         {
@@ -31,22 +30,34 @@ namespace RunClubAPI.Controllers
             return Ok(roles);
         }
 
-        // GET: api/Roles/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<IdentityRole>> GetRole(string id)
+        public async Task<ActionResult<RoleDTO>> GetRoleById(string id)
         {
             var role = await _roleManager.FindByIdAsync(id);
+
             if (role == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Role not found." });
             }
-            return Ok(role);
+
+            return Ok(new RoleDTO
+            {
+                RoleId = role.Id,
+                RoleName = role.Name,
+                RoleNormalizedName = role.NormalizedName
+            });
         }
 
-        // POST: api/Roles
+
+        // ✅ Create a new role (Prevents duplicate roles)
         [HttpPost]
         public async Task<IActionResult> CreateRole([FromBody] string roleName)
         {
+            if (await _roleManager.RoleExistsAsync(roleName))
+            {
+                return BadRequest("Role already exists.");
+            }
+
             var role = new IdentityRole(roleName);
             var result = await _roleManager.CreateAsync(role);
 
@@ -58,7 +69,7 @@ namespace RunClubAPI.Controllers
             return BadRequest(result.Errors);
         }
 
-        // POST: api/Roles/assign-role-to-user
+        // ✅ Assign a role to a user (Prevents assigning "Admin" role to oneself)
         [HttpPost("assign-role-to-user")]
         public async Task<IActionResult> AssignRoleToUser([FromBody] AssignRoleModel model)
         {
@@ -74,6 +85,13 @@ namespace RunClubAPI.Controllers
                 return NotFound("Role not found.");
             }
 
+            // Prevent users from assigning themselves the "Admin" role
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser != null && currentUser.Id == user.Id && model.RoleName == "Admin")
+            {
+                return BadRequest("You cannot assign yourself the Admin role.");
+            }
+
             var result = await _userManager.AddToRoleAsync(user, model.RoleName);
             if (result.Succeeded)
             {
@@ -83,14 +101,20 @@ namespace RunClubAPI.Controllers
             return BadRequest(result.Errors);
         }
 
-        // DELETE: api/Roles/5
+        // ✅ Delete a role (Prevents deleting "Admin" role)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(string id)
         {
             var role = await _roleManager.FindByIdAsync(id);
             if (role == null)
             {
-                return NotFound();
+                return NotFound("Role not found.");
+            }
+
+            // Prevent deletion of the "Admin" role
+            if (role.Name == "Admin")
+            {
+                return BadRequest("The Admin role cannot be deleted.");
             }
 
             var result = await _roleManager.DeleteAsync(role);
@@ -103,7 +127,7 @@ namespace RunClubAPI.Controllers
         }
     }
 
-    // Model to handle assigning roles to users
+    // ✅ Model for assigning roles to users
     public class AssignRoleModel
     {
         public string UserId { get; set; }

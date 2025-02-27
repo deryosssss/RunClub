@@ -28,6 +28,14 @@ namespace RunClubAPI.Controllers
         {
             _logger.LogInformation("Fetching all progress records...");
             var progressRecords = await _progressRecordService.GetAllProgressRecordsAsync();
+            
+            if (progressRecords?.Any() != true) // ✅ Null-safe check for empty list
+            {
+                _logger.LogWarning("No progress records found.");
+                return NotFound("No progress records available.");
+            }
+
+
             return Ok(progressRecords);
         }
 
@@ -53,6 +61,12 @@ namespace RunClubAPI.Controllers
         {
             _logger.LogInformation("Attempting to add a new progress record...");
 
+            // Ensure progressDate and progressTime are properly formatted
+            if (string.IsNullOrWhiteSpace(progressRecordDto.ProgressDate) || string.IsNullOrWhiteSpace(progressRecordDto.ProgressTime))
+            {
+                return BadRequest(new { message = "Both ProgressDate and ProgressTime are required." });
+            }
+
             var createdRecord = await _progressRecordService.AddProgressRecordAsync(progressRecordDto);
 
             if (createdRecord == null)
@@ -73,6 +87,13 @@ namespace RunClubAPI.Controllers
             }
 
             _logger.LogInformation($"Updating progress record with ID {id}");
+
+            // Ensure progressDate and progressTime are properly formatted
+            if (string.IsNullOrWhiteSpace(progressRecordDto.ProgressDate) || string.IsNullOrWhiteSpace(progressRecordDto.ProgressTime))
+            {
+                return BadRequest(new { message = "Both ProgressDate and ProgressTime are required." });
+            }
+
             var updateSuccess = await _progressRecordService.UpdateProgressRecordAsync(id, progressRecordDto);
 
             if (!updateSuccess)
@@ -99,3 +120,4 @@ namespace RunClubAPI.Controllers
         }
     }
 }
+

@@ -42,7 +42,7 @@ namespace RunClubAPI.Controllers
         }
 
         [HttpGet("role/{roleId}")]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersByRole(int roleId)
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersByRole(string roleId)
         {
             _logger.LogInformation($"Fetching users with Role ID {roleId}");
             var users = await _userService.GetUsersByRoleAsync(roleId);
@@ -52,16 +52,19 @@ namespace RunClubAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDto)
         {
-            _logger.LogInformation("Creating new user.");
+            _logger.LogInformation("Creating new user with role information.");
+
+            // ✅ Call the service to create the user (including role)
             var createdUser = await _userService.CreateUserAsync(userDto);
 
             if (createdUser == null)
             {
-                _logger.LogWarning("User creation failed due to invalid RoleId.");
-                return BadRequest(new { message = "Invalid RoleId" });
+                _logger.LogWarning("User creation failed.");
+                return BadRequest(new { message = "User creation failed" });
             }
 
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.UserId }, createdUser);
         }
+
     }
 }

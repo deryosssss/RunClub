@@ -36,7 +36,7 @@ namespace RunClubAPI.Services
         }
 
         // ✅ Fetch role by ID
-        public async Task<RoleDTO> GetRoleByIdAsync(int id)
+        public async Task<RoleDTO> GetRoleByIdAsync(string id) // Change int to string
         {
             _logger.LogInformation($"Fetching role with ID {id}");
 
