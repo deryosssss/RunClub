@@ -12,51 +12,67 @@ namespace RunClubAPI.Services
 {
     public class ProgressRecordService : IProgressRecordService
     {
-        private readonly RunClubContext _context;
-        private readonly ILogger<ProgressRecordService> _logger;
+        private readonly RunClubContext _context; // Dependency for database access
+        private readonly ILogger<ProgressRecordService> _logger; // Logger for debugging and monitoring
 
+        /// <summary>
+        /// Constructor for ProgressRecordService.
+        /// Injects RunClubContext for database interactions and ILogger for logging.
+        /// </summary>
         public ProgressRecordService(RunClubContext context, ILogger<ProgressRecordService> logger)
         {
             _context = context;
             _logger = logger;
         }
 
-        // ✅ Fetch all progress records
+        /// <summary>
+        /// Retrieves all progress records from the database.
+        /// Uses AsNoTracking() to improve performance by not tracking entities in EF Core.
+        /// </summary>
         public async Task<IEnumerable<ProgressRecordDTO>> GetAllProgressRecordsAsync()
         {
             _logger.LogInformation("Fetching all progress records...");
 
+            // Retrieve progress records from the database without tracking changes
             var progressRecords = await _context.ProgressRecords.AsNoTracking().ToListAsync();
 
+            // Log a warning if no records are found
             if (!progressRecords.Any())
             {
                 _logger.LogWarning("No progress records found in the system.");
             }
 
+            // Convert ProgressRecord entities into DTOs before returning to ensure API encapsulation
             return progressRecords.Select(pr => new ProgressRecordDTO
             {
                 ProgressRecordId = pr.ProgressRecordId,
                 UserId = pr.UserId,
-                ProgressDate = pr.ProgressDate.ToString("yyyy-MM-dd"),  // Store as string (ISO format)
-                ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),    // Store as string (24-hour format)
+                ProgressDate = pr.ProgressDate.ToString("yyyy-MM-dd"),  // Store date in ISO format
+                ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),    // Store time in 24-hour format
                 DistanceCovered = pr.DistanceCovered,
                 TimeTaken = pr.TimeTaken
             }).ToList();
         }
 
-        // ✅ Fetch progress record by ID
+        /// <summary>
+        /// Retrieves a specific progress record by its unique ID.
+        /// </summary>
         public async Task<ProgressRecordDTO?> GetProgressRecordByIdAsync(int id)
         {
             _logger.LogInformation($"Fetching progress record with ID {id}");
 
-            var progressRecord = await _context.ProgressRecords.AsNoTracking().FirstOrDefaultAsync(pr => pr.ProgressRecordId == id);
+            // Fetch the record from the database, but do not track it for performance optimization
+            var progressRecord = await _context.ProgressRecords.AsNoTracking()
+                .FirstOrDefaultAsync(pr => pr.ProgressRecordId == id);
 
+            // Log a warning if the record does not exist
             if (progressRecord == null)
             {
                 _logger.LogWarning($"Progress record with ID {id} not found.");
                 return null;
             }
 
+            // Convert entity to DTO before returning
             return new ProgressRecordDTO
             {
                 ProgressRecordId = progressRecord.ProgressRecordId,
@@ -68,12 +84,15 @@ namespace RunClubAPI.Services
             };
         }
 
-        // ✅ Add new progress record
+        /// <summary>
+        /// Adds a new progress record to the database.
+        /// Ensures that the associated User exists before adding the record.
+        /// </summary>
         public async Task<ProgressRecordDTO?> AddProgressRecordAsync(ProgressRecordDTO progressRecordDto)
         {
             _logger.LogInformation("Adding a new progress record...");
 
-            // ✅ Validate User existence before proceeding
+            // Validate if the user exists before adding a progress record
             var userExists = await _context.Users.AnyAsync(u => u.UserId == progressRecordDto.UserId);
             if (!userExists)
             {
@@ -81,7 +100,7 @@ namespace RunClubAPI.Services
                 return null;
             }
 
-            // ✅ Convert string date/time to `DateOnly` and `TimeOnly`
+            // Convert string-based date/time into DateOnly and TimeOnly types
             if (!DateOnly.TryParse(progressRecordDto.ProgressDate, out var parsedDate) ||
                 !TimeOnly.TryParse(progressRecordDto.ProgressTime, out var parsedTime))
             {
@@ -89,6 +108,7 @@ namespace RunClubAPI.Services
                 return null;
             }
 
+            // Create a new ProgressRecord entity with the converted values
             var progressRecord = new ProgressRecord
             {
                 UserId = progressRecordDto.UserId,
@@ -100,9 +120,11 @@ namespace RunClubAPI.Services
 
             try
             {
+                // Add the new record to the database
                 _context.ProgressRecords.Add(progressRecord);
                 await _context.SaveChangesAsync();
 
+                // Convert the saved entity back to DTO and return it
                 return new ProgressRecordDTO
                 {
                     ProgressRecordId = progressRecord.ProgressRecordId,
@@ -120,20 +142,23 @@ namespace RunClubAPI.Services
             }
         }
 
-        // ✅ Update progress record
+        /// <summary>
+        /// Updates an existing progress record identified by ID.
+        /// Converts string-based date and time to DateOnly and TimeOnly.
+        /// </summary>
         public async Task<bool> UpdateProgressRecordAsync(int id, ProgressRecordDTO progressRecordDto)
         {
             _logger.LogInformation($"Updating progress record with ID {id}");
 
+            // Retrieve the existing record
             var existingRecord = await _context.ProgressRecords.FindAsync(id);
-
             if (existingRecord == null)
             {
                 _logger.LogWarning($"Progress record with ID {id} not found.");
                 return false;
             }
 
-            // ✅ Convert string date/time to `DateOnly` and `TimeOnly`
+            // Convert string date/time to DateOnly and TimeOnly
             if (!DateOnly.TryParse(progressRecordDto.ProgressDate, out var parsedDate) ||
                 !TimeOnly.TryParse(progressRecordDto.ProgressTime, out var parsedTime))
             {
@@ -141,6 +166,7 @@ namespace RunClubAPI.Services
                 return false;
             }
 
+            // Update the existing record with new values
             existingRecord.ProgressDate = parsedDate;
             existingRecord.ProgressTime = parsedTime;
             existingRecord.DistanceCovered = progressRecordDto.DistanceCovered;
@@ -148,6 +174,7 @@ namespace RunClubAPI.Services
 
             try
             {
+                // Save changes to the database
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -158,19 +185,23 @@ namespace RunClubAPI.Services
             }
         }
 
-        // ✅ Delete progress record
+        /// <summary>
+        /// Deletes a progress record by its unique ID.
+        /// Ensures that the record exists before attempting deletion.
+        /// </summary>
         public async Task<bool> DeleteProgressRecordAsync(int id)
         {
             _logger.LogInformation($"Attempting to delete progress record with ID {id}");
 
+            // Retrieve the record from the database
             var progressRecord = await _context.ProgressRecords.FindAsync(id);
-
             if (progressRecord == null)
             {
                 _logger.LogWarning($"Progress record with ID {id} not found.");
                 return false;
             }
 
+            // Remove the record from the database
             _context.ProgressRecords.Remove(progressRecord);
 
             try
@@ -186,4 +217,4 @@ namespace RunClubAPI.Services
         }
     }
 }
-
+ /* The ProgressRecordService is a key component of the RunClubAPI, responsible for managing users' progress records. It implements IProgressRecordService and follows asynchronous programming with Entity Framework Core (EF Core) to optimize database interactions. It provides CRUD operations, ensuring that data integrity and validation are maintained before inserting or updating records. The use of logging (ILogger) allows efficient debugging and monitoring, while error handling prevents crashes and improves API stability. Additionally, data transformation between entities and DTOs ensures a clean API response structure. By implementing best practices like AsNoTracking(), validation before operations, and exception handling, this service ensures that RunClubAPI remains scalable, efficient, and maintainable for tracking users' progress effectively. */ 

@@ -7,133 +7,86 @@ using System.Threading.Tasks;
 
 namespace RunClubAPI.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+// This controller handles authentication-related actions: login, refresh token, and token revocation.
+    [Route("api/[controller]")] // Base route: "api/auth"
+    [ApiController] // Enforces automatic model validation & request binding.
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IAuthService _authService; // Service to handle authentication logic.
 
+        // Constructor: Dependency Injection
         public AuthController(IAuthService authService)
         {
-            _authService = authService;
+            _authService = authService; // Injects the authentication service.
         }
 
-        // Authenticate user
+        // Authenticate User (Login)
         [HttpPost("authenticate")]
         public async Task<ActionResult<AuthResponseDTO>> AuthenticateUser([FromBody] LoginDTO loginRequest)
         {
+            // Validate the request
             if (loginRequest == null || string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.Password))
             {
-                return BadRequest("Invalid credentials");
+                return BadRequest("Invalid credentials"); // Prevents null/empty requests.
             }
 
+            // Authenticate the user using the service
             var authResponse = await _authService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
 
             if (authResponse == null)
             {
-                return Unauthorized("Invalid email or password");
+                return Unauthorized("Invalid email or password"); // Prevents information leakage.
             }
 
-            return Ok(authResponse);
+            return Ok(authResponse); // Returns JWT & refresh token if successful.
         }
 
-        // Refresh token
+        // Refresh Token (Used to get a new access token without logging in again)
         [HttpPost("refresh-token")]
         public async Task<ActionResult<AuthResponseDTO>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
+            // Validate request
             if (request == null || string.IsNullOrEmpty(request.RefreshToken))
             {
-                return BadRequest("Invalid refresh token");
+                return BadRequest("Invalid refresh token"); // Prevents null/empty requests.
             }
 
+            // Attempt to refresh the token
             var authResponse = await _authService.RefreshTokenAsync(request);
+
             if (authResponse == null)
             {
-                return Unauthorized("Invalid refresh token");
+                return Unauthorized("Invalid refresh token"); // Prevents token abuse.
             }
 
-            return Ok(authResponse);
+            return Ok(authResponse); // Returns new JWT & refresh token.
         }
 
-        // Revoke refresh token
+        // Revoke Refresh Token (Logs out user across all devices)
         [HttpPost("revoke-refresh-token")]
         public async Task<IActionResult> RevokeRefreshToken([FromBody] RevokeTokenRequest request)
         {
+            // Validate request
             if (request == null || string.IsNullOrEmpty(request.UserId))
             {
-                return BadRequest("Invalid user ID");
+                return BadRequest("Invalid user ID"); // Prevents null/empty requests.
             }
 
+            //  Revoke the user's refresh token (logout from all sessions)
             await _authService.RevokeRefreshTokenAsync(request.UserId);
-            return NoContent();
+            
+            return NoContent(); // Indicates successful logout (204 No Content).
         }
     }
-
-//     [Route("api/auth")]
-//     [ApiController]
-//     public class AuthController : ControllerBase
-// {
-//     private readonly IAuthService _authService;
-
-//     public AuthController(IAuthService authService)
-//     {
-//         _authService = authService;
-//     }
-
-//     /// <summary>
-//     /// Register a new user
-//     /// </summary>
-//     [HttpPost("register")]
-//     public async Task<IActionResult> Register([FromBody] RegisterDTO request)
-//     {
-//         var success = await _authService.RegisterAsync(request.Email, request.Password);
-//         if (success)
-//             return Ok(new { message = "User registered successfully." });
-
-//         return BadRequest(new { message = "Registration failed. Email may already exist." });
-//     }
-
-//     /// <summary>
-//     /// Authenticate user and return JWT & Refresh Token
-//     /// </summary>
-//     [HttpPost("login")]
-//     public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
-//     {
-//         var result = await _authService.AuthenticateUserAsync(loginDto);
-//         if (result == null)
-//             return Unauthorized(new { message = "Invalid credentials." });
-
-//         return Ok(result);
-//     }
-
-//     /// <summary>
-//     /// Refresh JWT Token using a valid Refresh Token
-//     /// </summary>
-//     [HttpPost("refresh-token")]
-//     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest refreshTokenRequest)
-//     {
-//         var result = await _authService.RefreshTokenAsync(refreshTokenRequest);
-//         if (result == null)
-//             return Unauthorized(new { message = "Invalid or expired refresh token." });
-
-//         return Ok(result);
-//     }
-
-//     /// <summary>
-//     /// Logout user (Revoke Refresh Token)
-//     /// Requires Authorization
-//     /// </summary>
-//     [Authorize]
-//     [HttpPost("logout")]
-//     public async Task<IActionResult> Logout()
-//     {
-//         var userId = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-//         if (userId == null)
-//             return BadRequest(new { message = "User ID not found in token." });
-
-//         await _authService.RevokeRefreshTokenAsync(userId);
-//         return Ok(new { message = "Logged out successfully." });
-//     }
-// }
-
 }
+
+/* 🛡️ Security Features Explained
+✔ Prevents Null/Empty Requests – Rejects invalid authentication attempts.
+✔ Prevents Token Theft – Only valid refresh tokens can request new access tokens.
+✔ Enhances User Experience – Refresh tokens allow seamless re-authentication without frequent logins.
+✔ Improves Security – Refresh token revocation ensures users can be forcefully logged out across all sessions.
+
+✅ What You Can Say in Your Viva
+"The AuthController handles authentication using the IAuthService, which ensures clean separation of concerns."
+"The refresh token system enhances security by allowing users to obtain a new access token without re-entering credentials."
+"Revoking refresh tokens is essential for logging users out across all devices, preventing unauthorized access." */

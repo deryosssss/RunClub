@@ -16,13 +16,13 @@ RunClub API is a RESTful web service built with ASP.NET Core and Entity Framewor
 
 - Progress Tracking: Users can log their running progress and view historical data.
 
-- Role-Based Access Control (RBAC): Admins and regular users have different access permissions.
+- Role-Based Access Control (RBAC): Admins can manage events and users, while regular users can enroll in events and track progress.
 
 - Pagination & Filtering: Efficient data retrieval with built-in pagination and filtering.
 
 - Security: Implements JWT authentication and IP rate limiting to prevent unauthorized access.
 
-Health Monitoring: A /health endpoint for checking the API's operational status.
+- Health Monitoring: A /health endpoint for checking the API's operational status.
 
 ##  4. Installation Instructions
 
@@ -30,7 +30,7 @@ Health Monitoring: A /health endpoint for checking the API's operational status.
 
 To get started, clone the repository to your local machine:
 
-git clone https://github.com/deryosssss/RunClub.git
+[RunClub GitHub Repository](https://github.com/deryosssss/RunClub.git)
 cd runclub-api
 
 2. Install dependencies
@@ -68,12 +68,12 @@ http://localhost:5187
 ## 5. Running the Application in Production (Azure)
 
 This project is deployed on Azure. You can access the live application here:
-https://runclub.azurewebsites.net
+[RunClub API on Azure](https://myrunclub.azurewebsites.net)
 
 Health Check
 
 To monitor the API's status, visit:
-https://runclub.azurewebsites.net/health
+[RunClub API on Azure](https://myrunclub.azurewebsites.net/health)
 
 Logs and Monitoring
 
@@ -96,16 +96,13 @@ Integration Tests: Validate API endpoint behavior.
 ## 7. API Documentation
 
 This project includes built-in API documentation using Swagger. You can access the API documentation locally at:
-http://localhost:5187/swagger
+[RunClub API on Swagger](http://localhost:5187/swagger)
 
 For production, access it at:
 https://runclub-api.azurewebsites.net/swagger
 
-## 8. License
 
-This project is licensed under the MIT License.
-
-## 9. Contributing
+## 8. Contributing
 
 Contributions are welcome! If you'd like to improve the project, follow these steps:
 
@@ -119,12 +116,12 @@ Submit a pull request.
 
 For major changes, please open an issue first to discuss the proposal.
 
-## 10. Contact
+## 9. Contact
 
 For any questions or support, reach out to:
 
 Email: support@runclubapi.com
 
-GitHub Issues: https://github.com/yourusername/runclub-api/issues
+GitHub Issues: https://github.com/deryosss/runclub/issues
 
-Thank you for using RunClub API! 🚀
+Thank you for using RunClub API! 
