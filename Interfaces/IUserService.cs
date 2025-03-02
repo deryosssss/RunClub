@@ -4,28 +4,18 @@ using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Interfaces
 {
-    // Interface defining business logic for user management.
     public interface IUserService
     {
-        // Retrieves all users with pagination support.
         Task<IEnumerable<UserDTO>> GetAllUsersAsync(int pageNumber, int pageSize);
-
-        // Retrieves a single user by their unique ID.
-        Task<UserDTO?> GetUserByIdAsync(int id);
-
-        // Creates a new user while ensuring the role is included.
-        Task<UserDTO?> CreateUserAsync(UserDTO userDto);
-
-        // Updates an existing user’s details.
-        Task<bool> UpdateUserAsync(int id, UserDTO user);
-
-        // Deletes a user from the system.
-        Task<bool> DeleteUserAsync(int id);
-
-        // Retrieves users based on their assigned role.
+        Task<UserDTO?> GetUserByIdAsync(int userId);
+        Task<UserDTO?> CreateUserAsync(UserDTO userDto, string password);
+        Task<bool> UpdateUserAsync(int userId, UserDTO userDto);
+        Task<bool> DeleteUserAsync(int userId);
         Task<IEnumerable<UserDTO>> GetUsersByRoleAsync(string roleId);
     }
+
 }
+
 
 /* The IUserService interface represents the business logic layer for managing users in the system. It acts as an intermediary between the data layer (IUserRepository) and the controller layer, ensuring data consistency and validation before interacting with the database.
 

@@ -20,7 +20,7 @@ namespace RunClubAPI.Models
         public string RoleId { get; set; }  
 
         // Navigation property to link User with Role entity
-        public Role? Role { get; set; }
+        public IdentityRole? Role { get; set; }
 
         // List of enrollments associated with the user (1-to-many relationship)
         public List<Enrollment> Enrollments { get; set; } = new();

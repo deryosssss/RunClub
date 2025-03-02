@@ -1,162 +1,111 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using RunClubAPI.DTOs;
-using RunClubAPI.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using RunClubAPI.Models;
+using RunClubAPI.Interfaces;
+using RunClubAPI.DTOs;
+using RunClubAPI.Services;
 
-public class UserService : IUserService
+namespace RunClubAPI.Services
 {
-    private readonly RunClubContext _context;
-
-    public UserService(RunClubContext context)
+    public class UserService : IUserService
     {
-        _context = context;
-    }
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-    // Create a new user with a specified role
-    public async Task<UserDTO?> CreateUserAsync(UserDTO userDto)
-    {
-        // Ensure that a RoleId is provided before proceeding
-        if (string.IsNullOrEmpty(userDto.RoleId))
+        public UserService(UserManager<User> userManager, RoleManager<IdentityRole> roleManager)
         {
-            return null; 
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
-        // Fetch the role from the database to ensure it exists
-        var role = await _context.Roles.FindAsync(userDto.RoleId);
-        if (role == null)
+        public async Task<IEnumerable<UserDTO>> GetAllUsersAsync(int pageNumber, int pageSize)
         {
-            return null; // Role not found, returning null
+            var users = _userManager.Users
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(user => new UserDTO
+                {
+                    UserId = int.Parse(user.Id), // Ensure conversion
+                    Name = user.Name,
+                    Email = user.Email
+                });
+
+            return await Task.FromResult(users);
         }
 
-        // Create a new User entity
-        var user = new User
+        public async Task<UserDTO?> GetUserByIdAsync(int userId)
         {
-            Name = userDto.Name,
-            Email = userDto.Email,
-            RoleId = userDto.RoleId,  // Assign RoleId
-            Role = role  // Assign the associated Role entity
-        };
+            var user = await _userManager.FindByIdAsync(userId.ToString()); // Convert int to string
+            if (user == null) return null;
 
-        // Add the new user to the database
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        // Return the created user as a DTO to prevent direct model exposure
-        return new UserDTO
-        {
-            UserId = user.UserId,
-            Name = user.Name,
-            Email = user.Email,
-            RoleId = user.RoleId,
-            Role = new RoleDTO
+            return new UserDTO
             {
-                RoleId = role.RoleId,
-                RoleName = role.RoleName,
-                RoleNormalizedName = role.RoleNormalizedName
-            }
-        };
-    }
-
-    // Retrieve all users with pagination support
-    public async Task<IEnumerable<UserDTO>> GetAllUsersAsync(int pageNumber, int pageSize)
-    {
-        return await _context.Users
-            .Include(u => u.Role) // Include Role details in the result
-            .Skip((pageNumber - 1) * pageSize) // Skip records for pagination
-            .Take(pageSize) // Limit the number of records per page
-            .Select(user => new UserDTO
-            {
-                UserId = user.UserId,
+                UserId = int.Parse(user.Id), // Convert string to int
                 Name = user.Name,
-                Email = user.Email,
-                RoleId = user.RoleId,
-                Role = user.Role != null ? new RoleDTO
-                {
-                    RoleId = user.Role.RoleId,
-                    RoleName = user.Role.RoleName,
-                    RoleNormalizedName = user.Role.RoleNormalizedName
-                } : null
-            })
-            .ToListAsync();
-    }
+                Email = user.Email
+            };
+        }
 
-    // Retrieve a single user by their ID
-    public async Task<UserDTO?> GetUserByIdAsync(int id)
-    {
-        // Fetch the user from the database along with their role details
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == id);
-
-        if (user == null) return null; // Return null if user does not exist
-
-        // Return user details in DTO format
-        return new UserDTO
+        public async Task<UserDTO?> CreateUserAsync(UserDTO userDto, string password)
         {
-            UserId = user.UserId,
-            Name = user.Name,
-            Email = user.Email,
-            RoleId = user.RoleId,
-            Role = user.Role != null ? new RoleDTO
+            var user = new User
             {
-                RoleId = user.Role.RoleId,
-                RoleName = user.Role.RoleName,
-                RoleNormalizedName = user.Role.RoleNormalizedName
-            } : null
-        };
-    }
+                UserName = userDto.Name,
+                Email = userDto.Email
+            };
 
-    // Update an existing user's details
-    public async Task<bool> UpdateUserAsync(int id, UserDTO userDto)
-    {
-        var user = await _context.Users.FindAsync(id); // Find the user by ID
-        if (user == null) return false; // Return false if the user doesn't exist
+            var result = await _userManager.CreateAsync(user, password);
+            if (!result.Succeeded) return null;
 
-        // Update user properties
-        user.Name = userDto.Name;
-        user.Email = userDto.Email;
-        user.RoleId = userDto.RoleId;
-
-        await _context.SaveChangesAsync(); // Commit changes to the database
-        return true;
-    }
-
-    // Delete a user from the system
-    public async Task<bool> DeleteUserAsync(int id)
-    {
-        var user = await _context.Users.FindAsync(id); // Find the user by ID
-        if (user == null) return false; // Return false if user does not exist
-
-        _context.Users.Remove(user); // Remove the user
-        await _context.SaveChangesAsync(); // Save changes in the database
-        return true;
-    }
-
-    // Retrieve all users with a specific role
-    public async Task<IEnumerable<UserDTO>> GetUsersByRoleAsync(string roleId)
-    {
-        return await _context.Users
-            .Where(u => u.RoleId == roleId) // Filter users by RoleId
-            .Include(u => u.Role) // Include Role details
-            .Select(user => new UserDTO
+            return new UserDTO
             {
-                UserId = user.UserId,
+                UserId = int.Parse(user.Id), // Convert string to int
                 Name = user.Name,
-                Email = user.Email,
-                RoleId = user.RoleId,
-                Role = user.Role != null ? new RoleDTO
-                {
-                    RoleId = user.Role.RoleId,
-                    RoleName = user.Role.RoleName,
-                    RoleNormalizedName = user.Role.RoleNormalizedName
-                } : null
-            })
-            .ToListAsync();
+                Email = user.Email
+            };
+        }
+
+        public async Task<bool> UpdateUserAsync(int userId, UserDTO userDto)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return false;
+
+            user.UserName = userDto.Name;
+            user.Email = userDto.Email;
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> DeleteUserAsync(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return false;
+
+            var result = await _userManager.DeleteAsync(user);
+            return result.Succeeded;
+        }
+
+        public async Task<IEnumerable<UserDTO>> GetUsersByRoleAsync(string roleId)
+        {
+            var role = await _roleManager.FindByIdAsync(roleId);
+            if (role == null) return new List<UserDTO>();
+
+            var users = await _userManager.GetUsersInRoleAsync(role.Name);
+            return users.Select(user => new UserDTO
+            {
+                UserId = int.Parse(user.Id), // Convert string to int
+                Name = user.Name,
+                Email = user.Email
+            });
+        }
     }
 }
+
+
 
 /* The UserService is a core component of my project, handling user management functionalities such as creating, retrieving, updating, and deleting users while maintaining role assignments. To ensure security and efficiency, the service follows a DTO-based approach, preventing direct exposure of entity models and reducing unnecessary data transfer.
 

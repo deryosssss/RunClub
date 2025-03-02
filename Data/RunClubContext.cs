@@ -16,12 +16,6 @@ namespace RunClubAPI.Models
 
         // ✅ DbSet properties represent tables in the database.
 
-        // Stores user information, inherits from Identity's User management.
-        public DbSet<User> Users { get; set; }
-
-        // Stores roles for different types of users (Admin, Coach, Runner).
-        public DbSet<Role> Roles { get; set; }
-
         // Stores information about events that runners can participate in.
         public DbSet<Event> Events { get; set; }
 
@@ -39,13 +33,14 @@ namespace RunClubAPI.Models
 
             // ✅ Seeding predefined roles into the database at application startup.
             modelBuilder.Entity<IdentityRole>().HasData(
-                new IdentityRole { Name = "Admin", NormalizedName = "ADMIN" }, // Admin has full control
-                new IdentityRole { Name = "Coach", NormalizedName = "COACH" }, // Coaches can manage training
-                new IdentityRole { Name = "Runner", NormalizedName = "RUNNER" } // Runners participate in events
+                new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" }, // Admin has full control
+                new IdentityRole { Id = "2", Name = "Coach", NormalizedName = "COACH" }, // Coaches can manage training
+                new IdentityRole { Id = "3", Name = "Runner", NormalizedName = "RUNNER" } // Runners participate in events
             );
         }
     }
 }
+
 
 /*
 The RunClubContext class in my ASP.NET Core Web API serves as the database context, managing interactions with the underlying database using Entity Framework Core. It extends IdentityDbContext<User>, which integrates ASP.NET Identity, providing built-in authentication, authorization, and role management. This allows for secure user handling and access control.

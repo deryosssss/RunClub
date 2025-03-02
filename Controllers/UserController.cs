@@ -67,21 +67,35 @@ namespace RunClubAPI.Controllers
 
         // POST: api/Users
         // Creates a new user, ensuring role assignment
+// POST: api/Users
+// Creates a new user, ensuring role assignment
         [HttpPost]
-        public async Task<ActionResult<UserDTO>> PostUser(UserDTO userDto)
+        public async Task<ActionResult<UserDTO>> PostUser(CreateUserDTO createUserDto)
         {
             _logger.LogInformation("Creating new user with role information.");
 
-            // Call service to create user and assign roles
-            var createdUser = await _userService.CreateUserAsync(userDto);
-
-            if (createdUser == null) // Handle case where user creation fails
+            if (string.IsNullOrEmpty(createUserDto.Password))
             {
-                _logger.LogWarning("User creation failed.");
-                return BadRequest(new { message = "User creation failed" }); // Return 400 Bad Request
+                return BadRequest(new { message = "Password is required." });
             }
 
-            // Return 201 Created response with a link to the newly created user
+            // Convert CreateUserDTO to UserDTO
+            var userDto = new UserDTO
+            {
+                Name = createUserDto.Name,
+                Email = createUserDto.Email,
+                RoleId = createUserDto.RoleId ?? "1" // Default to "runner"
+            };
+
+            // Call CreateUserAsync and pass the required password argument
+            var createdUser = await _userService.CreateUserAsync(userDto, createUserDto.Password);
+
+            if (createdUser == null)
+            {
+                _logger.LogWarning("User creation failed.");
+                return BadRequest(new { message = "User creation failed" });
+            }
+
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.UserId }, createdUser);
         }
     }
