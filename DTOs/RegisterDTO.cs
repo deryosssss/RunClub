@@ -1,29 +1,29 @@
-using RunClubAPI.Models; // Ensure necessary model imports
 using System.ComponentModel.DataAnnotations;
 
 namespace RunClubAPI.DTOs
 {
     public class RegisterDTO
     {
-        [Required]
-        public string FirstName { get; set; }
 
         [Required]
-        public string LastName { get; set; }
+        public string Name { get; set; }
 
-        [Required, EmailAddress]
+        [Required]
+        [EmailAddress]
         public string Email { get; set; }
 
-        [Required, MinLength(6)]
+        [Required]
+        [MinLength(6)]
         public string Password { get; set; }
 
         [Required]
-        [Compare("Password", ErrorMessage = "Passwords do not match.")]
+        [Compare("Password", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; }
 
-        public string Role { get; set; } = "Runner"; // Default role
+        public string Role { get; set; } = "User";
     }
 }
+
 
 
 /*

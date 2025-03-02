@@ -13,6 +13,9 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace RunClubAPI.Controllers
 {
@@ -42,37 +45,77 @@ namespace RunClubAPI.Controllers
             _configuration = configuration;
             _authService = authService; // ✅ Assigning auth service
         }
+        [Authorize] // Ensure only authenticated users can access
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
 
-        // ✅ User Registration
+            var user = await _userManager.Users
+                .Where(u => u.Id == userId)
+                .Select(u => new 
+                { 
+                    u.Id, 
+                    u.UserName, 
+                    u.Email 
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                return NotFound("User not found");
+
+            return Ok(user);
+        }
+
+        [Authorize(Roles = "Admin")] // Ensure only admins can access all users
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _userManager.Users
+                .Select(u => new 
+                { 
+                    u.Id, 
+                    u.UserName, 
+                    u.Email 
+                })
+                .ToListAsync(); // Ensure EF Core is being used
+
+            return Ok(users);
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO model)
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
-            if (model.Password != model.ConfirmPassword)
-                return BadRequest(new { message = "Passwords do not match." });
+            var userExists = await _userManager.FindByEmailAsync(model.Email);
+            if (userExists != null)
+            {
+                return BadRequest(new { message = "User already exists" });
+            }
 
             var user = new User
             {
-                UserName = model.Email,
+                Name = model.Name,
                 Email = model.Email,
-                Name = $"{model.FirstName} {model.LastName}"
+                UserName = model.Email
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
-
             if (!result.Succeeded)
+            {
                 return BadRequest(result.Errors);
+            }
 
-            await _userManager.AddToRoleAsync(user, model.Role ?? "Runner");
+            // Send Welcome Email
+            await _emailService.SendEmailAsync(model.Email, "Welcome!", "Thank you for registering!");
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var verificationLink = Url.Action("VerifyEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);
-
-            _emailService.SendEmail(user.Email, "Email Verification", $"Click to verify: {verificationLink}");
-
-            return Ok(new { message = "Registration successful. Check email for verification.", userId = user.Id, role = model.Role });
+            return Ok(new { message = "User registered successfully" });
         }
 
         // ✅ Email Verification
