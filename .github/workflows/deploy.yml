@@ -1,0 +1,38 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main  # Change this if deploying from a different branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Build Application
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish Application
+        run: dotnet publish -c Release -o out
+
+      - name: Deploy to Azure
+        env:
+          GITHUB_RUNCLUB_DB_CONNECTION: ${{ secrets.GITHUB_RUNCLUB_DB_CONNECTION }}
+          GITHUB_JWT_SECRET: ${{ secrets.GITHUB_JWT_SECRET }}
+          GITHUB_JWT_ISSUER: ${{ secrets.GITHUB_JWT_ISSUER }}
+          GITHUB_ALLOWED_ORIGINS: ${{ secrets.GITHUB_ALLOWED_ORIGINS }}
+        run: |
+          echo "Deploying with secrets injected..."
+          # Add actual deployment commands here
