@@ -133,7 +133,6 @@ Warning logs help identify potential issues (LogWarning).
 ✔ Null-Safe Checks – Prevents null reference errors (progressRecords?.Any() != true).
 ✔ Async/Await – Ensures efficient database queries.
 
- How to Explain This in Your Viva
 "This controller manages CRUD operations for progress records while ensuring that only users with the 'Coach' role can access it."
 "We use DTOs (ProgressRecordDTO) to structure responses and avoid exposing unnecessary database fields."
 "Logging helps track API usage and debugging, such as logging missing records or invalid requests."

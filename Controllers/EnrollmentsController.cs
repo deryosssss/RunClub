@@ -73,7 +73,7 @@ namespace RunClubAPI.Controllers
         }
     }
 }
-/* How to Explain This in Your Viva
+/* 
 "This controller manages enrollments using a service layer, which ensures a clean separation of concerns."
 "We use HTTP status codes effectively to provide clear responses to clients."
 "Pagination helps optimize performance by fetching only a limited set of results at a time."

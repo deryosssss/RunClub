@@ -1,13 +1,13 @@
 namespace RunClubAPI.Models
 {
-    // ✅ Represents a model for handling user authentication requests
+    // Represents a model for handling user authentication requests
     public class AuthModel
     {
-        // ✅ Stores the user's email address 
+        // Stores the user's email address 
         // This is used as a unique identifier for logging in.
         public string Email { get; set; }
 
-        // ✅ Stores the user's password 
+        // Stores the user's password 
         // This will be validated against the stored (hashed) password in the database.
         public string Password { get; set; }
     }

@@ -81,8 +81,7 @@ Returns HTTP 500 (Internal Server Error) with a generic message to the client.
 Logs the actual error for debugging (but in production, details should be hidden).
 How to Register This Middleware?
 
-Add the middleware in Program.cs:
-app.UseMiddleware<ExceptionMiddleware>();
+
 This ensures that all requests go through the exception handler before reaching the controllers.
 By implementing ExceptionMiddleware, we ensure that our API remains robust, secure, and user-friendly, preventing unexpected crashes and exposing sensitive information.
 */

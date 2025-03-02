@@ -1,4 +1,4 @@
-using RunClubAPI.Models;  // Importing the Enrollment model.
+using RunClubAPI.Models; 
 using System.Collections.Generic;  // Required for handling lists.
 using System.Threading.Tasks;  // Enables asynchronous operations.
 

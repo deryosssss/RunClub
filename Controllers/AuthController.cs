@@ -80,13 +80,12 @@ namespace RunClubAPI.Controllers
     }
 }
 
-/* 🛡️ Security Features Explained
+/*  Security Features Explained
 ✔ Prevents Null/Empty Requests – Rejects invalid authentication attempts.
 ✔ Prevents Token Theft – Only valid refresh tokens can request new access tokens.
 ✔ Enhances User Experience – Refresh tokens allow seamless re-authentication without frequent logins.
 ✔ Improves Security – Refresh token revocation ensures users can be forcefully logged out across all sessions.
 
-✅ What You Can Say in Your Viva
 "The AuthController handles authentication using the IAuthService, which ensures clean separation of concerns."
 "The refresh token system enhances security by allowing users to obtain a new access token without re-entering credentials."
 "Revoking refresh tokens is essential for logging users out across all devices, preventing unauthorized access." */

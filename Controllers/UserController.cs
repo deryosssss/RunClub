@@ -70,8 +70,6 @@ namespace RunClubAPI.Controllers
 
         // POST: api/Users
         // Creates a new user, ensuring role assignment
-// POST: api/Users
-// Creates a new user, ensuring role assignment
         [HttpPost]
         public async Task<ActionResult<UserDTO>> PostUser(CreateUserDTO createUserDto)
         {

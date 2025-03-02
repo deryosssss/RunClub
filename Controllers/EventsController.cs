@@ -27,18 +27,18 @@ namespace RunClubAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EventDTO>>> GetEvents()
         {
-            // 🔍 Fetch all events with their enrollments count.
+            // Fetch all events with their enrollments count.
             var events = await _context.Events
-                .Include(e => e.Enrollments) // 🔗 Joins enrollments data.
+                .Include(e => e.Enrollments) // Joins enrollments data.
                 .Select(e => new EventDTO
                 {
                     EventId = e.EventId,
                     EventName = e.EventName,
                     Description = e.Description,
                     EventDate = e.EventDate,
-                    EventTime = e.EventTime.ToString("HH:mm:ss"), // Converts TimeOnly to string
+                    EventTime = e.EventTime.ToString("HH:mm:ss"),
                     Location = e.Location,
-                    EnrollmentCount = e.Enrollments.Count() // Number of enrollments
+                    EnrollmentCount = e.Enrollments.Count()
                 })
                 .ToListAsync();
 
@@ -59,7 +59,7 @@ namespace RunClubAPI.Controllers
                     EventName = e.EventName,
                     Description = e.Description,
                     EventDate = e.EventDate,
-                    EventTime = e.EventTime.ToString("HH:mm:ss"), // Converts TimeOnly to string.
+                    EventTime = e.EventTime.ToString("HH:mm:ss"), 
                     Location = e.Location,
                     EnrollmentCount = e.Enrollments.Count()
                 })
@@ -149,7 +149,7 @@ namespace RunClubAPI.Controllers
     }
 }
 
-/* ✅ How to Explain This in Your Viva
+/* 
 "This controller handles CRUD operations for events while enforcing admin-only access."
 "We use DTOs (EventDTO) to structure responses and avoid exposing unnecessary database fields."
 "Concurrency handling ensures that if an event is deleted during an update attempt, we return a clear error message."

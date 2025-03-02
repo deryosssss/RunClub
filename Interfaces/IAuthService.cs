@@ -10,8 +10,6 @@ namespace RunClubAPI.Interfaces
         Task<AuthResponseDTO> AuthenticateUserAsync(string username, string password);
         Task<AuthResponseDTO> RefreshTokenAsync(RefreshTokenRequest request);
         Task RevokeRefreshTokenAsync(string userId);
-
-        // ✅ Fixed: Use VerifyEmailResponseDTO
         Task<VerifyEmailResponseDTO> VerifyEmailAsync(string token, string userId);
     }
 }

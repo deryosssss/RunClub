@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace RunClubAPI.Models
 {
-    // ✅ The database context class for the RunClub application.
+    //  The database context class for the RunClub application.
     public class RunClubContext : IdentityDbContext<User> // Using a custom User class
     {
         public RunClubContext(DbContextOptions<RunClubContext> options)

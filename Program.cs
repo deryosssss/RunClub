@@ -167,32 +167,32 @@ async Task EnsureRolesExist(IServiceProvider serviceProvider)
     }
 }
 
-// ✅ Ensure role creation before running app
+// Ensure role creation before running app
 await EnsureRolesExist(app.Services);
 
-// ✅ Global Error Handling Middleware (Ensure Middleware is implemented)
+// Global Error Handling Middleware (Ensure Middleware is implemented)
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
-// ✅ Enable Swagger UI in Development Mode
+// Enable Swagger UI in Development Mode
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// ✅ Enforce HTTPS
+// Enforce HTTPS
 app.UseHttpsRedirection();
 
-// ✅ Apply Security Middleware
+// Apply Security Middleware
 app.UseCors("AllowSpecificOrigins");
 app.UseIpRateLimiting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// ✅ Map API Controllers
+// Map API Controllers
 app.MapControllers();
 
-// ✅ Run the Application
+// Run the Application
 app.Run();
 
 /* This ASP.NET Core Program.cs file serves as the entry point of the application, configuring all essential services and middleware. It begins by loading environment variables and configuring logging for monitoring. The CORS policy ensures secure cross-origin access, while the database connection is established via Entity Framework Core. Authentication is implemented using JWT tokens, ensuring secure user authorization. The Repository and Service layers are registered for clean separation of concerns, while Swagger is configured for API documentation. Rate limiting prevents abuse by restricting excessive requests from a single IP. Middleware for error handling, authentication, authorization, and HTTPS redirection is set up to enforce security standards. Finally, the app automatically applies database migrations, ensuring a smooth deployment. This structured approach makes the application scalable, secure, and maintainable, following best practices in modern web development. */

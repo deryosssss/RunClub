@@ -1,4 +1,4 @@
-using RunClubAPI.Models; // Importing models for potential user-related references
+using RunClubAPI.Models; 
 
 namespace RunClubAPI.DTOs
 {

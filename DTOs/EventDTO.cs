@@ -1,4 +1,4 @@
-using RunClubAPI.Models; // Ensure the necessary model is imported
+using RunClubAPI.Models; 
 
 // Data Transfer Object (DTO) for event-related data
 // DTOs are used to transfer data between the API and external clients

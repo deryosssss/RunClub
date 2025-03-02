@@ -1,14 +1,14 @@
-using System; // Importing System namespace for built-in data types
+using System; 
 
 namespace RunClubAPI.DTOs
 {
-    // ✅ Data Transfer Object (DTO) for user enrollments in events
-    // ✅ This class is used to transfer enrollment-related data between the API and clients
+    // Data Transfer Object (DTO) for user enrollments in events
+    // This class is used to transfer enrollment-related data between the API and clients
     public class EnrollmentDTO
     {
         public int EnrollmentId { get; set; } // Unique identifier for the enrollment record
 
-        public DateOnly EnrollmentDate { get; set; }  // ✅ Stores only the date without time component, ensuring precision
+        public DateOnly EnrollmentDate { get; set; }  // Stores only the date without time component, ensuring precision
         // This helps avoid inconsistencies caused by time zone differences.
 
         public int UserId { get; set; } // ID of the user who is enrolling in the event

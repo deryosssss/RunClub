@@ -1,5 +1,4 @@
-using RunClubAPI.Models; // Ensure necessary model imports
-
+using RunClubAPI.Models; 
 namespace RunClubAPI.DTOs
 {
     // Data Transfer Object (DTO) for user progress tracking

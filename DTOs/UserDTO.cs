@@ -1,4 +1,4 @@
-using RunClubAPI.Models; // Ensure correct model imports
+using RunClubAPI.Models; 
 
 namespace RunClubAPI.DTOs
 {
