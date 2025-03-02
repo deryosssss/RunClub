@@ -11,7 +11,6 @@ using RunClubAPI.Repositories;
 using RunClubAPI.Middleware;
 using AspNetCoreRateLimit;
 using Microsoft.Extensions.Logging;
-using RunClubAPI.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,26 +41,35 @@ builder.Services.AddCors(options =>
 });
 
 // Configure Database Connection
-var connectionString = builder.Configuration.GetConnectionString("RunClubDb")
-    ?? throw new ArgumentNullException("Database connection string is missing!");
+var connectionString = builder.Configuration.GetConnectionString("RunClubDb");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new ArgumentNullException("Database connection string is missing!");
+}
 
 builder.Services.AddDbContext<RunClubContext>(options =>
     options.UseSqlite(connectionString));
 
 // Register Identity Services
-builder.Services.AddIdentity<User, IdentityRole>()
+builder.Services.AddIdentity<User, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 6;
+})
     .AddEntityFrameworkStores<RunClubContext>()
     .AddDefaultTokenProviders();
 
-// Ensure UserManager and RoleManager are registered
-builder.Services.AddScoped<UserManager<User>>();
-builder.Services.AddScoped<RoleManager<IdentityRole>>();
-
 // JWT Authentication Configuration
-var jwtKey = builder.Configuration["Jwt:Key"]
-    ?? throw new ArgumentNullException("JWT Key is missing!");
-var jwtIssuer = builder.Configuration["Jwt:Issuer"]
-    ?? throw new ArgumentNullException("JWT Issuer is missing!");
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+
+if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer))
+{
+    throw new ArgumentNullException("JWT configuration is missing in appsettings!");
+}
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -103,6 +111,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "RunClub API", Version = "v1" });
+
     var securitySchema = new OpenApiSecurityScheme
     {
         Description = "Enter 'Bearer [space] your_token' below:",
@@ -113,6 +122,7 @@ builder.Services.AddSwaggerGen(c =>
         BearerFormat = "JWT",
         Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
     };
+
     c.AddSecurityDefinition("Bearer", securitySchema);
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -125,12 +135,12 @@ builder.Services.AddMemoryCache();
 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
 builder.Services.Configure<IpRateLimitPolicies>(builder.Configuration.GetSection("IpRateLimitPolicies"));
 
+// Register necessary rate limit services
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
 builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
 builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
 
-// Build the Application
 var app = builder.Build();
 
 // Apply Database Migrations Automatically
@@ -140,31 +150,49 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-// Global Error Handling Middleware
-app.UseGlobalExceptionHandler();
+// Ensure Roles Exist
+async Task EnsureRolesExist(IServiceProvider serviceProvider)
+{
+    using var scope = serviceProvider.CreateScope();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-// Enable Swagger UI in Development Mode
+    string[] roleNames = { "Admin", "Coach", "Runner" };
+
+    foreach (var roleName in roleNames)
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole(roleName));
+        }
+    }
+}
+
+// ✅ Ensure role creation before running app
+await EnsureRolesExist(app.Services);
+
+// ✅ Global Error Handling Middleware (Ensure Middleware is implemented)
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+// ✅ Enable Swagger UI in Development Mode
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Enforce HTTPS
+// ✅ Enforce HTTPS
 app.UseHttpsRedirection();
 
-// Apply Security Middleware
+// ✅ Apply Security Middleware
 app.UseCors("AllowSpecificOrigins");
 app.UseIpRateLimiting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map API Controllers
+// ✅ Map API Controllers
 app.MapControllers();
 
-// Run the Application
+// ✅ Run the Application
 app.Run();
-
-
 
 /* This ASP.NET Core Program.cs file serves as the entry point of the application, configuring all essential services and middleware. It begins by loading environment variables and configuring logging for monitoring. The CORS policy ensures secure cross-origin access, while the database connection is established via Entity Framework Core. Authentication is implemented using JWT tokens, ensuring secure user authorization. The Repository and Service layers are registered for clean separation of concerns, while Swagger is configured for API documentation. Rate limiting prevents abuse by restricting excessive requests from a single IP. Middleware for error handling, authentication, authorization, and HTTPS redirection is set up to enforce security standards. Finally, the app automatically applies database migrations, ensuring a smooth deployment. This structured approach makes the application scalable, secure, and maintainable, following best practices in modern web development. */

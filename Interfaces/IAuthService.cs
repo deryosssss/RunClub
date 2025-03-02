@@ -1,27 +1,21 @@
-using System.Threading.Tasks; //  Required for asynchronous operations
-using RunClubAPI.DTOs; //  Importing Data Transfer Objects
+using System.Threading.Tasks;
+using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Interfaces
 {
-    // Interface for authentication-related operations
     public interface IAuthService
     {
-        // Authenticates a user using username and password, returns an authentication response with a token
         Task<AuthResponseDTO> LoginAsync(string username, string password);
-
-        // Registers a new user with a username and password, returns true if successful
         Task<bool> RegisterAsync(string username, string password);
-
-        // Verifies user credentials and returns an authentication response with a token
         Task<AuthResponseDTO> AuthenticateUserAsync(string username, string password);
-
-        // Handles token refreshing, allowing users to stay logged in without re-entering credentials
         Task<AuthResponseDTO> RefreshTokenAsync(RefreshTokenRequest request);
-
-        // Revokes a refresh token to log out a user or handle token misuse
         Task RevokeRefreshTokenAsync(string userId);
+
+        // ✅ Fixed: Use VerifyEmailResponseDTO
+        Task<VerifyEmailResponseDTO> VerifyEmailAsync(string token, string userId);
     }
 }
+
 
 /* The IAuthService interface defines the authentication contract for the application, ensuring that all authentication-related operations are implemented consistently. It follows a structured approach for user authentication, registration, token management, and security.
 

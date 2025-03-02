@@ -1,29 +1,19 @@
-using Microsoft.AspNetCore.Http; // Required for handling HTTP context in middleware.
-using Microsoft.Extensions.Logging; // Provides logging capabilities.
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
 using System;
-using System.Net; // Contains HTTP status codes.
-using System.Text.Json; // Used for JSON serialization.
-using RunClubAPI.Middleware;
-using System.Threading.Tasks; // Supports asynchronous programming.
+using System.Net;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace RunClubAPI.Middleware
 {
-    /// <summary>
-    /// Middleware for global exception handling. It catches unhandled exceptions,
-    /// logs them, and returns a structured error response to the client.
-    /// </summary>
     public class GlobalExceptionHandlerMiddleware
     {
-        private readonly RequestDelegate _next; // The next middleware in the pipeline.
-        private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger; // Logger for capturing errors.
-        private readonly IWebHostEnvironment _env; // Provides environment information (Development, Production, etc.).
+        private readonly RequestDelegate _next;
+        private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
+        private readonly IWebHostEnvironment _env;
 
-        /// <summary>
-        /// Constructor to initialize middleware dependencies.
-        /// </summary>
-        /// <param name="next">The next middleware in the request pipeline.</param>
-        /// <param name="logger">Logger instance for error logging.</param>
-        /// <param name="env">Environment details (used to differentiate development and production modes).</param>
         public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger, IWebHostEnvironment env)
         {
             _next = next;
@@ -31,65 +21,44 @@ namespace RunClubAPI.Middleware
             _env = env;
         }
 
-        /// <summary>
-        /// Middleware execution method. It tries to execute the next middleware
-        /// in the pipeline and handles any exceptions that occur.
-        /// </summary>
-        /// <param name="context">The HTTP context of the request.</param>
         public async Task Invoke(HttpContext context)
         {
             try
             {
-                await _next(context); // Pass the request to the next middleware.
+                await _next(context);
             }
             catch (Exception ex)
             {
-                // Logs error details including the request path and a unique trace identifier.
                 _logger.LogError(ex, "Exception caught in middleware. Trace ID: {TraceId}, Path: {Path}",
                     context.TraceIdentifier, context.Request.Path);
 
-                // Handles the exception and sends a structured response to the client.
                 await HandleExceptionAsync(context, ex);
             }
         }
 
-        /// <summary>
-        /// Handles exceptions by returning a JSON response with relevant error details.
-        /// </summary>
-        /// <param name="context">The HTTP context for the current request.</param>
-        /// <param name="exception">The exception that was thrown.</param>
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            context.Response.ContentType = "application/json"; // Set response type to JSON.
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError; // Default status code for unhandled exceptions.
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-            // Constructs the response object with error details.
             var response = new
             {
                 message = _env.IsDevelopment() ? exception.Message : "An unexpected error occurred. Please try again later.",
-                detail = _env.IsDevelopment() ? exception.StackTrace : (string?)null, // Show stack trace only in development.
-                traceId = context.TraceIdentifier // Unique identifier for tracing requests in logs.
+                detail = _env.IsDevelopment() ? exception.StackTrace : null,
+                traceId = context.TraceIdentifier
             };
 
-            // Serializes the response object to JSON format.
             var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-
-            // Sends the JSON response to the client.
             await context.Response.WriteAsync(jsonResponse);
         }
     }
-}
 
-// Extension method for cleaner middleware configuration.
-public static class GlobalExceptionHandlerMiddlewareExtensions
-{
-    /// <summary>
-    /// Extension method to add global exception handling middleware to the application pipeline.
-    /// </summary>
-    /// <param name="app">Application builder instance.</param>
-    public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app)
+    public static class GlobalExceptionHandlerMiddlewareExtensions
     {
-        return app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+        public static IApplicationBuilder UseGlobalExceptionHandler(this IApplicationBuilder app)
+        {
+            return app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+        }
     }
 }
 

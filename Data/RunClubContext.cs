@@ -1,45 +1,35 @@
-using Microsoft.AspNetCore.Identity; // Identity framework for authentication and authorization
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace RunClubAPI.Models
 {
     // ✅ The database context class for the RunClub application.
-    // ✅ Inherits from IdentityDbContext to include authentication and role management features.
     public class RunClubContext : IdentityDbContext<User> // Using a custom User class
     {
-        // ✅ Constructor: Accepts DbContext options and passes them to the base constructor
         public RunClubContext(DbContextOptions<RunClubContext> options)
             : base(options)
         {
         }
 
-        // ✅ DbSet properties represent tables in the database.
-
-        // Stores information about events that runners can participate in.
         public DbSet<Event> Events { get; set; }
-
-        // Tracks which users have enrolled in which events.
         public DbSet<Enrollment> Enrollments { get; set; }
-
-        // Keeps progress records for users, useful for tracking performance.
         public DbSet<ProgressRecord> ProgressRecords { get; set; }
 
-        // ✅ This method configures the database schema and seeds initial data.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // ✅ Ensures Identity framework's tables (Users, Roles, etc.) are set up correctly.
             base.OnModelCreating(modelBuilder);
 
-            // ✅ Seeding predefined roles into the database at application startup.
+            // Seeding roles
             modelBuilder.Entity<IdentityRole>().HasData(
-                new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" }, // Admin has full control
-                new IdentityRole { Id = "2", Name = "Coach", NormalizedName = "COACH" }, // Coaches can manage training
-                new IdentityRole { Id = "3", Name = "Runner", NormalizedName = "RUNNER" } // Runners participate in events
+                new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },
+                new IdentityRole { Id = "2", Name = "Coach", NormalizedName = "COACH" },
+                new IdentityRole { Id = "3", Name = "Runner", NormalizedName = "RUNNER" }
             );
         }
     }
 }
+
 
 
 /*

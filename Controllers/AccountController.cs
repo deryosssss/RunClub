@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using RunClubAPI.DTOs;
 using RunClubAPI.Models;
 using RunClubAPI.Services;
+using RunClubAPI.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,166 +16,142 @@ using System.Threading.Tasks;
 
 namespace RunClubAPI.Controllers
 {
-    //  This controller manages user authentication & account-related actions (register, login, logout, email verification).
     [Route("api/account")]
-    [ApiController] //  Enforces automatic validation of request models.
+    [ApiController]
     public class AccountController : ControllerBase
     {
-        // Identity services for user management.
-        private readonly UserManager<User> _userManager; // Manages user creation, deletion, and retrieval.
-        private readonly SignInManager<User> _signInManager; // Handles login/logout.
-        private readonly RoleManager<IdentityRole> _roleManager; // Manages user roles (e.g., "Runner", "Admin").
-        private readonly EmailService _emailService; // Custom email service for sending verification emails.
-        private readonly IConfiguration _configuration; // Access to appsettings.json (for JWT configuration, etc.).
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly EmailService _emailService;
+        private readonly IConfiguration _configuration;
+        private readonly IAuthService _authService; // ✅ Added this for VerifyEmailAsync
 
-        // 🏗️ Constructor: Dependency Injection (Injecting services).
-        public AccountController(UserManager<User> userManager, SignInManager<User> signInManager,
-            RoleManager<IdentityRole> roleManager, EmailService emailService, IConfiguration configuration)
+        public AccountController(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            RoleManager<IdentityRole> roleManager,
+            EmailService emailService,
+            IConfiguration configuration,
+            IAuthService authService) // ✅ Injected IAuthService
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _emailService = emailService;
             _configuration = configuration;
+            _authService = authService; // ✅ Assigning auth service
         }
 
-        // User Registration Endpoint
+        // ✅ User Registration
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO model)
         {
-            // Validate request data
             if (!ModelState.IsValid)
-                return BadRequest(ModelState); // If validation fails, return errors.
+                return BadRequest(ModelState);
 
-            // Ensure passwords match before proceeding.
             if (model.Password != model.ConfirmPassword)
                 return BadRequest(new { message = "Passwords do not match." });
 
-            // Assign a default role to new users (Prevents self-assigning "Admin" or "Coach").
-            string userRole = "Runner";
-
-            // Create a new User object based on the registration details.
             var user = new User
             {
-                UserName = model.Email,  // Identity uses emails as usernames.
+                UserName = model.Email,
                 Email = model.Email,
-                Name = $"{model.FirstName} {model.LastName}" // Concatenate first & last names.
+                Name = $"{model.FirstName} {model.LastName}"
             };
 
-            // Create the user in the database.
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (!result.Succeeded)
-                return BadRequest(result.Errors); // Return any errors from user creation.
+                return BadRequest(result.Errors);
 
-            // Assign the default role ("Runner") to the user.
-            await _userManager.AddToRoleAsync(user, userRole);
+            await _userManager.AddToRoleAsync(user, model.Role ?? "Runner");
 
-            // Generate an email verification token.
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-
-            // Generate a verification link that the user can click.
             var verificationLink = Url.Action("VerifyEmail", "Account", new { userId = user.Id, token = token }, Request.Scheme);
 
-            // Send the email with the verification link.
-            var emailSubject = "Email Verification";
-            var emailBody = $"Please verify your email by clicking the following link: {verificationLink}";
-            _emailService.SendEmail(user.Email, emailSubject, emailBody);
+            _emailService.SendEmail(user.Email, "Email Verification", $"Click to verify: {verificationLink}");
 
-            // Return a success response.
-            return Ok(new { message = "User registered successfully. Please verify your email.", userId = user.Id, assignedRole = userRole });
+            return Ok(new { message = "Registration successful. Check email for verification.", userId = user.Id, role = model.Role });
         }
 
-        /* Security Benefits of This Approach:
-        ✔ Prevents users from choosing their own roles (No one can self-assign "Admin").
-        ✔ Ensures email verification before allowing login.
-        ✔ Default role ("Runner") is enforced programmatically.
-        */
-
-        //  Email Verification Endpoint
-        [HttpGet("verify-email")]
-        public async Task<IActionResult> VerifyEmail(string userId, string token)
+        // ✅ Email Verification
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest model)
         {
-            //  Find the user in the database.
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return NotFound("User not found.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            //  Verify the email confirmation token.
-            var result = await _userManager.ConfirmEmailAsync(user, token);
-            
-            // Success
-            if (result.Succeeded) return Ok("Email verification successful.");
+            var result = await _authService.VerifyEmailAsync(model.Token, model.UserId);
+            if (!result.Success)
+                return BadRequest(result.Message);
 
-            // Failure
-            return BadRequest("Email verification failed.");
+            return Ok("Email verified successfully.");
         }
 
-        // User Login
+        // ✅ User Login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthModel model)
         {
-            //  Find the user by email.
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return Unauthorized("Invalid login attempt."); //  Prevents information leakage.
+            if (user == null)
+                return Unauthorized(new { message = "Invalid login attempt." });
 
-            //  Attempt password sign-in.
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
-            if (!result.Succeeded) return Unauthorized("Invalid login attempt."); //  Prevents brute-force attacks.
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
+            if (!result.Succeeded)
+                return Unauthorized(new { message = "Invalid login attempt." });
 
-            //  Get the user's assigned roles.
             var roles = await _userManager.GetRolesAsync(user);
-
-            //  Generate a JWT token for authentication.
             var token = GenerateJwtToken(user, roles);
 
             return Ok(new { Token = token });
         }
 
-        //  Logout User
+        // ✅ Logout
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync(); // Clears authentication session.
+            await _signInManager.SignOutAsync();
             return Ok("Logged out successfully.");
         }
 
-        // Generate JWT Token
+        // ✅ Generate JWT Token
         private string GenerateJwtToken(User user, IList<string> roles)
         {
-            // Define claims (user-specific data stored inside the token).
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
+
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email), // Subject (user's email).
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique ID for token.
-                new Claim("userId", user.Id), // Custom claim: User ID.
-                new Claim("name", user.Name) // Custom claim: User's full name.
+                new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? ""),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("userId", user.Id),
+                new Claim("name", user.Name ?? "")
             };
 
-            // Include user roles as claims.
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            // Load the secret key for signing the JWT.
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var jwtKey = _configuration["Jwt:Key"];
+            var jwtIssuer = _configuration["Jwt:Issuer"];
 
-            // Create signing credentials.
+            if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer))
+                throw new ArgumentNullException("JWT configuration is missing!");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expires = DateTime.Now.AddHours(Convert.ToDouble(_configuration["Jwt:ExpireHours"] ?? "1"));
 
-            // Define token expiration.
-            var expires = DateTime.Now.AddHours(Convert.ToDouble(_configuration["Jwt:ExpireHours"]));
-
-            // Create the JWT token.
             var token = new JwtSecurityToken(
-                _configuration["Jwt:Issuer"], // Issuer
-                _configuration["Jwt:Issuer"], // Audience
-                claims, // Claims
-                expires: expires, // Expiration
-                signingCredentials: creds // Signing credentials
+                jwtIssuer,
+                jwtIssuer,
+                claims,
+                expires: expires,
+                signingCredentials: creds
             );
 
-            // Return the generated token as a string.
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

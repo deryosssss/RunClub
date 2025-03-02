@@ -45,19 +45,19 @@ namespace RunClub.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "78ffa353-52f8-4113-8204-856999bd3411",
+                            Id = "1",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "674236fe-1b32-43b9-9473-e8d94c426e1d",
+                            Id = "2",
                             Name = "Coach",
                             NormalizedName = "COACH"
                         },
                         new
                         {
-                            Id = "6fee3675-42a2-4d77-8d58-f48b2e55b765",
+                            Id = "3",
                             Name = "Runner",
                             NormalizedName = "RUNNER"
                         });
@@ -256,24 +256,6 @@ namespace RunClub.Migrations
                     b.ToTable("ProgressRecords");
                 });
 
-            modelBuilder.Entity("RunClubAPI.Models.Role", b =>
-                {
-                    b.Property<string>("RoleId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RoleNormalizedName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("RoleId");
-
-                    b.ToTable("Roles");
-                });
-
             modelBuilder.Entity("RunClubAPI.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -438,7 +420,7 @@ namespace RunClub.Migrations
 
             modelBuilder.Entity("RunClubAPI.Models.User", b =>
                 {
-                    b.HasOne("RunClubAPI.Models.Role", "Role")
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)

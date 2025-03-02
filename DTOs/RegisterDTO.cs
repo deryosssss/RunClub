@@ -1,24 +1,30 @@
 using RunClubAPI.Models; // Ensure necessary model imports
+using System.ComponentModel.DataAnnotations;
 
 namespace RunClubAPI.DTOs
 {
-    // Data Transfer Object (DTO) for user registration
-    // This class is used to receive registration data from the client-side
     public class RegisterDTO
     {
-        public string FirstName { get; set; } // User's first name
+        [Required]
+        public string FirstName { get; set; }
 
-        public string LastName { get; set; } // User's last name
+        [Required]
+        public string LastName { get; set; }
 
-        public string Email { get; set; } // Email address (used as the unique identifier for login)
+        [Required, EmailAddress]
+        public string Email { get; set; }
 
-        public string Password { get; set; } // User’s chosen password (should be encrypted before storage)
+        [Required, MinLength(6)]
+        public string Password { get; set; }
 
-        public string ConfirmPassword { get; set; } // Used for validation to ensure passwords match
+        [Required]
+        [Compare("Password", ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; }
 
-        public string Role { get; set; } // Role of the user (e.g., Admin, Coach, Runner)
+        public string Role { get; set; } = "Runner"; // Default role
     }
 }
+
 
 /*
 The RegisterDTO class serves as a Data Transfer Object (DTO) designed to capture user registration details before they are processed by the API. This structure ensures data consistency and allows for input validation before storing user information in the database.
