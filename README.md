@@ -120,8 +120,6 @@ For major changes, please open an issue first to discuss the proposal.
 
 For any questions or support, reach out to:
 
-Email: support@runclubapi.com
-
 GitHub Issues: https://github.com/deryosss/runclub/issues
 
 Thank you for using RunClub API! 
