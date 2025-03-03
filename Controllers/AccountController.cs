@@ -15,7 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Logging;
 
 namespace RunClubAPI.Controllers
 {
@@ -29,6 +29,7 @@ namespace RunClubAPI.Controllers
         private readonly EmailService _emailService;
         private readonly IConfiguration _configuration;
         private readonly IAuthService _authService;
+        private readonly ILogger<AccountController> _logger;
 
         public AccountController(
             UserManager<User> userManager,
@@ -36,16 +37,19 @@ namespace RunClubAPI.Controllers
             RoleManager<IdentityRole> roleManager,
             EmailService emailService,
             IConfiguration configuration,
-            IAuthService authService) 
+            IAuthService authService,
+            ILogger<AccountController> logger) 
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _emailService = emailService;
             _configuration = configuration;
-            _authService = authService; 
+            _authService = authService;
+            _logger = logger;
         }
-        [Authorize] // Ensure only authenticated users can access
+
+        [Authorize]
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
@@ -69,7 +73,7 @@ namespace RunClubAPI.Controllers
             return Ok(user);
         }
 
-        [Authorize(Roles = "Admin")] // Ensure only admins can access all users
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -80,7 +84,7 @@ namespace RunClubAPI.Controllers
                     u.UserName, 
                     u.Email 
                 })
-                .ToListAsync(); // Ensure EF Core is being used
+                .ToListAsync();
 
             return Ok(users);
         }
@@ -103,14 +107,30 @@ namespace RunClubAPI.Controllers
             {
                 Name = model.Name,
                 Email = model.Email,
-                UserName = model.Email
+                UserName = model.Email,
             };
+
+            // Set Default Role (if no role is provided)
+            string assignedRole = string.IsNullOrEmpty(model.Role) ? "User" : model.Role;
+
+            // Ensure the role exists before assigning it
+            if (!await _roleManager.RoleExistsAsync(assignedRole))
+            {
+                await _roleManager.CreateAsync(new IdentityRole(assignedRole));
+            }
 
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
             {
-                return BadRequest(result.Errors);
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                return BadRequest(new { message = "User creation failed", errors });
             }
+
+            // Assign Role AFTER user creation
+            await _userManager.AddToRoleAsync(user, assignedRole);
+
+            // Log User Creation
+            _logger.LogInformation("User created: {Email} with Role: {Role}", model.Email, assignedRole);
 
             // Send Welcome Email
             await _emailService.SendEmailAsync(model.Email, "Welcome!", "Thank you for registering!");
@@ -118,7 +138,7 @@ namespace RunClubAPI.Controllers
             return Ok(new { message = "User registered successfully" });
         }
 
-        // Email Verification
+
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest model)
         {
@@ -132,7 +152,6 @@ namespace RunClubAPI.Controllers
             return Ok("Email verified successfully.");
         }
 
-        // User Login
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthModel model)
         {
@@ -150,7 +169,6 @@ namespace RunClubAPI.Controllers
             return Ok(new { Token = token });
         }
 
-        // Logout
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
@@ -158,7 +176,6 @@ namespace RunClubAPI.Controllers
             return Ok("Logged out successfully.");
         }
 
-        // Generate JWT Token
         private string GenerateJwtToken(User user, IList<string> roles)
         {
             if (user == null)
@@ -199,6 +216,7 @@ namespace RunClubAPI.Controllers
         }
     }
 }
+
 
 
 /*📝 Summary of Key Security Features
