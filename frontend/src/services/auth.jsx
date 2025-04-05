@@ -1,10 +1,10 @@
+// src/services/auth.js
 import api from './api'
 
 export const login = async ({ email, password }) => {
   const res = await api.post('/account/login', { email, password })
-  const { token } = res.data
-  localStorage.setItem('token', token)
-  return token
+  localStorage.setItem('token', res.data.token)
+  return res.data.token
 }
 
 export const getCurrentUser = async () => {
@@ -15,3 +15,4 @@ export const getCurrentUser = async () => {
 export const logout = () => {
   localStorage.removeItem('token')
 }
+

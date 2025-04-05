@@ -1,14 +1,19 @@
+// src/redux/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { login as loginAPI, getCurrentUser } from '../Services/auth'
+import { login as loginAPI, getCurrentUser } from '../services/auth'
 
 export const login = createAsyncThunk('auth/login', async (creds) => {
   await loginAPI(creds)
   return await getCurrentUser()
 })
 
-export const authSlice = createSlice({
+const authSlice = createSlice({
   name: 'auth',
-  initialState: { user: null, loading: false, error: null },
+  initialState: {
+    user: null,
+    loading: false,
+    error: null
+  },
   reducers: {
     logout: (state) => {
       localStorage.removeItem('token')
@@ -17,17 +22,21 @@ export const authSlice = createSlice({
   },
   extraReducers: builder => {
     builder
-      .addCase(login.pending, state => { state.loading = true; state.error = null })
+      .addCase(login.pending, state => {
+        state.loading = true
+        state.error = null
+      })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
         state.user = action.payload
       })
-      .addCase(login.rejected, (state, action) => {
+      .addCase(login.rejected, (state) => {
         state.loading = false
-        state.error = 'Login failed'
+        state.error = 'Login failed. Check your email/password.'
       })
   }
 })
 
 export const { logout } = authSlice.actions
 export default authSlice.reducer
+
