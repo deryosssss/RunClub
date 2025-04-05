@@ -1,10 +1,16 @@
-// src/redux/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { login as loginAPI, getCurrentUser } from '../services/auth'
+import axios from 'axios'
 
-export const login = createAsyncThunk('auth/login', async (creds) => {
-  await loginAPI(creds)
-  return await getCurrentUser()
+
+export const login = createAsyncThunk('auth/login', async (creds, thunkAPI) => {
+  try {
+    await loginAPI(creds) // login + store token
+    const user = await getCurrentUser()
+    return user
+  } catch (err) {
+    return thunkAPI.rejectWithValue('Login failed. Check your email/password.')
+  }
 })
 
 const authSlice = createSlice({
@@ -17,6 +23,7 @@ const authSlice = createSlice({
   reducers: {
     logout: (state) => {
       localStorage.removeItem('token')
+      delete axios.defaults.headers.common['Authorization']
       state.user = null
     }
   },
@@ -30,13 +37,12 @@ const authSlice = createSlice({
         state.loading = false
         state.user = action.payload
       })
-      .addCase(login.rejected, (state) => {
+      .addCase(login.rejected, (state, action) => {
         state.loading = false
-        state.error = 'Login failed. Check your email/password.'
+        state.error = action.payload || 'Login failed.'
       })
   }
 })
 
 export const { logout } = authSlice.actions
 export default authSlice.reducer
-

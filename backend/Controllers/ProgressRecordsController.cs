@@ -11,7 +11,7 @@ namespace RunClubAPI.Controllers
     // This controller manages CRUD operations for progress records.
     [Route("api/[controller]")] // Base URL: "api/progressrecords"
     [ApiController] // Enables model binding, automatic validation, and more.
-    [Authorize(Roles = "Coach")] // Only users with "Coach" role can access.
+    // [Authorize(Roles = "Coach")] // Only users with "Coach" role can access.
     public class ProgressRecordsController : ControllerBase
     {
         private readonly IProgressRecordService _progressRecordService;

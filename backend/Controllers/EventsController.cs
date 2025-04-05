@@ -12,7 +12,7 @@ namespace RunClubAPI.Controllers
     // This controller manages CRUD operations for events.
     [Route("api/[controller]")] // Base URL: "api/events"
     [ApiController] // Enables model binding, automatic validation, and more.
-    [Authorize(Roles = "Admin")] // Only Admin users can access these endpoints.
+    // [Authorize(Roles = "Admin")] // Only Admin users can access these endpoints.
     public class EventsController : ControllerBase
     {
         private readonly RunClubContext _context; // Injected database context.

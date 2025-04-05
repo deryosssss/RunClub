@@ -1,27 +1,19 @@
-using RunClubAPI.DTOs;  // Importing DTOs for data transfer between layers.
-using RunClubAPI.Models;  // Importing the ProgressRecord model.
+using RunClubAPI.DTOs;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace RunClubAPI.Interfaces
 {
-    // Service interface for managing progress records.
     public interface IProgressRecordService
     {
-        // Fetches all progress records asynchronously.
         Task<IEnumerable<ProgressRecordDTO>> GetAllProgressRecordsAsync();
-
-        // Retrieves a specific progress record by ID.
-        Task<ProgressRecordDTO> GetProgressRecordByIdAsync(int id);
-
-        // Adds a new progress record to the system.
-        Task<ProgressRecordDTO> AddProgressRecordAsync(ProgressRecordDTO progressRecordDto);
-
-        // Deletes a progress record by ID.
+        Task<ProgressRecordDTO?> GetProgressRecordByIdAsync(int id);
+        Task<ProgressRecordDTO?> AddProgressRecordAsync(ProgressRecordDTO dto);
+        Task<bool> UpdateProgressRecordAsync(int id, ProgressRecordDTO dto);
         Task<bool> DeleteProgressRecordAsync(int id);
-
-        // Updates an existing progress record.
-        Task<bool> UpdateProgressRecordAsync(int id, ProgressRecordDTO progressRecordDto);
     }
 }
+
 
 /* The IProgressRecordService interface defines the business logic for handling progress records. This follows the Service Layer Pattern, which keeps the controller logic clean and ensures reusability.
 

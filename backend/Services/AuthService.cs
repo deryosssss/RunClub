@@ -1,187 +1,90 @@
-using Microsoft.IdentityModel.Tokens;
-using RunClubAPI.Interfaces;
-using RunClubAPI.Models;
-using RunClubAPI.DTOs;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
+using RunClubAPI.DTOs;
+using RunClubAPI.Interfaces;
+using RunClubAPI.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace RunClubAPI.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly RunClubContext _context;
+        private readonly UserManager<User> _userManager;
         private readonly IConfiguration _config;
         private readonly ILogger<AuthService> _logger;
-        private readonly UserManager<User> _userManager;
 
-        public AuthService(RunClubContext context, IConfiguration config, ILogger<AuthService> logger, UserManager<User> userManager)
+        public AuthService(UserManager<User> userManager, IConfiguration config, ILogger<AuthService> logger)
         {
-            _context = context;
+            _userManager = userManager;
             _config = config;
             _logger = logger;
-            _userManager = userManager;
         }
 
-        public async Task<AuthResponseDTO?> LoginAsync(string username, string password)
+        public async Task<AuthResponseDTO?> LoginAsync(string email, string password)
         {
-            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null || !await _userManager.CheckPasswordAsync(user, password))
             {
-                _logger.LogWarning("Invalid login attempt for email: {Email}", username);
+                _logger.LogWarning("❌ User not found or password invalid for {Email}", email);
                 return null;
             }
 
             var token = GenerateJwtToken(user);
-            var refreshToken = GenerateRefreshToken();
-
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-            await _context.SaveChangesAsync();
-
-            return new AuthResponseDTO { Token = token, RefreshToken = refreshToken };
+            return new AuthResponseDTO { Token = token };
         }
 
-        public async Task<AuthResponseDTO?> AuthenticateUserAsync(string username, string password)
+        public async Task<bool> RegisterAsync(RegisterDTO model)
         {
-            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            var user = new User
             {
-                _logger.LogWarning("Invalid authentication attempt for email: {Email}", username);
-                return null;
+                UserName = model.Email,
+                Email = model.Email,
+                Name = model.Name
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                _logger.LogError("❌ Registration failed: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return false;
             }
 
-            var token = GenerateJwtToken(user);
-            var refreshToken = GenerateRefreshToken();
-
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-            await _context.SaveChangesAsync();
-
-            return new AuthResponseDTO { Token = token, RefreshToken = refreshToken };
-        }
-
-        public async Task<AuthResponseDTO?> RefreshTokenAsync(RefreshTokenRequest request)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.RefreshToken == request.RefreshToken);
-            if (user == null || user.RefreshTokenExpiry < DateTime.UtcNow)
+            if (!string.IsNullOrEmpty(model.Role))
             {
-                _logger.LogWarning("Invalid refresh token attempt.");
-                return null;
+                await _userManager.AddToRoleAsync(user, model.Role);
             }
 
-            var newToken = GenerateJwtToken(user);
-            var newRefreshToken = GenerateRefreshToken();
-
-            user.RefreshToken = newRefreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-            await _context.SaveChangesAsync();
-
-            return new AuthResponseDTO { Token = newToken, RefreshToken = newRefreshToken };
-        }
-
-        public async Task RevokeRefreshTokenAsync(string userId)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserId.ToString() == userId);
-            if (user != null)
-            {
-                user.RefreshToken = null;
-                await _context.SaveChangesAsync();
-            }
+            return true;
         }
 
         private string GenerateJwtToken(User user)
         {
-            var keyString = _config["Jwt:Key"];
-            if (string.IsNullOrEmpty(keyString))
-            {
-                throw new InvalidOperationException("JWT Key is missing in the configuration.");
-            }
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var roleClaim = user.Role?.Name ?? "User";
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("role", roleClaim)
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(ClaimTypes.Name, user.Name ?? ""),
+                new Claim(ClaimTypes.Email, user.Email ?? "")
             };
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(int.TryParse(_config["Jwt:AccessTokenExpiryMinutes"], out int expiry) ? expiry : 60),
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-        private string GenerateRefreshToken()
-        {
-            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        }
-
-        public async Task<bool> RegisterAsync(string username, string password)
-        {
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == username);
-            if (existingUser != null)
-            {
-                _logger.LogWarning("User with email {Email} already exists.", username);
-                return false;
-            }
-
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-            var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
-
-            var newUser = new User
-            {
-                Email = username,
-                PasswordHash = passwordHash,
-                Role = role ?? new IdentityRole { Name = "User" }
-            };
-
-            _context.Users.Add(newUser);
-            await _context.SaveChangesAsync();
-
-            var token = GenerateJwtToken(newUser);
-            var refreshToken = GenerateRefreshToken();
-
-            newUser.RefreshToken = refreshToken;
-            newUser.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-            await _context.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<VerifyEmailResponseDTO> VerifyEmailAsync(string token, string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-                return new VerifyEmailResponseDTO { Success = false, Message = "User not found." };
-            }
-
-            var result = await _userManager.ConfirmEmailAsync(user, token);
-            if (result.Succeeded)
-            {
-                return new VerifyEmailResponseDTO { Success = true, Message = "Email verified successfully." };
-            }
-
-            return new VerifyEmailResponseDTO { Success = false, Message = "Email verification failed." };
-        }
     }
 }
-
 
 
 

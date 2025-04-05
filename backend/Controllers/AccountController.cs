@@ -38,7 +38,7 @@ namespace RunClubAPI.Controllers
             EmailService emailService,
             IConfiguration configuration,
             IAuthService authService,
-            ILogger<AccountController> logger) 
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -53,17 +53,17 @@ namespace RunClubAPI.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier); // 👈 this should match user.Id in DB
             if (userId == null)
                 return Unauthorized();
 
             var user = await _userManager.Users
-                .Where(u => u.Id == userId)
-                .Select(u => new 
-                { 
-                    u.Id, 
-                    u.UserName, 
-                    u.Email 
+                .Where(u => u.Id == userId) // 👈 match against u.Id (type string GUID!)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.UserName,
+                    u.Email
                 })
                 .FirstOrDefaultAsync();
 
@@ -73,16 +73,34 @@ namespace RunClubAPI.Controllers
             return Ok(user);
         }
 
-        [Authorize(Roles = "Admin")]
+        [HttpDelete("{email}")]
+        public async Task<IActionResult> DeleteAccount(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email)
+                    ?? await _userManager.FindByNameAsync(email);
+
+            if (user == null)
+                return NotFound(new { message = $"No user found with email: {email}" });
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                return BadRequest(new { message = "Failed to delete user", errors });
+            }
+
+            _logger.LogInformation("🗑️ Deleted user: {Email}", email);
+            return Ok(new { message = $"User {email} deleted successfully." });
+        }
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
             var users = await _userManager.Users
-                .Select(u => new 
-                { 
-                    u.Id, 
-                    u.UserName, 
-                    u.Email 
+                .Select(u => new
+                {
+                    u.Id,
+                    u.UserName,
+                    u.Email
                 })
                 .ToListAsync();
 
@@ -103,21 +121,31 @@ namespace RunClubAPI.Controllers
                 return BadRequest(new { message = "User already exists" });
             }
 
+            string assignedRole = string.IsNullOrWhiteSpace(model.Role) ? "User" : model.Role;
+
+            if (!await _roleManager.RoleExistsAsync(assignedRole))
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(assignedRole));
+                if (!roleResult.Succeeded)
+                {
+                    return BadRequest(new { message = $"Failed to create role {assignedRole}" });
+                }
+            }
+
+            var role = await _roleManager.FindByNameAsync(assignedRole);
+            if (role == null)
+            {
+                return BadRequest(new { message = $"Role {assignedRole} could not be found." });
+            }
+
             var user = new User
             {
                 Name = model.Name,
                 Email = model.Email,
                 UserName = model.Email,
+                RoleId = role.Id,
+                Role = role
             };
-
-            // Set Default Role (if no role is provided)
-            string assignedRole = string.IsNullOrEmpty(model.Role) ? "User" : model.Role;
-
-            // Ensure the role exists before assigning it
-            if (!await _roleManager.RoleExistsAsync(assignedRole))
-            {
-                await _roleManager.CreateAsync(new IdentityRole(assignedRole));
-            }
 
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
@@ -126,16 +154,22 @@ namespace RunClubAPI.Controllers
                 return BadRequest(new { message = "User creation failed", errors });
             }
 
-            // Assign Role AFTER user creation
             await _userManager.AddToRoleAsync(user, assignedRole);
 
-            // Log User Creation
-            _logger.LogInformation("User created: {Email} with Role: {Role}", model.Email, assignedRole);
+            // ✅ Generate verification token and link
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = Uri.EscapeDataString(token);
+            var confirmationUrl = $"http://localhost:5187/api/account/verify-email?userId={user.Id}&token={encodedToken}";
 
-            // Send Welcome Email
-            await _emailService.SendEmailAsync(model.Email, "Welcome!", "Thank you for registering!");
+            await _emailService.SendEmailAsync(
+                model.Email,
+                "Please verify your email",
+                $"Welcome, {model.Name}!<br/><br/>Please verify your email by clicking this link:<br/><a href=\"{confirmationUrl}\">{confirmationUrl}</a>"
+            );
 
-            return Ok(new { message = "User registered successfully" });
+            _logger.LogInformation("✅ Registered user: {Email} with role: {Role}", user.Email, assignedRole);
+
+            return Ok(new { message = "User registered successfully. Please verify your email." });
         }
 
 
@@ -152,22 +186,58 @@ namespace RunClubAPI.Controllers
             return Ok("Email verified successfully.");
         }
 
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string userId, [FromQuery] string token)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+                return BadRequest("Missing userId or token.");
+
+            var result = await _authService.VerifyEmailAsync(token, userId);
+            if (!result.Success)
+                return BadRequest("Verification failed: " + result.Message);
+
+            // Optional: redirect to login page with success message
+            return Redirect("http://localhost:3000/login?verified=true");
+
+            // OR if no frontend redirect yet:
+            // return Ok("✅ Email verified successfully.");
+        }
+
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] AuthModel model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
+            {
+                _logger.LogWarning("❌ User not found: {Email}", model.Email);
                 return Unauthorized(new { message = "Invalid login attempt." });
+            }
+
+            if (!user.EmailConfirmed)
+            {
+                _logger.LogWarning("❌ Email not confirmed: {Email}", model.Email);
+                return Unauthorized(new { message = "Please verify your email before logging in." });
+            }
+
+            // 👇 ADD THIS TO CHECK PASSWORD MANUALLY
+            var isCorrectPassword = await _userManager.CheckPasswordAsync(user, model.Password);
+            _logger.LogInformation("🔍 Is correct password for {Email}: {Correct}", model.Email, isCorrectPassword);
 
             var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
             if (!result.Succeeded)
+            {
+                _logger.LogWarning("❌ SignInManager failed for user: {Email}", model.Email);
                 return Unauthorized(new { message = "Invalid login attempt." });
+            }
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = GenerateJwtToken(user, roles);
 
             return Ok(new { Token = token });
         }
+
+
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
@@ -178,37 +248,31 @@ namespace RunClubAPI.Controllers
 
         private string GenerateJwtToken(User user, IList<string> roles)
         {
-            if (user == null)
-                throw new ArgumentNullException(nameof(user));
-
             var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? ""),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("userId", user.Id),
-                new Claim("name", user.Name ?? "")
-            };
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Email ?? ""),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.NameIdentifier, user.Id), // 🔐 important: user ID
+        new Claim("name", user.Name ?? "")
+    };
 
             foreach (var role in roles)
-            {
                 claims.Add(new Claim(ClaimTypes.Role, role));
-            }
 
             var jwtKey = _configuration["Jwt:Key"];
             var jwtIssuer = _configuration["Jwt:Issuer"];
 
-            if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer))
-                throw new ArgumentNullException("JWT configuration is missing!");
+            if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer))
+                throw new InvalidOperationException("JWT config missing in appsettings.json");
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expires = DateTime.Now.AddHours(Convert.ToDouble(_configuration["Jwt:ExpireHours"] ?? "1"));
 
             var token = new JwtSecurityToken(
-                jwtIssuer,
-                jwtIssuer,
-                claims,
-                expires: expires,
+                issuer: jwtIssuer,
+                audience: jwtIssuer,
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(2),
                 signingCredentials: creds
             );
 
@@ -216,6 +280,7 @@ namespace RunClubAPI.Controllers
         }
     }
 }
+
 
 
 

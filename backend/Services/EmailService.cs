@@ -33,7 +33,7 @@ namespace RunClubAPI.Services
                 message.From.Add(new MailboxAddress("Support Team", _emailSettings.SmtpUsername));
                 message.To.Add(new MailboxAddress(toEmail, toEmail));
                 message.Subject = subject;
-                message.Body = new TextPart("plain") { Text = body };
+                message.Body = new TextPart("html") { Text = body }; // ✅ HTML support enabled
 
                 using var client = new SmtpClient();
                 await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.SmtpPort, SecureSocketOptions.StartTls);
@@ -50,6 +50,8 @@ namespace RunClubAPI.Services
                 return false;
             }
         }
+
+
     }
 }
 

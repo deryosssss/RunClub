@@ -1,6 +1,0 @@
-@RunClubAPI_HostAddress = http://localhost:5187
-
-GET {{RunClubAPI_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

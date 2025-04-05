@@ -1,41 +1,44 @@
-using RunClubAPI.Models; 
+using RunClubAPI.Models;
 
 // Data Transfer Object (DTO) for event-related data
 // DTOs are used to transfer data between the API and external clients
-public class EventDTO
+namespace RunClubAPI.DTOs
 {
-    public int EventId { get; set; } // Unique identifier for the event
-
-    public string EventName { get; set; } // Name of the event (e.g., "Annual Marathon")
-
-    public string Description { get; set; } // A short description of the event
-
-    public DateOnly EventDate { get; set; } // Stores only the date component, preventing time zone issues
-
-    public string EventTime { get; set; } // Stores the event time as a string to avoid TimeOnly serialization issues
-
-    public string Location { get; set; } // The physical or virtual location of the event
-
-    public int EnrollmentCount { get; set; } // The number of users enrolled in the event
-
-    // Default constructor (needed for JSON serialization/deserialization)
-    public EventDTO() { }
-
-    // Constructor that maps an `Event` entity to `EventDTO`
-    public EventDTO(Event eventEntity)
+    public class EventDTO
     {
-        EventId = eventEntity.EventId; // Copy Event ID from the entity
-        EventName = eventEntity.EventName; // Copy Event Name
-        Description = eventEntity.Description; // Copy Description
-        EventDate = eventEntity.EventDate; // Copy Event Date (DateOnly ensures precision)
-        
-        // Convert TimeOnly to string to avoid serialization issues
-        EventTime = eventEntity.EventTime.ToString(); 
-        
-        Location = eventEntity.Location; // Copy Location
+        public int EventId { get; set; } // Unique identifier for the event
 
-        // Get the number of enrollments while handling potential null values
-        EnrollmentCount = eventEntity.Enrollments?.Count ?? 0;
+        public string EventName { get; set; } // Name of the event (e.g., "Annual Marathon")
+
+        public string Description { get; set; } // A short description of the event
+
+        public DateOnly EventDate { get; set; } // Stores only the date component, preventing time zone issues
+
+        public string EventTime { get; set; } // Stores the event time as a string to avoid TimeOnly serialization issues
+
+        public string Location { get; set; } // The physical or virtual location of the event
+
+        public int EnrollmentCount { get; set; } // The number of users enrolled in the event
+
+        // Default constructor (needed for JSON serialization/deserialization)
+        public EventDTO() { }
+
+        // Constructor that maps an `Event` entity to `EventDTO`
+        public EventDTO(Event eventEntity)
+        {
+            EventId = eventEntity.EventId; // Copy Event ID from the entity
+            EventName = eventEntity.EventName; // Copy Event Name
+            Description = eventEntity.Description; // Copy Description
+            EventDate = eventEntity.EventDate; // Copy Event Date (DateOnly ensures precision)
+
+            // Convert TimeOnly to string to avoid serialization issues
+            EventTime = eventEntity.EventTime.ToString();
+
+            Location = eventEntity.Location; // Copy Location
+
+            // Get the number of enrollments while handling potential null values
+            EnrollmentCount = eventEntity.Enrollments?.Count ?? 0;
+        }
     }
 }
 

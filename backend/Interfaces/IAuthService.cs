@@ -1,16 +1,11 @@
-using System.Threading.Tasks;
 using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthResponseDTO> LoginAsync(string username, string password);
-        Task<bool> RegisterAsync(string username, string password);
-        Task<AuthResponseDTO> AuthenticateUserAsync(string username, string password);
-        Task<AuthResponseDTO> RefreshTokenAsync(RefreshTokenRequest request);
-        Task RevokeRefreshTokenAsync(string userId);
-        Task<VerifyEmailResponseDTO> VerifyEmailAsync(string token, string userId);
+        Task<AuthResponseDTO?> LoginAsync(string email, string password);
+        Task<bool> RegisterAsync(RegisterDTO model);
     }
 }
 

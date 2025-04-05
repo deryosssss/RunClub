@@ -1,23 +1,15 @@
-using RunClubAPI.Models; 
+using RunClubAPI.Models;
+
 namespace RunClubAPI.DTOs
 {
-    // Data Transfer Object (DTO) for user progress tracking
-    // DTOs help in structuring and transmitting data between API and clients
     public class ProgressRecordDTO
     {
-        public int ProgressRecordId { get; set; } // Unique identifier for the progress record
-
-        public int UserId { get; set; } // ID of the user associated with this progress record
-
-        public string ProgressDetails { get; set; } // Stores additional details about the progress (e.g., training notes)
-
-        public string ProgressDate { get; set; } // Separate date field (avoids time zone issues with DateTime)
-
-        public string ProgressTime { get; set; } // Separate time field (avoids serialization issues with TimeOnly)
-
-        public double DistanceCovered { get; set; } // Distance the user covered during the session (in km/miles)
-
-        public double TimeTaken { get; set; } // Total time taken to complete the activity (in minutes/hours)
+        public int ProgressRecordId { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public string ProgressDate { get; set; } = string.Empty;
+        public string ProgressTime { get; set; } = string.Empty;
+        public double DistanceCovered { get; set; }
+        public string TimeTaken { get; set; } = string.Empty; // Format: "HH:mm:ss"
     }
 }
 

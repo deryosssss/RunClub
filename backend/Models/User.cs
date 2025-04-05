@@ -4,34 +4,16 @@ using System.Collections.Generic;
 
 namespace RunClubAPI.Models
 {
-    // User model that extends IdentityUser for authentication & authorization
     public class User : IdentityUser
     {
-        // Unique identifier for the user (Primary Key)
-        public int UserId { get; set; }
-
-        // User's full name (default is empty to prevent null issues)
         public string Name { get; set; } = string.Empty;
 
-        // Explicitly hiding the Email property from IdentityUser
-        public new string Email { get; set; } = string.Empty;
-
-        // Foreign Key to associate user with a specific role
-        public string RoleId { get; set; }  
-
-        // Navigation property to link User with Role entity
-        public IdentityRole? Role { get; set; }
-
-        // List of enrollments associated with the user (1-to-many relationship)
         public List<Enrollment> Enrollments { get; set; } = new();
 
-        // List of progress records associated with the user (1-to-many relationship)
         public List<ProgressRecord> ProgressRecords { get; set; } = new();
 
-        // Refresh token for authentication (used for issuing new access tokens)
         public string RefreshToken { get; set; } = string.Empty;
 
-        // Expiry date of the refresh token (prevents unauthorized reuse)
         public DateTime RefreshTokenExpiry { get; set; }
     }
 }

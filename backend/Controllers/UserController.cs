@@ -12,7 +12,7 @@ namespace RunClubAPI.Controllers
     // This controller handles user-related operations such as retrieving, creating, and filtering users.
     [Route("api/[controller]")] // Defines the API route as "api/Users"
     [ApiController] // Specifies that this is an API controller (automatically handles HTTP 400 responses)
-    [Authorize(Roles = "Admin")] // Only Admin users can access these endpoints.
+    // [Authorize(Roles = "Admin")] // Only Admin users can access these endpoints.
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService; // Dependency injection for user-related services

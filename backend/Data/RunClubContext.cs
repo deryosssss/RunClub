@@ -4,8 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace RunClubAPI.Models
 {
-    //  The database context class for the RunClub application.
-    public class RunClubContext : IdentityDbContext<User> // Using a custom User class
+    public class RunClubContext : IdentityDbContext<User>
     {
         public RunClubContext(DbContextOptions<RunClubContext> options)
             : base(options)
@@ -20,7 +19,6 @@ namespace RunClubAPI.Models
         {
             base.OnModelCreating(modelBuilder);
 
-            // Seeding roles
             modelBuilder.Entity<IdentityRole>().HasData(
                 new IdentityRole { Id = "1", Name = "Admin", NormalizedName = "ADMIN" },
                 new IdentityRole { Id = "2", Name = "Coach", NormalizedName = "COACH" },
@@ -29,8 +27,6 @@ namespace RunClubAPI.Models
         }
     }
 }
-
-
 
 /*
 The RunClubContext class in my ASP.NET Core Web API serves as the database context, managing interactions with the underlying database using Entity Framework Core. It extends IdentityDbContext<User>, which integrates ASP.NET Identity, providing built-in authentication, authorization, and role management. This allows for secure user handling and access control.
