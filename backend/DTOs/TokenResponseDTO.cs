@@ -1,18 +1,13 @@
-using RunClubAPI.Models;
-
 namespace RunClubAPI.DTOs
 {
-    // DTO for handling authentication token responses
-    // This class is used to return access and refresh tokens to the client after authentication
     public class TokenResponseDTO
     {
-        public string AccessToken { get; set; } // The JWT (JSON Web Token) used for API authentication
-
-        public string RefreshToken { get; set; } // A long-lived token used to refresh the access token
-
-        public DateTime Expiration { get; set; } // Timestamp indicating when the access token expires
+        public string AccessToken { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
+        public DateTime Expiration { get; set; }
     }
 }
+
 
 /* The TokenResponseDTO class is a Data Transfer Object (DTO) used in authentication. After a user successfully logs in, the system generates an Access Token and a Refresh Token, which are sent back to the client in this DTO.
 

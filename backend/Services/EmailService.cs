@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
+using RunClubAPI.Interfaces;
 
 namespace RunClubAPI.Services
 {
@@ -30,10 +31,10 @@ namespace RunClubAPI.Services
                 }
 
                 var message = new MimeMessage();
-                message.From.Add(new MailboxAddress("Support Team", _emailSettings.SmtpUsername));
+                message.From.Add(new MailboxAddress("RunClub", _emailSettings.SmtpUsername ?? "no-reply@runclub.com"));
                 message.To.Add(new MailboxAddress(toEmail, toEmail));
                 message.Subject = subject;
-                message.Body = new TextPart("html") { Text = body }; // ✅ HTML support enabled
+                message.Body = new TextPart("html") { Text = body };
 
                 using var client = new SmtpClient();
                 await client.ConnectAsync(_emailSettings.SmtpServer, _emailSettings.SmtpPort, SecureSocketOptions.StartTls);
@@ -50,11 +51,8 @@ namespace RunClubAPI.Services
                 return false;
             }
         }
-
-
     }
 }
-
 
 
 /* The EmailService class is designed to handle email notifications within the RunClubAPI, leveraging the MailKit library for sending messages via an SMTP (Simple Mail Transfer Protocol) server. The service follows a structured approach, utilizing dependency injection to retrieve SMTP configuration settings dynamically from the application’s configuration. The SendEmail method constructs an email using MIME (Multipurpose Internet Mail Extensions), ensuring proper message formatting. The SMTP client establishes a secure connection using STARTTLS encryption, authenticates with the SMTP server, and sends the message. By implementing a modular email service, the system enhances communication capabilities, allowing automated email notifications such as password resets, account confirmations, or event updates. The use of asynchronous email delivery could further improve performance by preventing blocking operations in the main application workflow. */

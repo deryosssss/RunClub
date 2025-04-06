@@ -1,46 +1,32 @@
 using RunClubAPI.Models;
 
-// Data Transfer Object (DTO) for event-related data
-// DTOs are used to transfer data between the API and external clients
 namespace RunClubAPI.DTOs
 {
     public class EventDTO
     {
-        public int EventId { get; set; } // Unique identifier for the event
+        public int EventId { get; set; }
+        public string EventName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateOnly EventDate { get; set; }
+        public string EventTime { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public int EnrollmentCount { get; set; }
 
-        public string EventName { get; set; } // Name of the event (e.g., "Annual Marathon")
-
-        public string Description { get; set; } // A short description of the event
-
-        public DateOnly EventDate { get; set; } // Stores only the date component, preventing time zone issues
-
-        public string EventTime { get; set; } // Stores the event time as a string to avoid TimeOnly serialization issues
-
-        public string Location { get; set; } // The physical or virtual location of the event
-
-        public int EnrollmentCount { get; set; } // The number of users enrolled in the event
-
-        // Default constructor (needed for JSON serialization/deserialization)
         public EventDTO() { }
 
-        // Constructor that maps an `Event` entity to `EventDTO`
-        public EventDTO(Event eventEntity)
+        public EventDTO(Event e)
         {
-            EventId = eventEntity.EventId; // Copy Event ID from the entity
-            EventName = eventEntity.EventName; // Copy Event Name
-            Description = eventEntity.Description; // Copy Description
-            EventDate = eventEntity.EventDate; // Copy Event Date (DateOnly ensures precision)
-
-            // Convert TimeOnly to string to avoid serialization issues
-            EventTime = eventEntity.EventTime.ToString();
-
-            Location = eventEntity.Location; // Copy Location
-
-            // Get the number of enrollments while handling potential null values
-            EnrollmentCount = eventEntity.Enrollments?.Count ?? 0;
+            EventId = e.EventId;
+            EventName = e.EventName;
+            Description = e.Description;
+            EventDate = e.EventDate;
+            EventTime = e.EventTime.ToString("HH:mm:ss");
+            Location = e.Location;
+            EnrollmentCount = e.Enrollments?.Count ?? 0;
         }
     }
 }
+
 
 /* 
 The EventDTO class is a Data Transfer Object (DTO) that acts as a bridge between the API and external clients. It ensures that only relevant and structured data about events is exposed while keeping database models separate.

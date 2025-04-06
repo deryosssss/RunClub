@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
 
 namespace RunClubAPI.Services
 {
@@ -33,8 +34,18 @@ namespace RunClubAPI.Services
                 return null;
             }
 
-            var token = GenerateJwtToken(user);
-            return new AuthResponseDTO { Token = token };
+            var accessToken = GenerateJwtToken(user);
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            return new AuthResponseDTO
+            {
+                Token = accessToken,
+                RefreshToken = refreshToken
+            };
         }
 
         public async Task<bool> RegisterAsync(RegisterDTO model)
@@ -43,7 +54,8 @@ namespace RunClubAPI.Services
             {
                 UserName = model.Email,
                 Email = model.Email,
-                Name = model.Name
+                Name = model.Name,
+                EmailConfirmed = true // ✅ Skip verification for development
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -59,6 +71,59 @@ namespace RunClubAPI.Services
             }
 
             return true;
+        }
+
+
+        public async Task<AuthResponseDTO?> AuthenticateUserAsync(string email, string password)
+        {
+            return await LoginAsync(email, password);
+        }
+
+        public async Task<AuthResponseDTO?> RefreshTokenAsync(RefreshTokenRequest request)
+        {
+            var user = _userManager.Users.FirstOrDefault(u =>
+                u.RefreshToken == request.RefreshToken &&
+                u.RefreshTokenExpiry > DateTime.UtcNow);
+
+            if (user == null)
+            {
+                _logger.LogWarning("⚠️ Invalid or expired refresh token.");
+                return null;
+            }
+
+            var newAccessToken = GenerateJwtToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            return new AuthResponseDTO
+            {
+                Token = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+        }
+
+        public async Task RevokeRefreshTokenAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return;
+
+            user.RefreshToken = string.Empty;
+            user.RefreshTokenExpiry = DateTime.MinValue;
+
+            await _userManager.UpdateAsync(user);
+            _logger.LogInformation("🔒 Refresh token revoked for user {UserId}", userId);
+        }
+
+        public async Task<bool> DeleteAccountAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            var result = await _userManager.DeleteAsync(user);
+            return result.Succeeded;
         }
 
         private string GenerateJwtToken(User user)
@@ -83,8 +148,15 @@ namespace RunClubAPI.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        private string GenerateRefreshToken()
+        {
+            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        }
     }
 }
+
+
 
 
 

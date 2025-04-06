@@ -7,74 +7,72 @@ using System.Threading.Tasks;
 
 namespace RunClubAPI.Controllers
 {
-    // This controller handles CRUD operations for enrollments in events.
-    [Route("api/[controller]")] // Base route: "api/enrollments"
-    [ApiController] // Enables automatic model validation & request binding.
-    
+    [ApiController]
+    [Route("api/[controller]")]
     public class EnrollmentsController : ControllerBase
     {
-        private readonly IEnrollmentService _enrollmentService; // Service for enrollment logic.
+        private readonly IEnrollmentService _enrollmentService;
 
-        // Constructor: Injects Enrollment Service
         public EnrollmentsController(IEnrollmentService enrollmentService)
         {
             _enrollmentService = enrollmentService;
         }
 
-        // GET all enrollments (with pagination support)
+        // GET: api/enrollments?pageNumber=1&pageSize=10
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollments(int pageNumber = 1, int pageSize = 10)
         {
-            // Fetch paginated enrollments
             var enrollments = await _enrollmentService.GetAllEnrollmentsAsync(pageNumber, pageSize);
-            return Ok(enrollments); // Returns list of enrollments.
+            return Ok(enrollments);
         }
 
-        // GET a single enrollment by ID
+        // GET: api/enrollments/5
         [HttpGet("{id}")]
         public async Task<ActionResult<EnrollmentDTO>> GetEnrollment(int id)
         {
             var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
             if (enrollment == null)
-                return NotFound(); // Returns 404 if the enrollment doesn't exist.
+                return NotFound($"Enrollment with ID {id} not found.");
 
-            return Ok(enrollment); // Returns the found enrollment.
+            return Ok(enrollment);
         }
 
-        // GET enrollments for a specific event
+        // GET: api/enrollments/event/3
         [HttpGet("event/{eventId}")]
         public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollmentsByEvent(int eventId)
         {
-            // Fetch all enrollments for a given event ID
             var enrollments = await _enrollmentService.GetEnrollmentsByEventIdAsync(eventId);
             return Ok(enrollments);
         }
 
-        // POST create a new enrollment
+        // POST: api/enrollments
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> PostEnrollment(EnrollmentDTO enrollmentDto)
+        public async Task<IActionResult> PostEnrollment([FromBody] EnrollmentDTO enrollmentDto)
         {
-            // Call the service to create the enrollment
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             await _enrollmentService.CreateEnrollmentAsync(enrollmentDto);
 
-            // Returns HTTP 201 Created with the newly created resource
             return CreatedAtAction(nameof(GetEnrollment), new { id = enrollmentDto.EnrollmentId }, enrollmentDto);
         }
 
-        // DELETE an enrollment by ID
+        // DELETE: api/enrollments/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEnrollment(int id)
         {
             var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
             if (enrollment == null)
-                return NotFound(); // Returns 404 if the enrollment is not found.
+                return NotFound($"Enrollment with ID {id} not found.");
 
-            // 🔹 Call the service to delete the enrollment
             await _enrollmentService.DeleteEnrollmentAsync(id);
-            return NoContent(); // Returns 204 No Content after successful deletion.
+            return NoContent();
         }
     }
 }
+
 /* 
 "This controller manages enrollments using a service layer, which ensures a clean separation of concerns."
 "We use HTTP status codes effectively to provide clear responses to clients."

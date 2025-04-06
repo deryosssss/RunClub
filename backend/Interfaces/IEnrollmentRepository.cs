@@ -1,16 +1,13 @@
-using RunClubAPI.Models; 
-using System.Collections.Generic;  // Required for handling lists.
-using System.Threading.Tasks;  // Enables asynchronous operations.
+using RunClubAPI.Models;
 
 namespace RunClubAPI.Interfaces
 {
-    // Interface for handling Enrollment-related data access.
     public interface IEnrollmentRepository
     {
-        // Retrieves all enrollments asynchronously.
         Task<List<Enrollment>> GetAllEnrollmentsAsync();
     }
 }
+
 
 /* The IEnrollmentRepository interface defines the contract for handling enrollment-related database operations in a structured and modular way. It follows the Repository Pattern, ensuring that database logic is separated from business logic.
 

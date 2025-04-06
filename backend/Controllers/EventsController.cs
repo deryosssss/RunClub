@@ -1,35 +1,31 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RunClubAPI.DTOs;
 using RunClubAPI.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace RunClubAPI.Controllers
 {
-    // This controller manages CRUD operations for events.
-    [Route("api/[controller]")] // Base URL: "api/events"
-    [ApiController] // Enables model binding, automatic validation, and more.
-    // [Authorize(Roles = "Admin")] // Only Admin users can access these endpoints.
+    [ApiController]
+    [Route("api/[controller]")]
     public class EventsController : ControllerBase
     {
-        private readonly RunClubContext _context; // Injected database context.
+        private readonly RunClubContext _context;
 
-        // Constructor: Injects the database context.
         public EventsController(RunClubContext context)
         {
             _context = context;
         }
 
-        // GET all events (Includes enrollments count)
+        // GET: api/events
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EventDTO>>> GetEvents()
         {
-            // Fetch all events with their enrollments count.
             var events = await _context.Events
-                .Include(e => e.Enrollments) // Joins enrollments data.
+                .Include(e => e.Enrollments)
                 .Select(e => new EventDTO
                 {
                     EventId = e.EventId,
@@ -38,18 +34,17 @@ namespace RunClubAPI.Controllers
                     EventDate = e.EventDate,
                     EventTime = e.EventTime.ToString("HH:mm:ss"),
                     Location = e.Location,
-                    EnrollmentCount = e.Enrollments.Count()
+                    EnrollmentCount = e.Enrollments.Count
                 })
                 .ToListAsync();
 
-            return Ok(events); // Returns a list of event DTOs.
+            return Ok(events);
         }
 
-        // GET a single event by ID
+        // GET: api/events/5
         [HttpGet("{id}")]
         public async Task<ActionResult<EventDTO>> GetEvent(int id)
         {
-            // Fetch a single event with enrollments count.
             var eventItem = await _context.Events
                 .Include(e => e.Enrollments)
                 .Where(e => e.EventId == id)
@@ -59,92 +54,94 @@ namespace RunClubAPI.Controllers
                     EventName = e.EventName,
                     Description = e.Description,
                     EventDate = e.EventDate,
-                    EventTime = e.EventTime.ToString("HH:mm:ss"), 
+                    EventTime = e.EventTime.ToString("HH:mm:ss"),
                     Location = e.Location,
-                    EnrollmentCount = e.Enrollments.Count()
+                    EnrollmentCount = e.Enrollments.Count
                 })
                 .FirstOrDefaultAsync();
 
-            if (eventItem == null)
-            {
-                return NotFound(new { message = "Event not found." }); //  Returns 404 if event doesn't exist.
-            }
-
-            return Ok(eventItem); // Returns the event DTO.
+            return eventItem == null
+                ? NotFound(new { message = "Event not found." })
+                : Ok(eventItem);
         }
 
-        // UPDATE an existing event
+        // PUT: api/events/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEvent(int id, Event @event)
+        public async Task<IActionResult> PutEvent(int id, [FromBody] EventDTO updatedEvent)
         {
-            if (id != @event.EventId)
-            {
-                return BadRequest(new { message = "Event ID mismatch." }); // Ensures ID in URL matches event object.
-            }
+            if (id != updatedEvent.EventId)
+                return BadRequest(new { message = "Event ID mismatch." });
 
-            _context.Entry(@event).State = EntityState.Modified; // Marks entity as modified.
+            var eventToUpdate = await _context.Events.FindAsync(id);
+            if (eventToUpdate == null)
+                return NotFound(new { message = "Event not found for update." });
 
-            try
-            {
-                await _context.SaveChangesAsync(); // Saves changes to the database.
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await EventExists(id)) // Checks if event still exists.
-                {
-                    return NotFound(new { message = "Event not found for update." });
-                }
-                return StatusCode(500, new { message = "A database error occurred while updating the event." });
-            }
+            eventToUpdate.EventName = updatedEvent.EventName;
+            eventToUpdate.Description = updatedEvent.Description;
+            eventToUpdate.EventDate = updatedEvent.EventDate;
 
-            return NoContent(); // 204 No Content (Successful update).
+            if (!TimeOnly.TryParse(updatedEvent.EventTime, out var parsedTime))
+                return BadRequest(new { message = "Invalid event time format." });
+
+            eventToUpdate.EventTime = parsedTime;
+            eventToUpdate.Location = updatedEvent.Location;
+
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
-        // CREATE a new event
+        // POST: api/events
         [HttpPost]
-        public async Task<ActionResult<Event>> PostEvent(EventDTO newEventDTO)
+        public async Task<IActionResult> PostEvent([FromBody] EventDTO newEventDTO)
         {
             if (newEventDTO == null)
-            {
-                return BadRequest("Invalid event data."); // Ensures request is not empty.
-            }
+                return BadRequest("Event data is missing.");
 
-            // Converts EventDTO to Event model.
+            if (!TimeOnly.TryParse(newEventDTO.EventTime, out var parsedTime))
+                return BadRequest("Invalid time format. Expected HH:mm:ss.");
+
             var newEvent = new Event
             {
                 EventName = newEventDTO.EventName,
                 Description = newEventDTO.Description,
                 EventDate = newEventDTO.EventDate,
-                EventTime = TimeOnly.Parse(newEventDTO.EventTime), // Converts string to TimeOnly.
+                EventTime = parsedTime,
                 Location = newEventDTO.Location
             };
 
-            _context.Events.Add(newEvent); // Adds new event to the database.
-            await _context.SaveChangesAsync(); // Saves the event.
+            _context.Events.Add(newEvent);
+            await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetEvent), new { id = newEvent.EventId }, newEvent); // 201 Created response.
+            var createdDto = new EventDTO
+            {
+                EventId = newEvent.EventId,
+                EventName = newEvent.EventName,
+                Description = newEvent.Description,
+                EventDate = newEvent.EventDate,
+                EventTime = newEvent.EventTime.ToString("HH:mm:ss"),
+                Location = newEvent.Location,
+                EnrollmentCount = 0
+            };
+
+            return CreatedAtAction(nameof(GetEvent), new { id = newEvent.EventId }, createdDto);
         }
 
-        // DELETE an event by ID
+        // DELETE: api/events/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEvent(int id)
         {
             var eventItem = await _context.Events.FindAsync(id);
             if (eventItem == null)
-            {
-                return NotFound(new { message = "Event not found." }); // Returns 404 if event doesn’t exist.
-            }
+                return NotFound(new { message = "Event not found." });
 
-            _context.Events.Remove(eventItem); // Removes the event.
-            await _context.SaveChangesAsync(); // Saves the deletion.
-
-            return NoContent(); // 204 No Content (Successful deletion).
+            _context.Events.Remove(eventItem);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
-        // Helper method to check if an event exists.
         private async Task<bool> EventExists(int id)
         {
-            return await _context.Events.AnyAsync(e => e.EventId == id); // Checks existence.
+            return await _context.Events.AnyAsync(e => e.EventId == id);
         }
     }
 }

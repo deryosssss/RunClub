@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 const LoginPage = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { loading, error, user } = useSelector(state => state.auth)
+  const { loading, error } = useSelector(state => state.auth)
 
   const formik = useFormik({
     initialValues: { email: '', password: '' },
@@ -27,45 +27,55 @@ const LoginPage = () => {
   })
 
   return (
-    <div className="container mt-5" style={{ maxWidth: 400 }}>
-      <h2 className="mb-4">Login</h2>
-      <form onSubmit={formik.handleSubmit}>
-        <div className="mb-3">
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            className="form-control"
-            onChange={formik.handleChange}
-            value={formik.values.email}
-          />
-          {formik.touched.email && formik.errors.email && (
-            <div className="text-danger">{formik.errors.email}</div>
-          )}
-        </div>
+    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
+      <div className="card shadow p-4" style={{ width: '100%', maxWidth: 400 }}>
+        <h3 className="text-center mb-4">Welcome Back 👋</h3>
 
-        <div className="mb-3">
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="form-control"
-            onChange={formik.handleChange}
-            value={formik.values.password}
-          />
-          {formik.touched.password && formik.errors.password && (
-            <div className="text-danger">{formik.errors.password}</div>
-          )}
-        </div>
+        <form onSubmit={formik.handleSubmit}>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Email</label>
+            <input
+              type="email"
+              name="email"
+              className={`form-control ${formik.touched.email && formik.errors.email ? 'is-invalid' : ''}`}
+              placeholder="you@example.com"
+              onChange={formik.handleChange}
+              value={formik.values.email}
+            />
+            {formik.touched.email && formik.errors.email && (
+              <div className="invalid-feedback">{formik.errors.email}</div>
+            )}
+          </div>
 
-        {error && <div className="text-danger mb-3">{error}</div>}
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Password</label>
+            <input
+              type="password"
+              name="password"
+              className={`form-control ${formik.touched.password && formik.errors.password ? 'is-invalid' : ''}`}
+              placeholder="Enter your password"
+              onChange={formik.handleChange}
+              value={formik.values.password}
+            />
+            {formik.touched.password && formik.errors.password && (
+              <div className="invalid-feedback">{formik.errors.password}</div>
+            )}
+          </div>
 
-        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+          {error && <div className="alert alert-danger py-1">{error}</div>}
+
+          <button
+            type="submit"
+            className="btn btn-primary w-100 mt-2"
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
 
 export default LoginPage
+

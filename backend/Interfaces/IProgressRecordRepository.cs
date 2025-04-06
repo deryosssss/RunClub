@@ -1,16 +1,13 @@
-using RunClubAPI.Models;  // Importing the ProgressRecord model for database interactions.
-using System.Collections.Generic;  // Required for handling lists.
-using System.Threading.Tasks;  // Enables asynchronous operations.
+using RunClubAPI.Models;
 
 namespace RunClubAPI.Interfaces
 {
-    // Repository interface for managing progress records in the database.
     public interface IProgressRecordRepository
     {
-        // Retrieves all progress records asynchronously.
         Task<List<ProgressRecord>> GetAllProgressRecordsAsync();
     }
 }
+
 
 /* The IProgressRecordRepository interface follows the Repository Pattern, ensuring that database logic is separate from business logic.
 

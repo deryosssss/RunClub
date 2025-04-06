@@ -3,10 +3,6 @@ using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace RunClubAPI.Services
 {
@@ -32,51 +28,29 @@ namespace RunClubAPI.Services
                 ProgressDate = pr.ProgressDate.ToString("yyyy-MM-dd"),
                 ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),
                 DistanceCovered = pr.DistanceCovered,
-                TimeTaken = pr.TimeTaken.ToString("c") // e.g., 00:15:00
+                TimeTaken = pr.TimeTaken.ToString("c")
             });
         }
 
         public async Task<ProgressRecordDTO?> GetProgressRecordByIdAsync(int id)
         {
             var pr = await _context.ProgressRecords.AsNoTracking().FirstOrDefaultAsync(p => p.ProgressRecordId == id);
-
-            if (pr == null) return null;
-
-            return new ProgressRecordDTO
-            {
-                ProgressRecordId = pr.ProgressRecordId,
-                UserId = pr.UserId,
-                ProgressDate = pr.ProgressDate.ToString("yyyy-MM-dd"),
-                ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),
-                DistanceCovered = pr.DistanceCovered,
-                TimeTaken = pr.TimeTaken.ToString("c")
-            };
+            return pr == null ? null : ToDto(pr);
         }
 
         public async Task<ProgressRecordDTO?> AddProgressRecordAsync(ProgressRecordDTO dto)
         {
-            if (!await _context.Users.AnyAsync(u => u.Id == dto.UserId))
+            if (string.IsNullOrWhiteSpace(dto.UserId) || !await _context.Users.AnyAsync(u => u.Id == dto.UserId))
             {
-                _logger.LogWarning("User not found: {UserId}", dto.UserId);
+                _logger.LogWarning("❌ Invalid or missing UserId: {UserId}", dto.UserId);
                 return null;
             }
 
-            if (!DateOnly.TryParse(dto.ProgressDate, out var date) ||
-                !TimeOnly.TryParse(dto.ProgressTime, out var time) ||
-                !TimeSpan.TryParse(dto.TimeTaken, out var timeTaken))
+            if (!TryParseDto(dto, out var entity))
             {
-                _logger.LogWarning("Invalid date/time/timespan provided.");
+                _logger.LogWarning("❌ Failed to parse date/time for progress record.");
                 return null;
             }
-
-            var entity = new ProgressRecord
-            {
-                UserId = dto.UserId,
-                ProgressDate = date,
-                ProgressTime = time,
-                DistanceCovered = dto.DistanceCovered,
-                TimeTaken = timeTaken
-            };
 
             _context.ProgressRecords.Add(entity);
             await _context.SaveChangesAsync();
@@ -88,19 +62,22 @@ namespace RunClubAPI.Services
         public async Task<bool> UpdateProgressRecordAsync(int id, ProgressRecordDTO dto)
         {
             var pr = await _context.ProgressRecords.FindAsync(id);
-            if (pr == null) return false;
-
-            if (!DateOnly.TryParse(dto.ProgressDate, out var date) ||
-                !TimeOnly.TryParse(dto.ProgressTime, out var time) ||
-                !TimeSpan.TryParse(dto.TimeTaken, out var timeTaken))
+            if (pr == null)
             {
+                _logger.LogWarning("❌ Progress record with ID {Id} not found", id);
                 return false;
             }
 
-            pr.ProgressDate = date;
-            pr.ProgressTime = time;
-            pr.DistanceCovered = dto.DistanceCovered;
-            pr.TimeTaken = timeTaken;
+            if (!TryParseDto(dto, out var parsed))
+            {
+                _logger.LogWarning("❌ Failed to parse date/time during update.");
+                return false;
+            }
+
+            pr.ProgressDate = parsed.ProgressDate;
+            pr.ProgressTime = parsed.ProgressTime;
+            pr.DistanceCovered = parsed.DistanceCovered;
+            pr.TimeTaken = parsed.TimeTaken;
 
             await _context.SaveChangesAsync();
             return true;
@@ -115,8 +92,39 @@ namespace RunClubAPI.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        private static ProgressRecordDTO ToDto(ProgressRecord pr) => new()
+        {
+            ProgressRecordId = pr.ProgressRecordId,
+            UserId = pr.UserId,
+            ProgressDate = pr.ProgressDate.ToString("yyyy-MM-dd"),
+            ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),
+            DistanceCovered = pr.DistanceCovered,
+            TimeTaken = pr.TimeTaken.ToString("c")
+        };
+
+        private static bool TryParseDto(ProgressRecordDTO dto, out ProgressRecord entity)
+        {
+            entity = new ProgressRecord();
+
+            if (!DateOnly.TryParse(dto.ProgressDate, out var date) ||
+                !TimeOnly.TryParse(dto.ProgressTime, out var time) ||
+                !TimeSpan.TryParse(dto.TimeTaken, out var timeTaken))
+            {
+                return false;
+            }
+
+            entity.UserId = dto.UserId;
+            entity.ProgressDate = date;
+            entity.ProgressTime = time;
+            entity.DistanceCovered = dto.DistanceCovered;
+            entity.TimeTaken = timeTaken;
+
+            return true;
+        }
     }
 }
+
 
 
 

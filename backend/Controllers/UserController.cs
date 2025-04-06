@@ -1,94 +1,75 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using RunClubAPI.Interfaces;
 using RunClubAPI.DTOs;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-
+using RunClubAPI.Interfaces;
 
 namespace RunClubAPI.Controllers
 {
-    // This controller handles user-related operations such as retrieving, creating, and filtering users.
-    [Route("api/[controller]")] // Defines the API route as "api/Users"
-    [ApiController] // Specifies that this is an API controller (automatically handles HTTP 400 responses)
-    // [Authorize(Roles = "Admin")] // Only Admin users can access these endpoints.
+    [ApiController]
+    [Route("api/[controller]")]
+    // [Authorize(Roles = "Admin")] // Optional protection
     public class UsersController : ControllerBase
     {
-        private readonly IUserService _userService; // Dependency injection for user-related services
-        private readonly ILogger<UsersController> _logger; // Logger for tracking application behavior
+        private readonly IUserService _userService;
+        private readonly ILogger<UsersController> _logger;
 
-        // Constructor to inject dependencies (UserService and Logger)
         public UsersController(IUserService userService, ILogger<UsersController> logger)
         {
             _userService = userService;
             _logger = logger;
         }
 
-        // GET: api/Users
-        // Retrieves a paginated list of users
+        // GET: api/users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers(int pageNumber = 1, int pageSize = 10)
+        [ProducesResponseType(typeof(IEnumerable<UserDTO>), 200)]
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            _logger.LogInformation($"Fetching users - Page: {pageNumber}, Size: {pageSize}");
-
-            // Fetch users with pagination support (to optimize large datasets)
+            _logger.LogInformation("Fetching users - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
             var users = await _userService.GetAllUsersAsync(pageNumber, pageSize);
-            return Ok(users); // Return users in JSON format with HTTP 200 OK
+            return Ok(users);
         }
 
-        // GET: api/Users/{id}
-        // Retrieves a specific user by their unique ID
+        // GET: api/users/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserDTO>> GetUser(int id)
+        [ProducesResponseType(typeof(UserDTO), 200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<UserDTO>> GetUser(string id)
         {
-            _logger.LogInformation($"Getting user with ID {id}");
-
-            // Fetch user details by ID
+            _logger.LogInformation("Getting user with ID {UserId}", id);
             var user = await _userService.GetUserByIdAsync(id);
-
-            if (user == null) // Handle case where user is not found
-            {
-                _logger.LogWarning($"User with ID {id} not found.");
-                return NotFound(); // Return 404 Not Found response
-            }
-
-            return Ok(user); // Return user details with HTTP 200 OK
+            return user == null ? NotFound() : Ok(user);
         }
 
-        // GET: api/Users/role/{roleId}
-        // Retrieves a list of users based on their role
-        [HttpGet("role/{roleId}")]
-        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersByRole(string roleId)
+        // GET: api/users/role/{role}
+        [HttpGet("role/{role}")]
+        [ProducesResponseType(typeof(IEnumerable<UserDTO>), 200)]
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsersByRole(string role)
         {
-            _logger.LogInformation($"Fetching users with Role ID {roleId}");
-
-            // Fetch users who belong to a specific role
-            var users = await _userService.GetUsersByRoleAsync(roleId);
-            return Ok(users); // Return filtered users list
+            _logger.LogInformation("Fetching users by role: {Role}", role);
+            var users = await _userService.GetUsersByRoleAsync(role);
+            return Ok(users);
         }
 
-        // POST: api/Users
-        // Creates a new user, ensuring role assignment
+        // POST: api/users
         [HttpPost]
-        public async Task<ActionResult<UserDTO>> PostUser(CreateUserDTO createUserDto)
+        [ProducesResponseType(typeof(UserDTO), 201)]
+        [ProducesResponseType(400)]
+        public async Task<ActionResult<UserDTO>> PostUser([FromBody] CreateUserDTO createUserDto)
         {
-            _logger.LogInformation("Creating new user with role information.");
+            _logger.LogInformation("Creating new user");
 
-            if (string.IsNullOrEmpty(createUserDto.Password))
-            {
+            if (string.IsNullOrWhiteSpace(createUserDto.Password))
                 return BadRequest(new { message = "Password is required." });
-            }
 
-            // Convert CreateUserDTO to UserDTO
             var userDto = new UserDTO
             {
                 Name = createUserDto.Name,
                 Email = createUserDto.Email,
-                RoleId = createUserDto.RoleId ?? "1" // Default to "runner"
+                RoleId = createUserDto.RoleId ?? "Runner" // Default to Runner if none provided
             };
 
-            // Call CreateUserAsync and pass the required password argument
             var createdUser = await _userService.CreateUserAsync(userDto, createUserDto.Password);
 
             if (createdUser == null)
@@ -99,6 +80,22 @@ namespace RunClubAPI.Controllers
 
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.UserId }, createdUser);
         }
+
+        // DELETE: api/users/{id}
+        [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            _logger.LogInformation("Attempting to delete user with ID {UserId}", id);
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null)
+                return NotFound(new { message = $"User with ID {id} not found." });
+
+            var success = await _userService.DeleteUserAsync(id);
+            return success ? NoContent() : BadRequest(new { message = "Failed to delete user." });
+        }
     }
 }
+
 /* The UsersController in my ASP.NET Core Web API is responsible for handling user-related operations such as fetching users, retrieving specific users, filtering users based on roles, and creating new users with assigned roles. It follows a structured, service-oriented approach using dependency injection to interact with the IUserService, which encapsulates business logic, ensuring modularity and maintainability. The controller supports pagination for user retrieval to optimize performance when handling large datasets. Additionally, it implements logging using ILogger to track important actions, such as retrieving or creating users, which aids in debugging and monitoring. Each endpoint includes proper validation, ensuring that errors such as missing users or failed user creation are handled gracefully. The use of RESTful best practices (e.g., returning 200 OK, 404 Not Found, and 201 Created responses) enhances API usability. By implementing role-based filtering, this controller allows administrators to efficiently manage users based on their roles, ensuring a secure and well-organized system.*/

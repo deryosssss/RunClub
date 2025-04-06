@@ -1,37 +1,39 @@
-using RunClubAPI.Models; 
+namespace RunClubAPI.DTOs
+{
+    public class LoginDTO
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}
 
 namespace RunClubAPI.DTOs
 {
-    //  Data Transfer Object (DTO) for login requests.
-    //  This class is used when a user attempts to log in.
-    public class LoginDTO
-    {
-        public string Email { get; set; } // Stores the user's email address (used for authentication)
-        public string Password { get; set; } // Stores the user's password (used for authentication)
-    }
-
-    //  DTO for sending authentication responses to the client.
-    //  When a user successfully logs in, they receive a token to access protected resources.
     public class AuthResponseDTO
     {
-        public string Token { get; set; } // Stores the JWT (JSON Web Token) used for authentication
-        public string RefreshToken { get; set; } // Stores a refresh token for generating new access tokens
-    }
-
-    // DTO for handling refresh token requests.
-    // If the access token expires, a user can request a new token using this object.
-    public class RefreshTokenRequest
-    {
-        public string RefreshToken { get; set; } // Stores the refresh token used to generate a new access token
-    }
-
-    // DTO for revoking a user's refresh token.
-    // Used when an admin or the user themselves wants to revoke access.
-    public class RevokeTokenRequest
-    {
-        public string UserId { get; set; }  // Stores the ID of the user whose refresh token will be revoked
+        public string Token { get; set; } = string.Empty;
+        public string RefreshToken { get; set; } = string.Empty;
     }
 }
+
+
+namespace RunClubAPI.DTOs
+{
+    public class RefreshTokenRequest
+    {
+        public string RefreshToken { get; set; } = string.Empty;
+    }
+}
+
+namespace RunClubAPI.DTOs
+{
+    public class RevokeTokenRequest
+    {
+        public string UserId { get; set; } = string.Empty;
+    }
+}
+
+
 
 /* In my ASP.NET Core Web API, DTOs (Data Transfer Objects) are used to facilitate secure and efficient communication between the client and server. The LoginDTO class is used when a user attempts to log in, containing the required Email and Password fields.
 

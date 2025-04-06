@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace RunClubAPI.Services
 {
     public interface IEmailService

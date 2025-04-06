@@ -6,8 +6,13 @@ namespace RunClubAPI.Interfaces
     {
         Task<AuthResponseDTO?> LoginAsync(string email, string password);
         Task<bool> RegisterAsync(RegisterDTO model);
+        Task<AuthResponseDTO?> RefreshTokenAsync(RefreshTokenRequest request);
+        Task RevokeRefreshTokenAsync(string userId);
+        Task<AuthResponseDTO?> AuthenticateUserAsync(string email, string password);
+        Task<bool> DeleteAccountAsync(string userId);
     }
 }
+
 
 
 /* The IAuthService interface defines the authentication contract for the application, ensuring that all authentication-related operations are implemented consistently. It follows a structured approach for user authentication, registration, token management, and security.

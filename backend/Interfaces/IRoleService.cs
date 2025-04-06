@@ -1,18 +1,14 @@
-using RunClubAPI.DTOs;  // Importing DTOs to standardize role data transfer.
-using RunClubAPI.Models;  // Importing Role model to work with database entities.
+using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Interfaces
 {
-    // Service interface defining business logic related to roles.
     public interface IRoleService
     {
-        // Fetches all roles in the system as DTOs.
         Task<IEnumerable<RoleDTO>> GetAllRolesAsync();
-
-        // Retrieves a specific role based on its unique identifier (string ID).
         Task<RoleDTO> GetRoleByIdAsync(string id);
     }
 }
+
 /* The IRoleService interface is part of the service layer and defines business logic for role-related operations. It acts as a bridge between the RolesController and the IRoleRepository.
 
 Why Use a Service Layer?

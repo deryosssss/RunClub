@@ -1,28 +1,14 @@
-using RunClubAPI.DTOs;  // Importing DTOs to keep models and responses clean.
-using System.Collections.Generic;  // Required for handling lists.
-using System.Threading.Tasks;  // Enables asynchronous operations.
+using RunClubAPI.DTOs;
 
 namespace RunClubAPI.Interfaces
 {
-    // Service interface for managing enrollments in a structured way.
     public interface IEnrollmentService
     {
-        // Retrieves all enrollments with pagination (default: page 1, size 10).
         Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10);
-
-        // Fetches a specific enrollment by its ID. Returns null if not found.
         Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id);
-
-        // Retrieves all enrollments for a specific event using its ID.
         Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId);
-
-        // Creates a new enrollment based on DTO input and returns the created record.
         Task<EnrollmentDTO> CreateEnrollmentAsync(EnrollmentDTO enrollmentDto);
-
-        // Updates an existing enrollment and returns a boolean indicating success.
         Task<bool> UpdateEnrollmentAsync(int id, EnrollmentDTO enrollmentDto);
-
-        // Deletes an enrollment by its ID and returns true if successful.
         Task<bool> DeleteEnrollmentAsync(int id);
     }
 }

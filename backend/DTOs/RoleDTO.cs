@@ -1,16 +1,10 @@
-using RunClubAPI.Models; 
-
 namespace RunClubAPI.DTOs
 {
-    // Data Transfer Object (DTO) for roles
-    // This class is used to transfer role-related data between API and client
     public class RoleDTO
     {
-        public string RoleId { get; set; } // Unique identifier for the role
-
-        public string RoleName { get; set; } // Human-readable role name (e.g., "Admin", "Coach", "Runner")
-
-        public string RoleNormalizedName { get; set; } // Normalized name for case-insensitive role management
+        public string RoleId { get; set; } = string.Empty;
+        public string RoleName { get; set; } = string.Empty;
+        public string RoleNormalizedName { get; set; } = string.Empty;
     }
 }
 

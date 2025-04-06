@@ -1,17 +1,16 @@
-using RunClubAPI.Models;
-
 namespace RunClubAPI.DTOs
 {
     public class ProgressRecordDTO
     {
         public int ProgressRecordId { get; set; }
         public string UserId { get; set; } = string.Empty;
-        public string ProgressDate { get; set; } = string.Empty;
-        public string ProgressTime { get; set; } = string.Empty;
+        public string ProgressDate { get; set; } = string.Empty; // Format: yyyy-MM-dd
+        public string ProgressTime { get; set; } = string.Empty; // Format: HH:mm:ss
         public double DistanceCovered { get; set; }
-        public string TimeTaken { get; set; } = string.Empty; // Format: "HH:mm:ss"
+        public string TimeTaken { get; set; } = string.Empty; // Format: HH:mm:ss
     }
 }
+
 
 /*
 The ProgressRecordDTO class is a Data Transfer Object (DTO) designed to facilitate the structured exchange of progress data between the API and external clients. Each progress record is uniquely identified using ProgressRecordId, and it is associated with a specific user via UserId.

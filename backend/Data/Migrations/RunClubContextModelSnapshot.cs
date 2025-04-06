@@ -177,17 +177,15 @@ namespace RunClub.Migrations
                     b.Property<int>("EventId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserId1")
+                    b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("EnrollmentId");
 
                     b.HasIndex("EventId");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Enrollments");
                 });
@@ -233,25 +231,19 @@ namespace RunClub.Migrations
                     b.Property<DateOnly>("ProgressDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ProgressDetails")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<TimeOnly>("ProgressTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("TimeTaken")
-                        .HasColumnType("REAL");
+                    b.Property<TimeSpan>("TimeTaken")
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserId1")
+                    b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("ProgressRecordId");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("ProgressRecords");
                 });
@@ -309,17 +301,10 @@ namespace RunClub.Migrations
                     b.Property<DateTime>("RefreshTokenExpiry")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("RoleId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("UserName")
@@ -334,8 +319,6 @@ namespace RunClub.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -401,7 +384,9 @@ namespace RunClub.Migrations
 
                     b.HasOne("RunClubAPI.Models.User", "User")
                         .WithMany("Enrollments")
-                        .HasForeignKey("UserId1");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Event");
 
@@ -412,20 +397,11 @@ namespace RunClub.Migrations
                 {
                     b.HasOne("RunClubAPI.Models.User", "User")
                         .WithMany("ProgressRecords")
-                        .HasForeignKey("UserId1");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("RunClubAPI.Models.User", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Role");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RunClubAPI.Models.Event", b =>

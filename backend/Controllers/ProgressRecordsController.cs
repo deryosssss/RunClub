@@ -1,129 +1,121 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using RunClubAPI.Interfaces;
 using RunClubAPI.DTOs;
+using RunClubAPI.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace RunClubAPI.Controllers
 {
-    // This controller manages CRUD operations for progress records.
-    [Route("api/[controller]")] // Base URL: "api/progressrecords"
-    [ApiController] // Enables model binding, automatic validation, and more.
-    // [Authorize(Roles = "Coach")] // Only users with "Coach" role can access.
+    [ApiController]
+    [Route("api/[controller]")]
     public class ProgressRecordsController : ControllerBase
     {
         private readonly IProgressRecordService _progressRecordService;
-        private readonly ILogger<ProgressRecordsController> _logger; // Logger for debugging and tracking API usage.
+        private readonly ILogger<ProgressRecordsController> _logger;
 
-        // Constructor: Injects the progress record service and logger.
         public ProgressRecordsController(IProgressRecordService progressRecordService, ILogger<ProgressRecordsController> logger)
         {
             _progressRecordService = progressRecordService;
             _logger = logger;
         }
 
-        // GET all progress records
+        /// <summary>Get all progress records</summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProgressRecordDTO>>> GetProgressRecords()
+        [ProducesResponseType(typeof(IEnumerable<ProgressRecordDTO>), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetProgressRecords()
         {
-            _logger.LogInformation("Fetching all progress records..."); // Logs API request.
+            _logger.LogInformation("Fetching all progress records...");
 
-            var progressRecords = await _progressRecordService.GetAllProgressRecordsAsync();
+            var records = await _progressRecordService.GetAllProgressRecordsAsync();
 
-            if (progressRecords?.Any() != true) // Null-safe check for empty list.
+            if (records == null || !records.Any())
             {
                 _logger.LogWarning("No progress records found.");
-                return NotFound("No progress records available."); // Returns 404 if no records exist.
+                return NotFound("No progress records available.");
             }
 
-            return Ok(progressRecords); // Returns the list of progress records.
+            return Ok(records);
         }
 
-        // GET a single progress record by ID
+        /// <summary>Get progress record by ID</summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProgressRecordDTO>> GetProgressRecord(int id)
+        [ProducesResponseType(typeof(ProgressRecordDTO), 200)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> GetProgressRecord(int id)
         {
-            _logger.LogInformation($"Fetching progress record with ID {id}");
+            _logger.LogInformation("Fetching progress record with ID {Id}", id);
 
-            var progressRecord = await _progressRecordService.GetProgressRecordByIdAsync(id);
-
-            if (progressRecord == null)
+            var record = await _progressRecordService.GetProgressRecordByIdAsync(id);
+            if (record == null)
             {
-                _logger.LogWarning($"Progress record with ID {id} not found.");
-                return NotFound($"Progress record with ID {id} not found."); // Returns 404 if the record is missing.
+                _logger.LogWarning("Progress record with ID {Id} not found.", id);
+                return NotFound($"Progress record with ID {id} not found.");
             }
 
-            return Ok(progressRecord); // Returns the progress record.
+            return Ok(record);
         }
 
-        // CREATE a new progress record
+        /// <summary>Create a new progress record</summary>
         [HttpPost]
-        public async Task<ActionResult<ProgressRecordDTO>> PostProgressRecord(ProgressRecordDTO progressRecordDto)
+        [ProducesResponseType(typeof(ProgressRecordDTO), 201)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> PostProgressRecord([FromBody] ProgressRecordDTO dto)
         {
             _logger.LogInformation("Attempting to add a new progress record...");
 
-            // Validates required fields.
-            if (string.IsNullOrWhiteSpace(progressRecordDto.ProgressDate) || string.IsNullOrWhiteSpace(progressRecordDto.ProgressTime))
-            {
-                return BadRequest(new { message = "Both ProgressDate and ProgressTime are required." }); // Returns 400 for missing fields.
-            }
+            if (string.IsNullOrWhiteSpace(dto.ProgressDate) || string.IsNullOrWhiteSpace(dto.ProgressTime))
+                return BadRequest(new { message = "ProgressDate and ProgressTime are required." });
 
-            var createdRecord = await _progressRecordService.AddProgressRecordAsync(progressRecordDto);
+            var created = await _progressRecordService.AddProgressRecordAsync(dto);
 
-            if (createdRecord == null)
-            {
-                return BadRequest(new { message = "Invalid User ID. Cannot add progress record." }); // Ensures a valid user ID exists.
-            }
+            if (created == null)
+                return BadRequest(new { message = "Invalid User ID. Cannot add progress record." });
 
-            return CreatedAtAction(nameof(GetProgressRecord), new { id = createdRecord.ProgressRecordId }, createdRecord); // 201 Created response.
+            return CreatedAtAction(nameof(GetProgressRecord), new { id = created.ProgressRecordId }, created);
         }
 
-        // UPDATE an existing progress record
+        /// <summary>Update a progress record</summary>
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProgressRecord(int id, ProgressRecordDTO progressRecordDto)
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> PutProgressRecord(int id, [FromBody] ProgressRecordDTO dto)
         {
-            if (id != progressRecordDto.ProgressRecordId)
-            {
-                return BadRequest("ProgressRecord ID mismatch."); // Ensures ID in URL matches the record object.
-            }
+            if (id != dto.ProgressRecordId)
+                return BadRequest("ProgressRecord ID mismatch.");
 
-            _logger.LogInformation($"Updating progress record with ID {id}");
+            _logger.LogInformation("Updating progress record with ID {Id}", id);
 
-            // Validates required fields.
-            if (string.IsNullOrWhiteSpace(progressRecordDto.ProgressDate) || string.IsNullOrWhiteSpace(progressRecordDto.ProgressTime))
-            {
-                return BadRequest(new { message = "Both ProgressDate and ProgressTime are required." });
-            }
+            if (string.IsNullOrWhiteSpace(dto.ProgressDate) || string.IsNullOrWhiteSpace(dto.ProgressTime))
+                return BadRequest(new { message = "ProgressDate and ProgressTime are required." });
 
-            var updateSuccess = await _progressRecordService.UpdateProgressRecordAsync(id, progressRecordDto);
+            var updated = await _progressRecordService.UpdateProgressRecordAsync(id, dto);
 
-            if (!updateSuccess)
-            {
-                return NotFound($"Progress record with ID {id} not found."); //  Returns 404 if the record doesn’t exist.
-            }
-
-            return NoContent(); // 204 No Content (Successful update).
+            return updated
+                ? NoContent()
+                : NotFound($"Progress record with ID {id} not found.");
         }
 
-        // DELETE a progress record by ID
+        /// <summary>Delete a progress record</summary>
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteProgressRecord(int id)
         {
-            _logger.LogInformation($"Attempting to delete progress record with ID {id}");
+            _logger.LogInformation("Deleting progress record with ID {Id}", id);
 
-            var deleteSuccess = await _progressRecordService.DeleteProgressRecordAsync(id);
+            var deleted = await _progressRecordService.DeleteProgressRecordAsync(id);
 
-            if (!deleteSuccess)
-            {
-                return NotFound($"Progress record with ID {id} not found."); // Returns 404 if the record doesn’t exist.
-            }
-
-            return NoContent(); // 204 No Content (Successful deletion).
+            return deleted
+                ? NoContent()
+                : NotFound($"Progress record with ID {id} not found.");
         }
     }
 }
+
 
 /* 
 ✔ DTO Usage – Separates internal models from API responses (ProgressRecordDTO).

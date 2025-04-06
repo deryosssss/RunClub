@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
-using RunClubAPI.Models;
-using RunClubAPI.Interfaces;
 using RunClubAPI.DTOs;
-using RunClubAPI.Services;
+using RunClubAPI.Interfaces;
+using RunClubAPI.Models;
 
 namespace RunClubAPI.Services
 {
@@ -26,26 +24,58 @@ namespace RunClubAPI.Services
             var users = _userManager.Users
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(user => new UserDTO
-                {
-                    UserId = int.Parse(user.Id), // Ensure conversion
-                    Name = user.Name,
-                    Email = user.Email
-                });
+                .ToList();
 
-            return await Task.FromResult(users);
+            var userDtos = new List<UserDTO>();
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                var roleName = roles.FirstOrDefault();
+                var role = !string.IsNullOrEmpty(roleName)
+                    ? await _roleManager.FindByNameAsync(roleName)
+                    : null;
+
+                userDtos.Add(new UserDTO
+                {
+                    UserId = user.Id,
+                    Name = user.Name,
+                    Email = user.Email ?? "",
+                    RoleId = role?.Id ?? "",
+                    Role = role == null ? null : new RoleDTO
+                    {
+                        RoleId = role.Id,
+                        RoleName = role.Name ?? "",
+                        RoleNormalizedName = role.NormalizedName ?? ""
+                    }
+                });
+            }
+
+            return userDtos;
         }
 
-        public async Task<UserDTO?> GetUserByIdAsync(int userId)
+        public async Task<UserDTO?> GetUserByIdAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString()); // Convert int to string
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return null;
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var roleName = roles.FirstOrDefault();
+            var role = !string.IsNullOrEmpty(roleName)
+                ? await _roleManager.FindByNameAsync(roleName)
+                : null;
 
             return new UserDTO
             {
-                UserId = int.Parse(user.Id), // Convert string to int
+                UserId = user.Id,
                 Name = user.Name,
-                Email = user.Email
+                Email = user.Email ?? "",
+                RoleId = role?.Id ?? "",
+                Role = role == null ? null : new RoleDTO
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name ?? "",
+                    RoleNormalizedName = role.NormalizedName ?? ""
+                }
             };
         }
 
@@ -53,36 +83,42 @@ namespace RunClubAPI.Services
         {
             var user = new User
             {
-                UserName = userDto.Name,
-                Email = userDto.Email
+                Name = userDto.Name,
+                Email = userDto.Email,
+                UserName = userDto.Email
             };
 
             var result = await _userManager.CreateAsync(user, password);
             if (!result.Succeeded) return null;
 
-            return new UserDTO
+            if (!string.IsNullOrEmpty(userDto.RoleId))
             {
-                UserId = int.Parse(user.Id), // Convert string to int
-                Name = user.Name,
-                Email = user.Email
-            };
+                var role = await _roleManager.FindByIdAsync(userDto.RoleId);
+                if (role != null && !string.IsNullOrEmpty(role.Name))
+                {
+                    await _userManager.AddToRoleAsync(user, role.Name);
+                }
+            }
+
+            return await GetUserByIdAsync(user.Id);
         }
 
-        public async Task<bool> UpdateUserAsync(int userId, UserDTO userDto)
+        public async Task<bool> UpdateUserAsync(string userId, UserDTO userDto)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return false;
 
-            user.UserName = userDto.Name;
+            user.Name = userDto.Name;
             user.Email = userDto.Email;
+            user.UserName = userDto.Email;
 
             var result = await _userManager.UpdateAsync(user);
             return result.Succeeded;
         }
 
-        public async Task<bool> DeleteUserAsync(int userId)
+        public async Task<bool> DeleteUserAsync(string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return false;
 
             var result = await _userManager.DeleteAsync(user);
@@ -92,14 +128,21 @@ namespace RunClubAPI.Services
         public async Task<IEnumerable<UserDTO>> GetUsersByRoleAsync(string roleId)
         {
             var role = await _roleManager.FindByIdAsync(roleId);
-            if (role == null) return new List<UserDTO>();
+            if (role == null || string.IsNullOrEmpty(role.Name)) return Enumerable.Empty<UserDTO>();
 
             var users = await _userManager.GetUsersInRoleAsync(role.Name);
             return users.Select(user => new UserDTO
             {
-                UserId = int.Parse(user.Id), // Convert string to int
+                UserId = user.Id,
                 Name = user.Name,
-                Email = user.Email
+                Email = user.Email ?? "",
+                RoleId = role.Id,
+                Role = new RoleDTO
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name ?? "",
+                    RoleNormalizedName = role.NormalizedName ?? ""
+                }
             });
         }
     }

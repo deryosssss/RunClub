@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using RunClubAPI.Models;
 using Microsoft.AspNetCore.Identity;
-
 
 namespace RunClubAPI.Interfaces
 {
@@ -15,3 +11,4 @@ namespace RunClubAPI.Interfaces
         Task DeleteRoleAsync(string roleId);
     }
 }
+

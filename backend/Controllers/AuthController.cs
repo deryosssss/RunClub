@@ -1,84 +1,71 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.IdentityModel.Tokens.Jwt;
-using RunClubAPI.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using RunClubAPI.DTOs;
-using System.Threading.Tasks;
+using RunClubAPI.Interfaces;
 
 namespace RunClubAPI.Controllers
 {
-// This controller handles authentication-related actions: login, refresh token, and token revocation.
-    [Route("api/[controller]")] // Base route: "api/auth"
-    [ApiController] // Enforces automatic model validation & request binding.
+    [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService; // Service to handle authentication logic.
+        private readonly IAuthService _authService;
 
-        // Constructor: Dependency Injection
         public AuthController(IAuthService authService)
         {
-            _authService = authService; // Injects the authentication service.
+            _authService = authService;
         }
 
-        // Authenticate User (Login)
+        /// <summary>
+        /// Authenticates the user and returns access and refresh tokens.
+        /// </summary>
+        [AllowAnonymous]
         [HttpPost("authenticate")]
-        public async Task<ActionResult<AuthResponseDTO>> AuthenticateUser([FromBody] LoginDTO loginRequest)
+        public async Task<ActionResult<AuthResponseDTO>> Authenticate([FromBody] LoginDTO loginRequest)
         {
-            // Validate the request
-            if (loginRequest == null || string.IsNullOrEmpty(loginRequest.Email) || string.IsNullOrEmpty(loginRequest.Password))
-            {
-                return BadRequest("Invalid credentials"); // Prevents null/empty requests.
-            }
+            if (loginRequest is null || string.IsNullOrWhiteSpace(loginRequest.Email) || string.IsNullOrWhiteSpace(loginRequest.Password))
+                return BadRequest(Problem("Email and password are required."));
 
-            // Authenticate the user using the service
-            var authResponse = await _authService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
+            var result = await _authService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
+            if (result is null)
+                return Unauthorized(Problem("Invalid email or password."));
 
-            if (authResponse == null)
-            {
-                return Unauthorized("Invalid email or password"); // Prevents information leakage.
-            }
-
-            return Ok(authResponse); // Returns JWT & refresh token if successful.
+            return Ok(result);
         }
 
-        // Refresh Token (Used to get a new access token without logging in again)
+        /// <summary>
+        /// Refreshes JWT token using a valid refresh token.
+        /// </summary>
+        [AllowAnonymous]
         [HttpPost("refresh-token")]
         public async Task<ActionResult<AuthResponseDTO>> RefreshToken([FromBody] RefreshTokenRequest request)
         {
-            // Validate request
-            if (request == null || string.IsNullOrEmpty(request.RefreshToken))
-            {
-                return BadRequest("Invalid refresh token"); // Prevents null/empty requests.
-            }
+            if (request is null || string.IsNullOrWhiteSpace(request.RefreshToken))
+                return BadRequest(Problem("Refresh token is required."));
 
-            // Attempt to refresh the token
-            var authResponse = await _authService.RefreshTokenAsync(request);
+            var result = await _authService.RefreshTokenAsync(request);
+            if (result is null)
+                return Unauthorized(Problem("Invalid or expired refresh token."));
 
-            if (authResponse == null)
-            {
-                return Unauthorized("Invalid refresh token"); // Prevents token abuse.
-            }
-
-            return Ok(authResponse); // Returns new JWT & refresh token.
+            return Ok(result);
         }
 
-        // Revoke Refresh Token (Logs out user across all devices)
+        /// <summary>
+        /// Revokes a user's refresh token (logs out user from all sessions).
+        /// </summary>
+        [Authorize]
         [HttpPost("revoke-refresh-token")]
         public async Task<IActionResult> RevokeRefreshToken([FromBody] RevokeTokenRequest request)
         {
-            // Validate request
-            if (request == null || string.IsNullOrEmpty(request.UserId))
-            {
-                return BadRequest("Invalid user ID"); // Prevents null/empty requests.
-            }
+            if (request is null || string.IsNullOrWhiteSpace(request.UserId))
+                return BadRequest(Problem("User ID is required."));
 
-            //  Revoke the user's refresh token (logout from all sessions)
             await _authService.RevokeRefreshTokenAsync(request.UserId);
-            
-            return NoContent(); // Indicates successful logout (204 No Content).
+            return NoContent();
         }
     }
 }
+
 
 /*  Security Features Explained
 ✔ Prevents Null/Empty Requests – Rejects invalid authentication attempts.

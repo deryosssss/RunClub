@@ -1,6 +1,4 @@
 using RunClubAPI.DTOs;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace RunClubAPI.Interfaces
 {
@@ -13,6 +11,7 @@ namespace RunClubAPI.Interfaces
         Task<bool> DeleteProgressRecordAsync(int id);
     }
 }
+
 
 
 /* The IProgressRecordService interface defines the business logic for handling progress records. This follows the Service Layer Pattern, which keeps the controller logic clean and ensures reusability.

@@ -1,28 +1,17 @@
-using RunClubAPI.Models;  // Importing the User model to interact with user-related data.
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using RunClubAPI.Models;
 
-namespace RunClubAPI.Interfaces  // Defining the correct namespace for interfaces.
+namespace RunClubAPI.Interfaces
 {
-    // Interface defining CRUD operations for user management.
     public interface IUserRepository
     {
-        // Retrieves a list of all users asynchronously.
-        Task<IEnumerable<User>> GetAllAsync();  
-
-        // Retrieves a single user by their unique ID.
+        Task<IEnumerable<User>> GetAllAsync();
         Task<User> GetByIdAsync(int id);
-
-        // Adds a new user to the database asynchronously.
         Task AddAsync(User user);
-
-        // Updates an existing user's details asynchronously.
         Task UpdateAsync(User user);
-
-        // Deletes a user from the database based on their ID.
         Task DeleteAsync(int id);
     }
 }
+
 
 /* The IUserRepository interface is part of the repository pattern, which abstracts database operations and provides a structured way to manage user-related data.
 
