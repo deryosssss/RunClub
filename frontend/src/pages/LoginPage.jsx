@@ -1,45 +1,69 @@
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { useDispatch, useSelector } from 'react-redux'
-import { login } from '../redux/authSlice'
-import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useApp } from '../context/AppContext'
+import { jwtDecode } from 'jwt-decode'
 
 const LoginPage = () => {
-  const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { loading, error } = useSelector(state => state.auth)
+  const location = useLocation()
+  const { login } = useApp()
+
+  const params = new URLSearchParams(location.search)
+  const isVerified = params.get('verified') === 'true'
 
   const formik = useFormik({
     initialValues: { email: '', password: '' },
     validationSchema: Yup.object({
-      email: Yup.string().email('Invalid email').required('Required'),
-      password: Yup.string().required('Required')
+      email: Yup.string().email('Invalid email').required('Email is required'),
+      password: Yup.string().required('Password is required')
     }),
     onSubmit: async (values) => {
-      const resultAction = await dispatch(login(values))
-      if (login.fulfilled.match(resultAction)) {
-        const role = resultAction.payload.role?.toLowerCase()
-        if (role === 'admin') navigate('/admin/events')
-        else if (role === 'coach') navigate('/coach/progress')
-        else navigate('/dashboard')
+      try {
+        const res = await axios.post('/api/account/login', values)
+        const token = res.data.token
+        login(token)
+
+        const { role } = jwtDecode(token)
+        const lowerRole = role?.toLowerCase()
+
+        if (lowerRole === 'admin') {
+          navigate('/admin/events')
+        } else if (lowerRole === 'coach') {
+          navigate('/coach/progress')
+        } else if (lowerRole === 'runner') {
+          navigate('/runner/home') // 👈 update this to whatever your runner landing page is
+        } else {
+          navigate('/dashboard') // fallback
+        }        
+      } catch (err) {
+        alert('❌ Login failed. Please check your email or password.')
       }
     }
   })
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <div className="card shadow p-4" style={{ width: '100%', maxWidth: 400 }}>
-        <h3 className="text-center mb-4">Welcome Back 👋</h3>
+      <div className="card shadow-lg p-5" style={{ maxWidth: 400, width: '100%' }}>
+        <h3 className="text-center mb-4">Welcome to RunClub 🏃‍♀️</h3>
+
+        {isVerified && (
+          <div className="alert alert-success text-center mb-3">
+            ✅ Your email has been successfully verified!
+          </div>
+        )}
 
         <form onSubmit={formik.handleSubmit}>
           <div className="mb-3">
-            <label className="form-label fw-semibold">Email</label>
+            <label className="form-label">Email</label>
             <input
-              type="email"
               name="email"
-              className={`form-control ${formik.touched.email && formik.errors.email ? 'is-invalid' : ''}`}
+              type="email"
               placeholder="you@example.com"
+              className={`form-control ${formik.touched.email && formik.errors.email ? 'is-invalid' : ''}`}
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               value={formik.values.email}
             />
             {formik.touched.email && formik.errors.email && (
@@ -48,13 +72,14 @@ const LoginPage = () => {
           </div>
 
           <div className="mb-3">
-            <label className="form-label fw-semibold">Password</label>
+            <label className="form-label">Password</label>
             <input
-              type="password"
               name="password"
+              type="password"
+              placeholder="••••••••"
               className={`form-control ${formik.touched.password && formik.errors.password ? 'is-invalid' : ''}`}
-              placeholder="Enter your password"
               onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
               value={formik.values.password}
             />
             {formik.touched.password && formik.errors.password && (
@@ -62,14 +87,8 @@ const LoginPage = () => {
             )}
           </div>
 
-          {error && <div className="alert alert-danger py-1">{error}</div>}
-
-          <button
-            type="submit"
-            className="btn btn-primary w-100 mt-2"
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Login'}
+          <button type="submit" className="btn btn-primary w-100">
+            {formik.isSubmitting ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>
@@ -78,4 +97,3 @@ const LoginPage = () => {
 }
 
 export default LoginPage
-

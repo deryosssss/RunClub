@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@reduxjs/toolkit": "^2.6.1"
+    "@reduxjs/toolkit": "^2.6.1",
+    "jwt-decode": "^4.0.0"
   }
 }

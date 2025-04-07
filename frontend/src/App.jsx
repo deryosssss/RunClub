@@ -1,15 +1,14 @@
+// src/App.jsx
 import { Routes, Route } from 'react-router-dom'
-import ProtectedRoute from './routes/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
-import { setAuthHeader } from './services/auth'
 
-export default function App() {
+function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      
-      {/* Add more later */}
-      <Route path="*" element={<div>🚧 Pages coming soon...</div>} />
+      <Route path="*" element={<div className="text-center mt-5">🚧 Page coming soon...</div>} />
     </Routes>
   )
 }
+
+export default App

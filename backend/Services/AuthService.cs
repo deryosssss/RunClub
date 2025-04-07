@@ -30,15 +30,15 @@ namespace RunClubAPI.Services
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null || !await _userManager.CheckPasswordAsync(user, password))
             {
-                _logger.LogWarning("❌ User not found or password invalid for {Email}", email);
+                _logger.LogWarning("❌ Invalid login for {Email}", email);
                 return null;
             }
 
-            var accessToken = GenerateJwtToken(user);
+            var accessToken = await GenerateJwtTokenAsync(user);
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7); // You can pull this from config if needed
             await _userManager.UpdateAsync(user);
 
             return new AuthResponseDTO
@@ -55,13 +55,13 @@ namespace RunClubAPI.Services
                 UserName = model.Email,
                 Email = model.Email,
                 Name = model.Name,
-                EmailConfirmed = true // ✅ Skip verification for development
+                EmailConfirmed = true // ⚠️ Only for dev/testing
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
             {
-                _logger.LogError("❌ Registration failed: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                _logger.LogError("❌ Registration failed for {Email}: {Errors}", model.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
                 return false;
             }
 
@@ -70,9 +70,9 @@ namespace RunClubAPI.Services
                 await _userManager.AddToRoleAsync(user, model.Role);
             }
 
+            _logger.LogInformation("✅ Registered user {Email} with role {Role}", model.Email, model.Role);
             return true;
         }
-
 
         public async Task<AuthResponseDTO?> AuthenticateUserAsync(string email, string password)
         {
@@ -87,11 +87,11 @@ namespace RunClubAPI.Services
 
             if (user == null)
             {
-                _logger.LogWarning("⚠️ Invalid or expired refresh token.");
+                _logger.LogWarning("⚠️ Invalid or expired refresh token");
                 return null;
             }
 
-            var newAccessToken = GenerateJwtToken(user);
+            var newAccessToken = await GenerateJwtTokenAsync(user);
             var newRefreshToken = GenerateRefreshToken();
 
             user.RefreshToken = newRefreshToken;
@@ -126,23 +126,31 @@ namespace RunClubAPI.Services
             return result.Succeeded;
         }
 
-        private string GenerateJwtToken(User user)
+        private async Task<string> GenerateJwtTokenAsync(User user)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault();
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(ClaimTypes.Name, user.Name ?? ""),
-                new Claim(ClaimTypes.Email, user.Email ?? "")
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+                new Claim(ClaimTypes.Name, user.Name ?? "")
             };
+
+            if (!string.IsNullOrEmpty(role))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
+                expires: DateTime.UtcNow.AddHours(1), // Or use from config
                 signingCredentials: creds
             );
 
@@ -155,6 +163,7 @@ namespace RunClubAPI.Services
         }
     }
 }
+
 
 
 
