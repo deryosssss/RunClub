@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
@@ -30,23 +27,16 @@ namespace RunClubAPI.Services
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                var roleName = roles.FirstOrDefault();
-                var role = !string.IsNullOrEmpty(roleName)
-                    ? await _roleManager.FindByNameAsync(roleName)
-                    : null;
+                var roleName = roles.FirstOrDefault() ?? "";
 
                 userDtos.Add(new UserDTO
                 {
                     UserId = user.Id,
                     Name = user.Name,
                     Email = user.Email ?? "",
-                    RoleId = role?.Id ?? "",
-                    Role = role == null ? null : new RoleDTO
-                    {
-                        RoleId = role.Id,
-                        RoleName = role.Name ?? "",
-                        RoleNormalizedName = role.NormalizedName ?? ""
-                    }
+                    Age = user.Age,
+                    Location = user.Location,
+                    Role = roleName
                 });
             }
 
@@ -59,23 +49,16 @@ namespace RunClubAPI.Services
             if (user == null) return null;
 
             var roles = await _userManager.GetRolesAsync(user);
-            var roleName = roles.FirstOrDefault();
-            var role = !string.IsNullOrEmpty(roleName)
-                ? await _roleManager.FindByNameAsync(roleName)
-                : null;
+            var roleName = roles.FirstOrDefault() ?? "";
 
             return new UserDTO
             {
                 UserId = user.Id,
                 Name = user.Name,
                 Email = user.Email ?? "",
-                RoleId = role?.Id ?? "",
-                Role = role == null ? null : new RoleDTO
-                {
-                    RoleId = role.Id,
-                    RoleName = role.Name ?? "",
-                    RoleNormalizedName = role.NormalizedName ?? ""
-                }
+                Age = user.Age,
+                Location = user.Location,
+                Role = roleName
             };
         }
 
@@ -91,13 +74,13 @@ namespace RunClubAPI.Services
             var result = await _userManager.CreateAsync(user, password);
             if (!result.Succeeded) return null;
 
-            if (!string.IsNullOrEmpty(userDto.RoleId))
+            // Default to "Runner" role if RoleId is empty or null
+            var roleName = string.IsNullOrEmpty(userDto.Role) ? "Runner" : userDto.Role;
+
+            var role = await _roleManager.FindByNameAsync(roleName);
+            if (role != null && !string.IsNullOrEmpty(role.Name))
             {
-                var role = await _roleManager.FindByIdAsync(userDto.RoleId);
-                if (role != null && !string.IsNullOrEmpty(role.Name))
-                {
-                    await _userManager.AddToRoleAsync(user, role.Name);
-                }
+                await _userManager.AddToRoleAsync(user, role.Name);
             }
 
             return await GetUserByIdAsync(user.Id);
@@ -111,6 +94,8 @@ namespace RunClubAPI.Services
             user.Name = userDto.Name;
             user.Email = userDto.Email;
             user.UserName = userDto.Email;
+            user.Age = userDto.Age ?? user.Age;
+            user.Location = userDto.Location ?? user.Location;
 
             var result = await _userManager.UpdateAsync(user);
             return result.Succeeded;
@@ -136,17 +121,14 @@ namespace RunClubAPI.Services
                 UserId = user.Id,
                 Name = user.Name,
                 Email = user.Email ?? "",
-                RoleId = role.Id,
-                Role = new RoleDTO
-                {
-                    RoleId = role.Id,
-                    RoleName = role.Name ?? "",
-                    RoleNormalizedName = role.NormalizedName ?? ""
-                }
+                Age = user.Age,
+                Location = user.Location,
+                Role = role.Name
             });
         }
     }
 }
+
 
 
 

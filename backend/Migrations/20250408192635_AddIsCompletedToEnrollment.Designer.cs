@@ -4,21 +4,47 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using RunClubAPI.Models;
+using RunClubAPI.Data;
 
 #nullable disable
 
-namespace RunClub.Migrations
+namespace RunClubAPI.Migrations
 {
     [DbContext(typeof(RunClubContext))]
-    [Migration("20250227180506_AddRoleNormalizedName")]
-    partial class AddRoleNormalizedName
+    [Migration("20250408192635_AddIsCompletedToEnrollment")]
+    partial class AddIsCompletedToEnrollment
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.2");
+
+            modelBuilder.Entity("Coach", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Bio")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhotoUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("Rating")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Coaches");
+                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -48,19 +74,19 @@ namespace RunClub.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "78ffa353-52f8-4113-8204-856999bd3411",
+                            Id = "1",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "674236fe-1b32-43b9-9473-e8d94c426e1d",
+                            Id = "2",
                             Name = "Coach",
                             NormalizedName = "COACH"
                         },
                         new
                         {
-                            Id = "6fee3675-42a2-4d77-8d58-f48b2e55b765",
+                            Id = "3",
                             Name = "Runner",
                             NormalizedName = "RUNNER"
                         });
@@ -180,17 +206,18 @@ namespace RunClub.Migrations
                     b.Property<int>("EventId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("UserId")
+                    b.Property<bool>("IsCompleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserId1")
+                    b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("EnrollmentId");
 
                     b.HasIndex("EventId");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Enrollments");
                 });
@@ -236,45 +263,21 @@ namespace RunClub.Migrations
                     b.Property<DateOnly>("ProgressDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ProgressDetails")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<TimeOnly>("ProgressTime")
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("TimeTaken")
-                        .HasColumnType("REAL");
+                    b.Property<TimeSpan>("TimeTaken")
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserId1")
+                    b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("ProgressRecordId");
 
-                    b.HasIndex("UserId1");
+                    b.HasIndex("UserId");
 
                     b.ToTable("ProgressRecords");
-                });
-
-            modelBuilder.Entity("RunClubAPI.Models.Role", b =>
-                {
-                    b.Property<string>("RoleId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RoleNormalizedName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("RoleId");
-
-                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("RunClubAPI.Models.User", b =>
@@ -285,17 +288,23 @@ namespace RunClub.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Age")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
@@ -331,17 +340,10 @@ namespace RunClub.Migrations
                     b.Property<DateTime>("RefreshTokenExpiry")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("RoleId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("UserName")
@@ -356,8 +358,6 @@ namespace RunClub.Migrations
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -423,7 +423,9 @@ namespace RunClub.Migrations
 
                     b.HasOne("RunClubAPI.Models.User", "User")
                         .WithMany("Enrollments")
-                        .HasForeignKey("UserId1");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Event");
 
@@ -434,20 +436,11 @@ namespace RunClub.Migrations
                 {
                     b.HasOne("RunClubAPI.Models.User", "User")
                         .WithMany("ProgressRecords")
-                        .HasForeignKey("UserId1");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("RunClubAPI.Models.User", b =>
-                {
-                    b.HasOne("RunClubAPI.Models.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Role");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RunClubAPI.Models.Event", b =>

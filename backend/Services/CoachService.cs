@@ -1,6 +1,7 @@
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
+using RunClubAPI.Data;
 
 namespace RunClubAPI.Services
 {

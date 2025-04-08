@@ -1,18 +1,23 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace RunClubAPI.Models;
-
-public class User : IdentityUser
+namespace RunClubAPI.Models
 {
-    public string Name { get; set; } = string.Empty;
+    public class User : IdentityUser
+    {
+        public string Name { get; set; } = string.Empty;
 
-    // Navigation properties
-    public ICollection<Enrollment> Enrollments { get; set; } = new HashSet<Enrollment>();
-    public ICollection<ProgressRecord> ProgressRecords { get; set; } = new HashSet<ProgressRecord>();
+        // ✅ NEW properties
+        public string Location { get; set; } = string.Empty;
+        public int Age { get; set; }
 
-    // Token-based auth
-    public string RefreshToken { get; set; } = string.Empty;
-    public DateTime RefreshTokenExpiry { get; set; } = DateTime.UtcNow;
+        // Navigation properties
+        public ICollection<Enrollment> Enrollments { get; set; } = new HashSet<Enrollment>();
+        public ICollection<ProgressRecord> ProgressRecords { get; set; } = new HashSet<ProgressRecord>();
+
+        // Token-based auth
+        public string RefreshToken { get; set; } = string.Empty;
+        public DateTime RefreshTokenExpiry { get; set; } = DateTime.UtcNow;
+    }
 }
 
 

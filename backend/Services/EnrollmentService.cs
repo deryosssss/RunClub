@@ -2,6 +2,7 @@ using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using RunClubAPI.Data;
 
 namespace RunClubAPI.Services
 {
@@ -20,41 +21,29 @@ namespace RunClubAPI.Services
                 .OrderBy(e => e.EnrollmentDate)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(e => new EnrollmentDTO
-                {
-                    EnrollmentId = e.EnrollmentId,
-                    EnrollmentDate = e.EnrollmentDate,
-                    UserId = e.UserId,          // ✅ Now correctly a string
-                    EventId = e.EventId
-                })
+                .Select(e => MapToDto(e))
                 .ToListAsync();
         }
 
         public async Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id)
         {
             var enrollment = await _context.Enrollments.FindAsync(id);
-            if (enrollment == null) return null;
-
-            return new EnrollmentDTO
-            {
-                EnrollmentId = enrollment.EnrollmentId,
-                EnrollmentDate = enrollment.EnrollmentDate,
-                UserId = enrollment.UserId,  // ✅ string
-                EventId = enrollment.EventId
-            };
+            return enrollment != null ? MapToDto(enrollment) : null;
         }
 
         public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
         {
             return await _context.Enrollments
                 .Where(e => e.EventId == eventId)
-                .Select(e => new EnrollmentDTO
-                {
-                    EnrollmentId = e.EnrollmentId,
-                    EnrollmentDate = e.EnrollmentDate,
-                    UserId = e.UserId,          // ✅ string
-                    EventId = e.EventId
-                })
+                .Select(e => MapToDto(e))
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByRunnerIdAsync(string runnerId)
+        {
+            return await _context.Enrollments
+                .Where(e => e.UserId == runnerId)
+                .Select(e => MapToDto(e))
                 .ToListAsync();
         }
 
@@ -69,7 +58,7 @@ namespace RunClubAPI.Services
             var entity = new Enrollment
             {
                 EnrollmentDate = dto.EnrollmentDate,
-                UserId = dto.UserId, // ✅ string
+                UserId = dto.UserId,
                 EventId = dto.EventId,
                 User = user,
                 Event = @event
@@ -113,9 +102,16 @@ namespace RunClubAPI.Services
             await _context.SaveChangesAsync();
             return true;
         }
+
+        private EnrollmentDTO MapToDto(Enrollment e) => new()
+        {
+            EnrollmentId = e.EnrollmentId,
+            EnrollmentDate = e.EnrollmentDate,
+            UserId = e.UserId,
+            EventId = e.EventId
+        };
     }
 }
-
 
 
 /* The EnrollmentService class implements the IEnrollmentService interface and is responsible for managing enrollment-related business logic within the RunClubAPI system. It provides CRUD (Create, Read, Update, Delete) operations, ensuring a structured and efficient way to handle enrollment data. The service follows an asynchronous programming model, leveraging Entity Framework Core (EF Core) for database interactions. It includes pagination for efficient data retrieval, preventing performance issues with large datasets. DTOs (Data Transfer Objects) are used to decouple the internal database models from external API responses, enhancing maintainability and security. Additionally, error handling is implemented to ensure the system remains robust, preventing issues such as invalid user/event references or concurrent data modifications. The service adheres to separation of concerns, improving testability and scalability by keeping the business logic distinct from the controller layer. */

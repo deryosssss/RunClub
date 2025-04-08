@@ -7,6 +7,8 @@ namespace RunClubAPI.Interfaces
         Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10);
         Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id);
         Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId);
+        Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByRunnerIdAsync(string runnerId);
+
         Task<EnrollmentDTO> CreateEnrollmentAsync(EnrollmentDTO enrollmentDto);
         Task<bool> UpdateEnrollmentAsync(int id, EnrollmentDTO enrollmentDto);
         Task<bool> DeleteEnrollmentAsync(int id);

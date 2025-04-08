@@ -1,3 +1,4 @@
+// src/pages/Auth/LoginPage.jsx
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -49,13 +50,11 @@ const LoginPage = () => {
         localStorage.setItem('token', data.token)
         localStorage.setItem('refreshToken', data.refreshToken)
 
-        console.log('✅ Logged in:', data)
-
-        setAuthHeader() // set token for subsequent requests
-        await login() // fetch user data
+        setAuthHeader()
+        await login()
 
         const { data: user } = await api.get('/account/me')
-        const role = user?.role?.toLowerCase()
+        const role = user?.role?.roleName?.toLowerCase() || user?.role?.toLowerCase()
 
         switch (role) {
           case 'admin':
@@ -68,7 +67,7 @@ const LoginPage = () => {
             navigate('/runner/home')
             break
           default:
-            navigate('/dashboard')
+            navigate('/unauthorized')
         }
       } catch (err) {
         console.error('❌ Login/Register failed:', err)

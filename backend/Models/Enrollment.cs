@@ -11,6 +11,9 @@ namespace RunClubAPI.Models
 
         public required User User { get; set; }
         public required Event Event { get; set; }
+        public bool IsCompleted { get; set; }
+
+
     }
 }
 

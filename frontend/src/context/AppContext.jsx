@@ -6,17 +6,30 @@ const AppContext = createContext()
 
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true) // ✅ added loading state
+  const [loading, setLoading] = useState(true)
 
   const login = async () => {
     try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setLoading(false)
+        return
+      }
+
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
       const res = await api.get('/account/me')
       setUser(res.data)
+
+      const role =
+        res.data?.role?.roleName?.toLowerCase() || res.data?.role?.toLowerCase()
+      console.log('🎭 Role:', role)
+
     } catch (err) {
       console.error('❌ Failed to load user info:', err)
-      setUser(null)
+      logout()
     } finally {
-      setLoading(false) // ✅ always stop loading
+      setLoading(false)
     }
   }
 
@@ -24,10 +37,16 @@ export const AppProvider = ({ children }) => {
     setUser(null)
     localStorage.removeItem('token')
     localStorage.removeItem('refreshToken')
+    delete api.defaults.headers.common['Authorization']
   }
 
   useEffect(() => {
-    login()
+    const token = localStorage.getItem('token')
+    if (token) {
+      login()
+    } else {
+      setLoading(false)
+    }
   }, [])
 
   return (
@@ -38,3 +57,4 @@ export const AppProvider = ({ children }) => {
 }
 
 export const useApp = () => useContext(AppContext)
+

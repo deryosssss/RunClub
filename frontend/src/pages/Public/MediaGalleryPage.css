@@ -1,0 +1,22 @@
+/* Ensure images have a smooth scaling transition on hover */
+img {
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  /* Styling for the overlay text */
+  .image-overlay {
+    background: rgba(0, 0, 0, 0.6); /* Dark background to make text stand out */
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  .position-relative:hover .image-overlay {
+    opacity: 1;
+  }
+  
+  /* Optional: Add some padding or margin for the text */
+  .image-overlay p {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  

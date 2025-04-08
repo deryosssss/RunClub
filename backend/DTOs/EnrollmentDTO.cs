@@ -1,5 +1,4 @@
-using System;
-
+// DTOs/EnrollmentDTO.cs
 namespace RunClubAPI.DTOs
 {
     public class EnrollmentDTO
@@ -7,11 +6,13 @@ namespace RunClubAPI.DTOs
         public int EnrollmentId { get; set; }
         public DateOnly EnrollmentDate { get; set; }
 
-        public string UserId { get; set; } = string.Empty; // ✅ Fixed: should be string (not int)
-
+        public string UserId { get; set; } = string.Empty;
         public int EventId { get; set; }
+
+        public bool IsCompleted { get; set; } // ✅ Add this
     }
 }
+
 
 
 

@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using RunClubAPI.Models;
 
-namespace RunClubAPI.Models
+namespace RunClubAPI.Data
 {
     public class RunClubContext : IdentityDbContext<User>
     {

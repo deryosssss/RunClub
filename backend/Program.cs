@@ -10,6 +10,7 @@ using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
 using RunClubAPI.Services;
 using System.Text;
+using RunClubAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,14 +72,14 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateAudience = false, // ✅ turn this OFF
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-        )
+        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+    ),
+        NameClaimType = "sub" // ✅ Add this line!
     };
 });
 

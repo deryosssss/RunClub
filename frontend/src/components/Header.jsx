@@ -1,4 +1,5 @@
-// ✅ Redesigned Header.jsx
+// Header.jsx
+
 import { useApp } from '../context/AppContext'
 import { useNavigate, NavLink } from 'react-router-dom'
 
@@ -11,16 +12,19 @@ const Header = () => {
     navigate('/login')
   }
 
-  if (!user) return null
+  // Don't render header until user is available and has a role
+  if (!user || !user.role) return null
 
-  const role = user.role?.toLowerCase()
+  const role = user.role.toLowerCase()
   const isRunner = role === 'runner'
 
   return (
     <header className="bg-white border-bottom shadow-sm py-3 px-4">
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <h5 className="mb-0 fw-bold">🏃‍♂️ RunClub | {role.toUpperCase()}</h5>
-        <button onClick={handleLogout} className="btn btn-outline-danger">Logout</button>
+        <h5 className="mb-0 fw-bold">🏃‍♂️ RunClub | {role?.toUpperCase() || 'USER'}</h5>
+        <button onClick={handleLogout} className="btn btn-outline-danger">
+          Logout
+        </button>
       </div>
 
       {isRunner && (
@@ -53,4 +57,4 @@ const Header = () => {
   )
 }
 
-export default Header;
+export default Header

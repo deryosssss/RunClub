@@ -2,16 +2,15 @@ namespace RunClubAPI.DTOs
 {
     public class UserDTO
     {
-        public string UserId { get; set; } = string.Empty; // ✅ change from int to string
-
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string RoleId { get; set; } = string.Empty;
-        public RoleDTO? Role { get; set; }
+        public string UserId { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public int? Age { get; set; }
+        public string? Location { get; set; }
+        public string? RoleId { get; set; } // ✅ bring this back
+        public string Role { get; set; }  = "Runner";// ✅ Flat role string for frontend
     }
-
 }
-
 
 /* The UserDTO class is a Data Transfer Object (DTO) used to send user-related data between the API and the client. It ensures that only necessary and structured information is exchanged, improving performance and security.
 
