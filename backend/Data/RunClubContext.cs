@@ -14,7 +14,7 @@ namespace RunClubAPI.Models
         public DbSet<Event> Events { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
         public DbSet<ProgressRecord> ProgressRecords { get; set; }
-
+        public DbSet<Coach> Coaches { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
