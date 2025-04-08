@@ -1,10 +1,10 @@
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
+import { useApp } from '../../context/AppContext'
 import { useState } from 'react'
-import api from '../services/api'
-import { setAuthHeader } from '../services/auth'
+import api from '../../services/api'
+import { setAuthHeader } from '../../services/auth'
 
 const LoginPage = () => {
   const navigate = useNavigate()

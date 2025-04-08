@@ -5,10 +5,17 @@ import { useApp } from '../context/AppContext'
 const PrivateRoute = ({ allowedRoles }) => {
   const { user } = useApp()
 
-  if (!user) return <Navigate to="/login" />
+  if (!user) {
+    console.warn('🔐 Redirecting: No user found.')
+    return <Navigate to="/login" replace />
+  }
 
   const userRole = user.role?.toLowerCase()
-  if (!allowedRoles.includes(userRole)) return <Navigate to="/unauthorized" />
+
+  if (!allowedRoles.includes(userRole)) {
+    console.warn(`🚫 Access denied for role: ${userRole}`)
+    return <Navigate to="/unauthorized" replace />
+  }
 
   return <Outlet />
 }

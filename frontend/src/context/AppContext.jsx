@@ -1,10 +1,12 @@
-import React, { createContext, useContext, useState } from 'react'
+// src/context/AppContext.jsx
+import React, { createContext, useContext, useState, useEffect } from 'react'
 import api from '../services/api'
 
 const AppContext = createContext()
 
 export const AppProvider = ({ children }) => {
   const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true) // ✅ added loading state
 
   const login = async () => {
     try {
@@ -13,6 +15,8 @@ export const AppProvider = ({ children }) => {
     } catch (err) {
       console.error('❌ Failed to load user info:', err)
       setUser(null)
+    } finally {
+      setLoading(false) // ✅ always stop loading
     }
   }
 
@@ -22,8 +26,12 @@ export const AppProvider = ({ children }) => {
     localStorage.removeItem('refreshToken')
   }
 
+  useEffect(() => {
+    login()
+  }, [])
+
   return (
-    <AppContext.Provider value={{ user, login, logout }}>
+    <AppContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AppContext.Provider>
   )
