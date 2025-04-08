@@ -1,52 +1,88 @@
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import axios from 'axios'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { jwtDecode } from 'jwt-decode'
+import { useState } from 'react'
+import api from '../services/api'
+import { setAuthHeader } from '../services/auth'
 
 const LoginPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { login } = useApp()
+  const [mode, setMode] = useState('login')
 
   const params = new URLSearchParams(location.search)
   const isVerified = params.get('verified') === 'true'
+  const isRegister = mode === 'register'
 
   const formik = useFormik({
-    initialValues: { email: '', password: '' },
+    initialValues: {
+      email: '',
+      password: '',
+      name: '',
+    },
     validationSchema: Yup.object({
       email: Yup.string().email('Invalid email').required('Email is required'),
-      password: Yup.string().required('Password is required')
+      password: Yup.string().required('Password is required'),
+      ...(isRegister && { name: Yup.string().required('Name is required') }),
     }),
     onSubmit: async (values) => {
       try {
-        const res = await axios.post('/api/account/login', values)
-        const token = res.data.token
-        login(token)
+        if (isRegister) {
+          await api.post('/account/register', {
+            email: values.email,
+            password: values.password,
+            name: values.name,
+            role: 'Runner',
+          })
+          alert('✅ Registration successful! You can now log in.')
+          setMode('login')
+          return
+        }
 
-        const { role } = jwtDecode(token)
-        const lowerRole = role?.toLowerCase()
+        const { data } = await api.post('/auth/login', {
+          email: values.email,
+          password: values.password,
+        })
 
-        if (lowerRole === 'admin') {
-          navigate('/admin/events')
-        } else if (lowerRole === 'coach') {
-          navigate('/coach/progress')
-        } else if (lowerRole === 'runner') {
-          navigate('/runner/home') // 👈 update this to whatever your runner landing page is
-        } else {
-          navigate('/dashboard') // fallback
-        }        
+        localStorage.setItem('token', data.token)
+        localStorage.setItem('refreshToken', data.refreshToken)
+
+        console.log('✅ Logged in:', data)
+
+        setAuthHeader() // set token for subsequent requests
+        await login() // fetch user data
+
+        const { data: user } = await api.get('/account/me')
+        const role = user?.role?.toLowerCase()
+
+        switch (role) {
+          case 'admin':
+            navigate('/admin/events')
+            break
+          case 'coach':
+            navigate('/coach/progress')
+            break
+          case 'runner':
+            navigate('/runner/home')
+            break
+          default:
+            navigate('/dashboard')
+        }
       } catch (err) {
-        alert('❌ Login failed. Please check your email or password.')
+        console.error('❌ Login/Register failed:', err)
+        alert('❌ Something went wrong. Please check your email and password.')
       }
-    }
+    },
   })
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
       <div className="card shadow-lg p-5" style={{ maxWidth: 400, width: '100%' }}>
-        <h3 className="text-center mb-4">Welcome to RunClub 🏃‍♀️</h3>
+        <h3 className="text-center mb-4">
+          {isRegister ? 'Create Your Account' : 'Welcome to RunClub 🏃‍♀️'}
+        </h3>
 
         {isVerified && (
           <div className="alert alert-success text-center mb-3">
@@ -54,13 +90,33 @@ const LoginPage = () => {
           </div>
         )}
 
-        <form onSubmit={formik.handleSubmit}>
+        <form onSubmit={formik.handleSubmit} autoComplete="on">
+          {isRegister && (
+            <div className="mb-3">
+              <label htmlFor="name" className="form-label">Name</label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                className={`form-control ${formik.touched.name && formik.errors.name ? 'is-invalid' : ''}`}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                value={formik.values.name}
+              />
+              {formik.touched.name && formik.errors.name && (
+                <div className="invalid-feedback">{formik.errors.name}</div>
+              )}
+            </div>
+          )}
+
           <div className="mb-3">
-            <label className="form-label">Email</label>
+            <label htmlFor="email" className="form-label">Email</label>
             <input
+              id="email"
               name="email"
               type="email"
-              placeholder="you@example.com"
+              autoComplete="email"
               className={`form-control ${formik.touched.email && formik.errors.email ? 'is-invalid' : ''}`}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -72,11 +128,12 @@ const LoginPage = () => {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Password</label>
+            <label htmlFor="password" className="form-label">Password</label>
             <input
+              id="password"
               name="password"
               type="password"
-              placeholder="••••••••"
+              autoComplete={isRegister ? 'new-password' : 'current-password'}
               className={`form-control ${formik.touched.password && formik.errors.password ? 'is-invalid' : ''}`}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -87,8 +144,16 @@ const LoginPage = () => {
             )}
           </div>
 
-          <button type="submit" className="btn btn-primary w-100">
-            {formik.isSubmitting ? 'Logging in...' : 'Login'}
+          <button type="submit" className="btn btn-primary w-100 mb-2">
+            {formik.isSubmitting ? 'Please wait...' : isRegister ? 'Register' : 'Login'}
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-link w-100 text-center"
+            onClick={() => setMode(isRegister ? 'login' : 'register')}
+          >
+            {isRegister ? 'Already have an account? Login' : "Don't have an account? Register"}
           </button>
         </form>
       </div>

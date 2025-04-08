@@ -9,6 +9,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
 
 namespace RunClubAPI.Services
 {
@@ -17,12 +20,18 @@ namespace RunClubAPI.Services
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _config;
         private readonly ILogger<AuthService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(UserManager<User> userManager, IConfiguration config, ILogger<AuthService> logger)
+        public AuthService(
+            UserManager<User> userManager,
+            IConfiguration config,
+            ILogger<AuthService> logger,
+            IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _config = config;
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<AuthResponseDTO?> LoginAsync(string email, string password)
@@ -34,19 +43,49 @@ namespace RunClubAPI.Services
                 return null;
             }
 
-            var accessToken = await GenerateJwtTokenAsync(user);
+            var token = await GenerateJwtTokenAsync(user);
             var refreshToken = GenerateRefreshToken();
 
             user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7); // You can pull this from config if needed
+            user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
+
+            // ✅ Build claims manually (same as in GenerateJwtTokenAsync)
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault();
+
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id),
+        new Claim(ClaimTypes.Email, user.Email ?? ""),
+        new Claim(ClaimTypes.Name, user.Name ?? "")
+    };
+
+            if (!string.IsNullOrEmpty(role))
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            // await _httpContextAccessor.HttpContext!.SignInAsync(
+            //     CookieAuthenticationDefaults.AuthenticationScheme,
+            //     principal,
+            //     new AuthenticationProperties
+            //     {
+            //         IsPersistent = true,
+            //         ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1)
+            //     });
 
             return new AuthResponseDTO
             {
-                Token = accessToken,
+                Token = token,
                 RefreshToken = refreshToken
             };
+
         }
+
 
         public async Task<bool> RegisterAsync(RegisterDTO model)
         {
@@ -55,7 +94,7 @@ namespace RunClubAPI.Services
                 UserName = model.Email,
                 Email = model.Email,
                 Name = model.Name,
-                EmailConfirmed = true // ⚠️ Only for dev/testing
+                EmailConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -72,11 +111,6 @@ namespace RunClubAPI.Services
 
             _logger.LogInformation("✅ Registered user {Email} with role {Role}", model.Email, model.Role);
             return true;
-        }
-
-        public async Task<AuthResponseDTO?> AuthenticateUserAsync(string email, string password)
-        {
-            return await LoginAsync(email, password);
         }
 
         public async Task<AuthResponseDTO?> RefreshTokenAsync(RefreshTokenRequest request)
@@ -98,11 +132,20 @@ namespace RunClubAPI.Services
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
+            // var cookieOptions = new CookieOptions
+            // {
+            //     HttpOnly = true,
+            //     Secure = true,
+            //     SameSite = SameSiteMode.Strict,
+            //     Expires = DateTime.UtcNow.AddHours(1)
+            // };
+
             return new AuthResponseDTO
             {
                 Token = newAccessToken,
                 RefreshToken = newRefreshToken
             };
+
         }
 
         public async Task RevokeRefreshTokenAsync(string userId)
@@ -150,12 +193,17 @@ namespace RunClubAPI.Services
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(1), // Or use from config
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        public async Task<AuthResponseDTO?> AuthenticateUserAsync(string email, string password)
+        {
+            return await LoginAsync(email, password);
+        }
+
 
         private string GenerateRefreshToken()
         {

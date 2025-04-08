@@ -20,17 +20,26 @@ namespace RunClubAPI.Controllers
         /// Authenticates the user and returns access and refresh tokens.
         /// </summary>
         [AllowAnonymous]
-        [HttpPost("authenticate")]
+        [HttpPost("login")]
         public async Task<ActionResult<AuthResponseDTO>> Authenticate([FromBody] LoginDTO loginRequest)
         {
-            if (loginRequest is null || string.IsNullOrWhiteSpace(loginRequest.Email) || string.IsNullOrWhiteSpace(loginRequest.Password))
-                return BadRequest(Problem("Email and password are required."));
+            try
+            {
+                if (loginRequest == null || string.IsNullOrWhiteSpace(loginRequest.Email) || string.IsNullOrWhiteSpace(loginRequest.Password))
+                    return BadRequest("Email and password are required.");
 
-            var result = await _authService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
-            if (result is null)
-                return Unauthorized(Problem("Invalid email or password."));
+                var result = await _authService.AuthenticateUserAsync(loginRequest.Email, loginRequest.Password);
+                if (result == null)
+                    return Unauthorized("Invalid credentials.");
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // Log the actual exception
+                Console.WriteLine("🔥 Exception during login: " + ex.Message);
+                return StatusCode(500, "Internal server error during login.");
+            }
         }
 
         /// <summary>

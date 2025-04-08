@@ -4,6 +4,7 @@ using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
 namespace RunClubAPI.Controllers
@@ -24,6 +25,23 @@ namespace RunClubAPI.Controllers
             _authService = authService;
             _logger = logger;
             _userManager = userManager;
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult Me()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            var name = User.FindFirst(ClaimTypes.Name)?.Value;
+
+            return Ok(new {
+                id = userId,
+                email,
+                role,
+                name
+            });
         }
 
         [HttpPost("register")]
@@ -49,7 +67,7 @@ namespace RunClubAPI.Controllers
                 return Unauthorized(new { message = "Invalid credentials." });
             }
 
-            return Ok(response);
+            return Ok(response); // no token returned, only cookie is set
         }
 
         [HttpPost("refresh")]
@@ -68,17 +86,6 @@ namespace RunClubAPI.Controllers
             return Ok(new { message = "Refresh token revoked." });
         }
 
-        [HttpGet("me")]
-        public IActionResult GetCurrentUser()
-        {
-            var email = User.FindFirstValue(ClaimTypes.Email);
-            var name = User.FindFirstValue(ClaimTypes.Name);
-            var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            return Ok(new { id, email, name });
-        }
-
-        // ✅ DELETE user by email (no auth required for development)
         [HttpDelete("{email}")]
         public async Task<IActionResult> DeleteAccountByEmail(string email)
         {
@@ -95,7 +102,6 @@ namespace RunClubAPI.Controllers
         }
     }
 }
-
 
 
 

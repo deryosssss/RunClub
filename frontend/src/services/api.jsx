@@ -1,14 +1,18 @@
+// src/services/api.js
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://localhost:5187/api',
-  headers: { 'Content-Type': 'application/json' }
+  baseURL: 'http://localhost:5187/api', // ✅ backend base URL
 })
 
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+// Automatically attach token to all requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token') // store token after login
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 
 export default api
+
