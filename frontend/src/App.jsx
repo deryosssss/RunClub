@@ -13,14 +13,14 @@ import CoachProgressPage from './pages/Coach/CoachProgressPage'
 // Runner
 import RunnerHomePage from './pages/Runner/RunnerHomePage'
 import EnrollmentsPage from './pages/Runner/RunnerEnrollments'
-import EventsPage from './pages/Runner/RunnerEvents'
 import ProgressPage from './pages/Runner/RunnerProgress'
 import AccountPage from './pages/Runner/RunnerAccount'
-import EventDetailsPage from './pages/Runner/RunnerEventDetails'
+
 
 // Public
 import OurStoryPage from './pages/Public/OurStoryPage'
 import SearchEventsPage from './pages/Public/SearchEventsPage'
+import EventDetailPage from './pages/Public/EventDetailPage'
 import FaqHelpPage from './pages/Public/FaqHelpPage'
 import MediaGalleryPage from './pages/Public/MediaGalleryPage'
 import CoachDirectoryPage from './pages/Public/CoachDirectoryPage'
@@ -32,6 +32,7 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/our-story" element={<OurStoryPage />} />
       <Route path="/search" element={<SearchEventsPage />} />
+      <Route path="/events/:eventId" element={<EventDetailPage />} />
       <Route path="/coaches" element={<CoachDirectoryPage />} />
       <Route path="/help" element={<FaqHelpPage />} />
       <Route path="/gallery" element={<MediaGalleryPage />} />
@@ -54,9 +55,9 @@ function App() {
         {/* Runner */}
         <Route element={<PrivateRoute allowedRoles={['runner']} />}>
           <Route path="/runner/home" element={<RunnerHomePage />} />
-          <Route path="/runner/enrollments" element={<EnrollmentsPage />} />
-          <Route path="/runner/events" element={<EventsPage />} />
-          <Route path="/runner/events/:eventId" element={<EventDetailsPage />} />
+          <Route path="/runner/enrollments/my" element={<EnrollmentsPage />} />
+          <Route path="/runner/events" element={<SearchEventsPage />} />
+          <Route path="/runner/events/:eventId" element={< EventDetailPage/>} />
           <Route path="/runner/progress" element={<ProgressPage />} />
           <Route path="/runner/account" element={<AccountPage />} />
         </Route>

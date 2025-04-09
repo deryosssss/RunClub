@@ -1,16 +1,16 @@
-// ==================== Updated Auth Configuration (JWT only) ====================
-
 using AspNetCoreRateLimit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using RunClubAPI.Data;
 using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
 using RunClubAPI.Services;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
-using RunClubAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,9 +18,10 @@ builder.Configuration.AddEnvironmentVariables();
 
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
 var connectionString = builder.Configuration.GetConnectionString("RunClubDb");
 
-if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer))
+if (string.IsNullOrEmpty(jwtKey) || string.IsNullOrEmpty(jwtIssuer) || string.IsNullOrEmpty(jwtAudience))
     throw new InvalidOperationException("JWT configuration is missing!");
 
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -29,18 +30,12 @@ if (string.IsNullOrWhiteSpace(connectionString))
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 
-builder.Services.AddLogging(logging =>
-{
-    logging.ClearProviders();
-    logging.AddConsole();
-    logging.AddDebug();
-});
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
         policy.WithOrigins("http://localhost:5173")
+              .SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -50,18 +45,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<RunClubContext>(options =>
     options.UseSqlite(connectionString));
 
-builder.Services.AddIdentity<User, IdentityRole>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 6;
-})
-.AddEntityFrameworkStores<RunClubContext>()
-.AddDefaultTokenProviders();
+builder.Services.AddIdentity<User, IdentityRole>()
+    .AddEntityFrameworkStores<RunClubContext>()
+    .AddDefaultTokenProviders();
 
-// ---------- Authentication (JWT Only) ----------
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -71,59 +58,40 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
+        NameClaimType = ClaimTypes.NameIdentifier,
         ValidateIssuer = true,
-        ValidateAudience = false, // ✅ turn this OFF
+        ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-    ),
-        NameClaimType = "sub" // ✅ Add this line!
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
     };
-});
 
-
-// ---------- Cookie Auth (Commented Out) ----------
-/*
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-{
-    options.Cookie.Name = "access_token";
-    options.Cookie.HttpOnly = true;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.ExpireTimeSpan = TimeSpan.FromHours(1);
-
-    options.Events.OnRedirectToLogin = context =>
+    options.Events = new JwtBearerEvents
     {
-        if (context.Request.Path.StartsWithSegments("/api"))
+        OnAuthenticationFailed = context =>
         {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            Console.WriteLine("⚠️ Token validation failed: " + context.Exception.Message);
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine("✅ Token validated for user: " + context.Principal.Identity?.Name);
             return Task.CompletedTask;
         }
-
-        context.Response.Redirect(context.RedirectUri);
-        return Task.CompletedTask;
     };
 });
-*/
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "RunClub API", Version = "v1" });
 
     var jwtSecurityScheme = new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Example: 'Bearer your_token_here'",
+        Description = "JWT Authorization header using the Bearer scheme.",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
@@ -135,7 +103,7 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityDefinition("Bearer", jwtSecurityScheme);
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        { jwtSecurityScheme, Array.Empty<string>() }
+        { jwtSecurityScheme, new[] { "Bearer" } }
     });
 });
 

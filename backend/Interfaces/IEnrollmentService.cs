@@ -1,20 +1,21 @@
 using RunClubAPI.DTOs;
+using RunClubAPI.Models;
 
 namespace RunClubAPI.Interfaces
 {
-    public interface IEnrollmentService
-    {
-        Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10);
-        Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id);
-        Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId);
-        Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByRunnerIdAsync(string runnerId);
-
-        Task<EnrollmentDTO> CreateEnrollmentAsync(EnrollmentDTO enrollmentDto);
-        Task<bool> UpdateEnrollmentAsync(int id, EnrollmentDTO enrollmentDto);
-        Task<bool> DeleteEnrollmentAsync(int id);
-    }
+public interface IEnrollmentService
+{
+    Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber, int pageSize);
+    Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id);
+    Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId);
+    Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByRunnerIdAsync(string userId, bool? isCompleted = null);
+    Task<EnrollmentDTO> CreateEnrollmentAsync(EnrollmentDTO dto);
+    Task<bool> DeleteEnrollmentAsync(int enrollmentId);
+    Task<bool> CheckIfAlreadyEnrolledAsync(string userId, int eventId);
+    Task<bool> UpdateCompletionStatusAsync(int enrollmentId, string userId, bool isCompleted);
 }
 
+}
 /* Pagination Defaults Explained:
 - **Page Number (1)**: Standard convention for pagination starts at **1** (not 0) since users expect the first page to be numbered 1.
 - **Page Size (10)**: Defaulting to **10** prevents overwhelming the client while reducing the number of requests needed to fetch all data.

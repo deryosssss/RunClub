@@ -1,3 +1,5 @@
+// ==================== AuthService.cs (Improved) ====================
+
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -9,9 +11,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
 
 namespace RunClubAPI.Services
 {
@@ -20,18 +19,12 @@ namespace RunClubAPI.Services
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _config;
         private readonly ILogger<AuthService> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(
-            UserManager<User> userManager,
-            IConfiguration config,
-            ILogger<AuthService> logger,
-            IHttpContextAccessor httpContextAccessor)
+        public AuthService(UserManager<User> userManager, IConfiguration config, ILogger<AuthService> logger)
         {
             _userManager = userManager;
             _config = config;
             _logger = logger;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<AuthResponseDTO?> LoginAsync(string email, string password)
@@ -50,42 +43,12 @@ namespace RunClubAPI.Services
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
-            // ✅ Build claims manually (same as in GenerateJwtTokenAsync)
-            var roles = await _userManager.GetRolesAsync(user);
-            var role = roles.FirstOrDefault();
-
-            var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, user.Id),
-        new Claim(ClaimTypes.Email, user.Email ?? ""),
-        new Claim(ClaimTypes.Name, user.Name ?? "")
-    };
-
-            if (!string.IsNullOrEmpty(role))
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            // await _httpContextAccessor.HttpContext!.SignInAsync(
-            //     CookieAuthenticationDefaults.AuthenticationScheme,
-            //     principal,
-            //     new AuthenticationProperties
-            //     {
-            //         IsPersistent = true,
-            //         ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1)
-            //     });
-
             return new AuthResponseDTO
             {
                 Token = token,
                 RefreshToken = refreshToken
             };
-
         }
-
 
         public async Task<bool> RegisterAsync(RegisterDTO model)
         {
@@ -132,20 +95,11 @@ namespace RunClubAPI.Services
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
             await _userManager.UpdateAsync(user);
 
-            // var cookieOptions = new CookieOptions
-            // {
-            //     HttpOnly = true,
-            //     Secure = true,
-            //     SameSite = SameSiteMode.Strict,
-            //     Expires = DateTime.UtcNow.AddHours(1)
-            // };
-
             return new AuthResponseDTO
             {
                 Token = newAccessToken,
                 RefreshToken = newRefreshToken
             };
-
         }
 
         public async Task RevokeRefreshTokenAsync(string userId)
@@ -199,18 +153,18 @@ namespace RunClubAPI.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        public async Task<AuthResponseDTO?> AuthenticateUserAsync(string email, string password)
-        {
-            return await LoginAsync(email, password);
-        }
-
 
         private string GenerateRefreshToken()
         {
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
+
+        public async Task<AuthResponseDTO?> AuthenticateUserAsync(string email, string password)
+        {
+            return await LoginAsync(email, password);
+        }
     }
-}
+} 
 
 
 

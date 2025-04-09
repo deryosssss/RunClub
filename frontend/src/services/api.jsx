@@ -1,16 +1,17 @@
-import axios from 'axios'
+// === FIXED: api.js ===
+import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'http://localhost:5187/api',
-})
+  withCredentials: false, // make sure this is false unless you're using cookies
+});
 
-// ✅ Attach token to all requests automatically
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('token');
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return config
-})
+  return config;
+}, (error) => Promise.reject(error));
 
-export default api
+export default api;

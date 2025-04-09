@@ -3,11 +3,23 @@ namespace RunClubAPI.Models
     public class Event
     {
         public int EventId { get; set; }
+
         public string EventName { get; set; } = string.Empty;
+
         public string Description { get; set; } = string.Empty;
+
         public DateOnly EventDate { get; set; }
+
         public TimeOnly EventTime { get; set; }
+
         public string Location { get; set; } = string.Empty;
+
+        public string? ImageUrl { get; set; } // ✅ NEW: Optional image for event
+
+        public string? CoachId { get; set; } // ✅ NEW: optional coach assigned
+
+        public User? Coach { get; set; }     // ✅ NEW: navigation property to Coach
+
         public ICollection<Enrollment>? Enrollments { get; set; }
     }
 }

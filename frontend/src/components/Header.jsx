@@ -32,7 +32,7 @@ const Header = () => {
           {[
             { to: '/runner/home', label: 'Home' },
             { to: '/runner/events', label: 'Events' },
-            { to: '/runner/enrollments', label: 'Enrollments' },
+            { to: '/runner/enrollments/my', label: 'Enrollments' },
             { to: '/runner/progress', label: 'Progress' },
             { to: '/runner/account', label: 'Account' },
           ].map(({ to, label }) => (

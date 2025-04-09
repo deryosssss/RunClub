@@ -1,21 +1,20 @@
-// src/pages/Auth/LoginPage.jsx
-import { useFormik } from 'formik'
-import * as Yup from 'yup'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { useApp } from '../../context/AppContext'
-import { useState } from 'react'
-import api from '../../services/api'
-import { setAuthHeader } from '../../services/auth'
+// LoginPage.jsx
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useApp } from '../../context/AppContext';
+import { useState } from 'react';
+import api from '../../services/api';
 
 const LoginPage = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { login } = useApp()
-  const [mode, setMode] = useState('login')
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useApp();
+  const [mode, setMode] = useState('login');
 
-  const params = new URLSearchParams(location.search)
-  const isVerified = params.get('verified') === 'true'
-  const isRegister = mode === 'register'
+  const params = new URLSearchParams(location.search);
+  const isVerified = params.get('verified') === 'true';
+  const isRegister = mode === 'register';
 
   const formik = useFormik({
     initialValues: {
@@ -36,45 +35,44 @@ const LoginPage = () => {
             password: values.password,
             name: values.name,
             role: 'Runner',
-          })
-          alert('✅ Registration successful! You can now log in.')
-          setMode('login')
-          return
+          });
+          alert('✅ Registration successful! You can now log in.');
+          setMode('login');
+          return;
         }
 
         const { data } = await api.post('/auth/login', {
           email: values.email,
           password: values.password,
-        })
+        });
 
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('refreshToken', data.refreshToken)
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('refreshToken', data.refreshToken);
 
-        setAuthHeader()
-        await login()
+        await login();
 
-        const { data: user } = await api.get('/account/me')
-        const role = user?.role?.roleName?.toLowerCase() || user?.role?.toLowerCase()
+        const { data: user } = await api.get('/account/me');
+        const role = user?.role?.roleName?.toLowerCase() || user?.role?.toLowerCase();
 
         switch (role) {
           case 'admin':
-            navigate('/admin/events')
-            break
+            navigate('/admin/events');
+            break;
           case 'coach':
-            navigate('/coach/progress')
-            break
+            navigate('/coach/progress');
+            break;
           case 'runner':
-            navigate('/runner/home')
-            break
+            navigate('/runner/home');
+            break;
           default:
-            navigate('/unauthorized')
+            navigate('/unauthorized');
         }
       } catch (err) {
-        console.error('❌ Login/Register failed:', err)
-        alert('❌ Something went wrong. Please check your email and password.')
+        console.error('❌ Login/Register failed:', err);
+        alert('❌ Something went wrong. Please check your email and password.');
       }
     },
-  })
+  });
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
@@ -157,7 +155,7 @@ const LoginPage = () => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LoginPage
+export default LoginPage;

@@ -1,8 +1,8 @@
+using Microsoft.EntityFrameworkCore;
+using RunClubAPI.Data;
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using RunClubAPI.Models;
-using Microsoft.EntityFrameworkCore;
-using RunClubAPI.Data;
 
 namespace RunClubAPI.Services
 {
@@ -15,101 +15,134 @@ namespace RunClubAPI.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber = 1, int pageSize = 10)
+        public async Task<IEnumerable<EnrollmentDTO>> GetAllEnrollmentsAsync(int pageNumber, int pageSize)
         {
             return await _context.Enrollments
-                .OrderBy(e => e.EnrollmentDate)
+                .Include(e => e.Event)
+                .Include(e => e.User)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(e => MapToDto(e))
+                .Select(e => new EnrollmentDTO
+                {
+                    EnrollmentId = e.EnrollmentId,
+                    EnrollmentDate = e.EnrollmentDate,
+                    EventId = e.EventId,
+                    UserId = e.UserId,
+                    IsCompleted = e.IsCompleted
+                })
                 .ToListAsync();
         }
 
         public async Task<EnrollmentDTO?> GetEnrollmentByIdAsync(int id)
         {
-            var enrollment = await _context.Enrollments.FindAsync(id);
-            return enrollment != null ? MapToDto(enrollment) : null;
+            var enrollment = await _context.Enrollments
+                .Include(e => e.Event)
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(e => e.EnrollmentId == id);
+
+            if (enrollment == null) return null;
+
+            return new EnrollmentDTO
+            {
+                EnrollmentId = enrollment.EnrollmentId,
+                EnrollmentDate = enrollment.EnrollmentDate,
+                EventId = enrollment.EventId,
+                UserId = enrollment.UserId,
+                IsCompleted = enrollment.IsCompleted
+            };
         }
 
         public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByEventIdAsync(int eventId)
         {
             return await _context.Enrollments
                 .Where(e => e.EventId == eventId)
-                .Select(e => MapToDto(e))
+                .Include(e => e.User)
+                .Select(e => new EnrollmentDTO
+                {
+                    EnrollmentId = e.EnrollmentId,
+                    EnrollmentDate = e.EnrollmentDate,
+                    EventId = e.EventId,
+                    UserId = e.UserId,
+                    IsCompleted = e.IsCompleted
+                })
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByRunnerIdAsync(string runnerId)
+        public async Task<IEnumerable<EnrollmentDTO>> GetEnrollmentsByRunnerIdAsync(string userId, bool? isCompleted = null)
         {
-            return await _context.Enrollments
-                .Where(e => e.UserId == runnerId)
-                .Select(e => MapToDto(e))
-                .ToListAsync();
+            var query = _context.Enrollments
+                .Where(e => e.UserId == userId)
+                .Include(e => e.Event)
+                .AsQueryable();
+
+            if (isCompleted.HasValue)
+                query = query.Where(e => e.IsCompleted == isCompleted.Value);
+
+            return await query.Select(e => new EnrollmentDTO
+            {
+                EnrollmentId = e.EnrollmentId,
+                EnrollmentDate = e.EnrollmentDate,
+                EventId = e.EventId,
+                UserId = e.UserId,
+                IsCompleted = e.IsCompleted
+            }).ToListAsync();
         }
 
         public async Task<EnrollmentDTO> CreateEnrollmentAsync(EnrollmentDTO dto)
         {
-            var user = await _context.Users.FindAsync(dto.UserId)
-                ?? throw new ArgumentException("User not found");
+            // ✅ Prevent duplicate enrollment
+            var exists = await _context.Enrollments.AnyAsync(e =>
+                e.UserId == dto.UserId && e.EventId == dto.EventId);
 
-            var @event = await _context.Events.FindAsync(dto.EventId)
-                ?? throw new ArgumentException("Event not found");
+            if (exists)
+                throw new InvalidOperationException("User already enrolled in this event.");
 
-            var entity = new Enrollment
+            var enrollment = new Enrollment
             {
-                EnrollmentDate = dto.EnrollmentDate,
-                UserId = dto.UserId,
+                EnrollmentDate = DateOnly.FromDateTime(DateTime.UtcNow),
                 EventId = dto.EventId,
-                User = user,
-                Event = @event
+                UserId = dto.UserId,
+                IsCompleted = false
             };
 
-            _context.Enrollments.Add(entity);
+            _context.Enrollments.Add(enrollment);
             await _context.SaveChangesAsync();
 
-            dto.EnrollmentId = entity.EnrollmentId;
+            dto.EnrollmentId = enrollment.EnrollmentId;
+            dto.EnrollmentDate = enrollment.EnrollmentDate;
+
             return dto;
         }
 
-        public async Task<bool> UpdateEnrollmentAsync(int id, EnrollmentDTO dto)
+        public async Task<bool> CheckIfAlreadyEnrolledAsync(string userId, int eventId)
         {
-            var enrollment = await _context.Enrollments.FindAsync(id);
-            if (enrollment == null) return false;
-
-            enrollment.EnrollmentDate = dto.EnrollmentDate;
-            enrollment.UserId = dto.UserId;
-            enrollment.EventId = dto.EventId;
-
-            _context.Entry(enrollment).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                return false;
-            }
+            return await _context.Enrollments
+                .AnyAsync(e => e.UserId == userId && e.EventId == eventId);
         }
 
-        public async Task<bool> DeleteEnrollmentAsync(int id)
+        public async Task<bool> UpdateCompletionStatusAsync(int enrollmentId, string userId, bool isCompleted)
         {
-            var enrollment = await _context.Enrollments.FindAsync(id);
-            if (enrollment == null) return false;
+            var enrollment = await _context.Enrollments
+                .FirstOrDefaultAsync(e => e.EnrollmentId == enrollmentId && e.UserId == userId);
+
+            if (enrollment == null)
+                return false;
+
+            enrollment.IsCompleted = isCompleted;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteEnrollmentAsync(int enrollmentId)
+        {
+            var enrollment = await _context.Enrollments.FindAsync(enrollmentId);
+            if (enrollment == null)
+                return false;
 
             _context.Enrollments.Remove(enrollment);
             await _context.SaveChangesAsync();
             return true;
         }
-
-        private EnrollmentDTO MapToDto(Enrollment e) => new()
-        {
-            EnrollmentId = e.EnrollmentId,
-            EnrollmentDate = e.EnrollmentDate,
-            UserId = e.UserId,
-            EventId = e.EventId
-        };
     }
 }
 

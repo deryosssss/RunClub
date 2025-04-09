@@ -1,18 +1,14 @@
-// DTOs/EnrollmentDTO.cs
 namespace RunClubAPI.DTOs
 {
     public class EnrollmentDTO
     {
         public int EnrollmentId { get; set; }
         public DateOnly EnrollmentDate { get; set; }
-
         public string UserId { get; set; } = string.Empty;
         public int EventId { get; set; }
-
-        public bool IsCompleted { get; set; } // ✅ Add this
+        public bool IsCompleted { get; set; }
     }
 }
-
 
 
 

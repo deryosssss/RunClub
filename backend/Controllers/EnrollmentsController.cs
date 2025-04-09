@@ -2,8 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace RunClubAPI.Controllers
 {
@@ -18,7 +17,6 @@ namespace RunClubAPI.Controllers
             _enrollmentService = enrollmentService;
         }
 
-        // GET: api/enrollments?pageNumber=1&pageSize=10
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollments(int pageNumber = 1, int pageSize = 10)
         {
@@ -26,7 +24,6 @@ namespace RunClubAPI.Controllers
             return Ok(enrollments);
         }
 
-        // GET: api/enrollments/5
         [HttpGet("{id}")]
         public async Task<ActionResult<EnrollmentDTO>> GetEnrollment(int id)
         {
@@ -37,7 +34,6 @@ namespace RunClubAPI.Controllers
             return Ok(enrollment);
         }
 
-        // GET: api/enrollments/event/3
         [HttpGet("event/{eventId}")]
         public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetEnrollmentsByEvent(int eventId)
         {
@@ -45,20 +41,46 @@ namespace RunClubAPI.Controllers
             return Ok(enrollments);
         }
 
-        // POST: api/enrollments
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> PostEnrollment([FromBody] EnrollmentDTO enrollmentDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized("User ID not found in token");
 
-            await _enrollmentService.CreateEnrollmentAsync(enrollmentDto);
+                enrollmentDto.UserId = userId;
 
-            return CreatedAtAction(nameof(GetEnrollment), new { id = enrollmentDto.EnrollmentId }, enrollmentDto);
+                var alreadyEnrolled = await _enrollmentService.CheckIfAlreadyEnrolledAsync(userId, enrollmentDto.EventId);
+                if (alreadyEnrolled)
+                    return Conflict("User is already enrolled in this event.");
+
+                var created = await _enrollmentService.CreateEnrollmentAsync(enrollmentDto);
+                return CreatedAtAction(nameof(GetEnrollment), new { id = created.EnrollmentId }, created);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"❌ Failed to enroll: {ex.Message}");
+            }
         }
 
-        // DELETE: api/enrollments/5
+        [Authorize]
+        [HttpPut("status/{id}")]
+        public async Task<IActionResult> UpdateEnrollmentStatus(int id, [FromBody] bool isCompleted)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var updated = await _enrollmentService.UpdateCompletionStatusAsync(id, userId, isCompleted);
+            if (!updated)
+                return NotFound("Enrollment not found or not authorized.");
+
+            return NoContent();
+        }
+
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEnrollment(int id)
@@ -69,6 +91,18 @@ namespace RunClubAPI.Controllers
 
             await _enrollmentService.DeleteEnrollmentAsync(id);
             return NoContent();
+        }
+
+        [Authorize]
+        [HttpGet("my")]
+        public async Task<ActionResult<IEnumerable<EnrollmentDTO>>> GetMyEnrollments([FromQuery] bool? isCompleted = null)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var enrollments = await _enrollmentService.GetEnrollmentsByRunnerIdAsync(userId, isCompleted);
+            return Ok(enrollments);
         }
     }
 }
