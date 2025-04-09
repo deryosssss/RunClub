@@ -27,44 +27,55 @@ namespace RunClubAPI.Controllers
         {
             var events = await _context.Events
                 .Include(e => e.Enrollments)
-                .Select(e => new EventDTO
-                {
-                    EventId = e.EventId,
-                    EventName = e.EventName,
-                    Description = e.Description,
-                    EventDate = e.EventDate,
-                    EventTime = e.EventTime.ToString("HH:mm:ss"),
-                    Location = e.Location,
-                    EnrollmentCount = e.Enrollments.Count
-                })
+                .Include(e => e.Coach) // Make sure Coach is included
                 .ToListAsync();
 
-            return Ok(events);
+            var eventDtos = events.Select(e => new EventDTO
+            {
+                EventId = e.EventId,
+                EventName = e.EventName,
+                Description = e.Description,
+                EventDate = e.EventDate,
+                EventTime = e.EventTime.ToString("HH:mm:ss"),
+                Location = e.Location,
+                EnrollmentCount = e.Enrollments?.Count ?? 0,
+                ImageUrl = e.ImageUrl,
+                CoachName = e.Coach != null ? e.Coach.Name : null,
+                CoachPhotoUrl = e.Coach != null ? e.Coach.PhotoUrl : null
+            }).ToList();
+
+            return Ok(eventDtos);
         }
 
         // GET: api/events/5
         [HttpGet("{id}")]
         public async Task<ActionResult<EventDTO>> GetEvent(int id)
         {
-            var eventItem = await _context.Events
+            var e = await _context.Events
                 .Include(e => e.Enrollments)
-                .Where(e => e.EventId == id)
-                .Select(e => new EventDTO
-                {
-                    EventId = e.EventId,
-                    EventName = e.EventName,
-                    Description = e.Description,
-                    EventDate = e.EventDate,
-                    EventTime = e.EventTime.ToString("HH:mm:ss"),
-                    Location = e.Location,
-                    EnrollmentCount = e.Enrollments.Count
-                })
-                .FirstOrDefaultAsync();
+                .Include(e => e.Coach)
+                .FirstOrDefaultAsync(e => e.EventId == id);
 
-            return eventItem == null
-                ? NotFound(new { message = "Event not found." })
-                : Ok(eventItem);
+            if (e == null)
+                return NotFound(new { message = "Event not found." });
+
+            var dto = new EventDTO
+            {
+                EventId = e.EventId,
+                EventName = e.EventName,
+                Description = e.Description,
+                EventDate = e.EventDate,
+                EventTime = e.EventTime.ToString("HH:mm:ss"),
+                Location = e.Location,
+                EnrollmentCount = e.Enrollments?.Count ?? 0,
+                ImageUrl = e.ImageUrl,
+                CoachName = e.Coach?.Name,
+                CoachPhotoUrl = e.Coach?.PhotoUrl
+            };
+
+            return Ok(dto);
         }
+
 
         // PUT: api/events/5
         [HttpPut("{id}")]
@@ -86,6 +97,14 @@ namespace RunClubAPI.Controllers
 
             eventToUpdate.EventTime = parsedTime;
             eventToUpdate.Location = updatedEvent.Location;
+            eventToUpdate.ImageUrl = updatedEvent.ImageUrl;
+
+            // Optional: If CoachId is passed, update the coach
+            var coach = await _context.Coaches.FirstOrDefaultAsync(c => c.Name == updatedEvent.CoachName);
+            if (coach != null)
+            {
+                eventToUpdate.CoachId = coach.Id;
+            }
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -101,30 +120,23 @@ namespace RunClubAPI.Controllers
             if (!TimeOnly.TryParse(newEventDTO.EventTime, out var parsedTime))
                 return BadRequest("Invalid time format. Expected HH:mm:ss.");
 
+            var coach = await _context.Coaches.FirstOrDefaultAsync(c => c.Name == newEventDTO.CoachName);
+
             var newEvent = new Event
             {
                 EventName = newEventDTO.EventName,
                 Description = newEventDTO.Description,
                 EventDate = newEventDTO.EventDate,
                 EventTime = parsedTime,
-                Location = newEventDTO.Location
+                Location = newEventDTO.Location,
+                ImageUrl = newEventDTO.ImageUrl,
+                CoachId = coach?.Id
             };
 
             _context.Events.Add(newEvent);
             await _context.SaveChangesAsync();
 
-            var createdDto = new EventDTO
-            {
-                EventId = newEvent.EventId,
-                EventName = newEvent.EventName,
-                Description = newEvent.Description,
-                EventDate = newEvent.EventDate,
-                EventTime = newEvent.EventTime.ToString("HH:mm:ss"),
-                Location = newEvent.Location,
-                EnrollmentCount = 0
-            };
-
-            return CreatedAtAction(nameof(GetEvent), new { id = newEvent.EventId }, createdDto);
+            return CreatedAtAction(nameof(GetEvent), new { id = newEvent.EventId }, new EventDTO(newEvent));
         }
 
         // DELETE: api/events/5

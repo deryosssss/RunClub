@@ -225,6 +225,9 @@ namespace RunClubAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("CoachId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -239,11 +242,16 @@ namespace RunClubAPI.Migrations
                     b.Property<TimeOnly>("EventTime")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("EventId");
+
+                    b.HasIndex("CoachId");
 
                     b.ToTable("Events");
                 });
@@ -427,6 +435,15 @@ namespace RunClubAPI.Migrations
                     b.Navigation("Event");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RunClubAPI.Models.Event", b =>
+                {
+                    b.HasOne("Coach", "Coach")
+                        .WithMany()
+                        .HasForeignKey("CoachId");
+
+                    b.Navigation("Coach");
                 });
 
             modelBuilder.Entity("RunClubAPI.Models.ProgressRecord", b =>

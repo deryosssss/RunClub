@@ -1,31 +1,46 @@
 using RunClubAPI.Models;
 
-namespace RunClubAPI.DTOs
+public class EventDTO
 {
-    public class EventDTO
+    public int EventId { get; set; }
+    public string EventName { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+    public DateOnly EventDate { get; set; }
+    public string EventTime { get; set; } = string.Empty;
+    public string Location { get; set; } = string.Empty;
+    public int EnrollmentCount { get; set; }
+    public string? ImageUrl { get; set; }
+
+    // Coach fields (projected from navigation)
+    public string? CoachName { get; set; }
+    public string? CoachPhotoUrl { get; set; }
+    public string? CoachBio { get; set; }
+    public double? CoachRating { get; set; }
+
+    public EventDTO() { }
+
+    public EventDTO(Event e)
     {
-        public int EventId { get; set; }
-        public string EventName { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public DateOnly EventDate { get; set; }
-        public string EventTime { get; set; } = string.Empty;
-        public string Location { get; set; } = string.Empty;
-        public int EnrollmentCount { get; set; }
+        EventId = e.EventId;
+        EventName = e.EventName;
+        Description = e.Description;
+        EventDate = e.EventDate;
+        EventTime = e.EventTime.ToString("HH:mm:ss");
+        Location = e.Location;
+        EnrollmentCount = e.Enrollments?.Count ?? 0;
+        ImageUrl = e.ImageUrl;
 
-        public EventDTO() { }
-
-        public EventDTO(Event e)
-        {
-            EventId = e.EventId;
-            EventName = e.EventName;
-            Description = e.Description;
-            EventDate = e.EventDate;
-            EventTime = e.EventTime.ToString("HH:mm:ss");
-            Location = e.Location;
-            EnrollmentCount = e.Enrollments?.Count ?? 0;
-        }
+        // Safely extract coach info
+        CoachName = e.Coach?.Name;
+        CoachPhotoUrl = e.Coach?.PhotoUrl;
+        CoachBio = e.Coach?.Bio;
+        CoachRating = e.Coach?.Rating;
     }
 }
+
+
+
+
 
 
 /* 
