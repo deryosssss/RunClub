@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
+using RunClubAPI.Data;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace RunClubAPI.Controllers
 {
@@ -11,10 +13,12 @@ namespace RunClubAPI.Controllers
     public class EnrollmentsController : ControllerBase
     {
         private readonly IEnrollmentService _enrollmentService;
+        private readonly RunClubContext _context;
 
-        public EnrollmentsController(IEnrollmentService enrollmentService)
+        public EnrollmentsController(IEnrollmentService enrollmentService, RunClubContext context)
         {
             _enrollmentService = enrollmentService;
+            _context = context;
         }
 
         [HttpGet]
@@ -67,16 +71,15 @@ namespace RunClubAPI.Controllers
         }
 
         [Authorize]
-        [HttpPut("status/{id}")]
-        public async Task<IActionResult> UpdateEnrollmentStatus(int id, [FromBody] bool isCompleted)
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] EnrollmentStatusUpdateDto dto)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            var enrollment = await _context.Enrollments.FindAsync(id);
+            if (enrollment == null)
+                return NotFound(new { message = "Enrollment not found" });
 
-            var updated = await _enrollmentService.UpdateCompletionStatusAsync(id, userId, isCompleted);
-            if (!updated)
-                return NotFound("Enrollment not found or not authorized.");
+            enrollment.IsCompleted = dto.IsCompleted;
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -85,11 +88,13 @@ namespace RunClubAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEnrollment(int id)
         {
-            var enrollment = await _enrollmentService.GetEnrollmentByIdAsync(id);
+            var enrollment = await _context.Enrollments.FindAsync(id);
             if (enrollment == null)
-                return NotFound($"Enrollment with ID {id} not found.");
+                return NotFound();
 
-            await _enrollmentService.DeleteEnrollmentAsync(id);
+            _context.Enrollments.Remove(enrollment);
+            await _context.SaveChangesAsync();
+
             return NoContent();
         }
 
@@ -106,7 +111,6 @@ namespace RunClubAPI.Controllers
         }
     }
 }
-
 /* 
 "This controller manages enrollments using a service layer, which ensures a clean separation of concerns."
 "We use HTTP status codes effectively to provide clear responses to clients."

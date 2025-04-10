@@ -1,4 +1,4 @@
-// ✅ Updated AppContext.jsx
+// src/context/AppContext.jsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 
@@ -11,12 +11,17 @@ export const AppProvider = ({ children }) => {
   const login = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
 
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       const res = await api.get('/account/me');
       setUser(res.data);
     } catch (err) {
+      console.error('❌ Failed to load user info:', err);
       logout();
     } finally {
       setLoading(false);
@@ -26,14 +31,16 @@ export const AppProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
     delete api.defaults.headers.common['Authorization'];
   };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) login();
-    else setLoading(false);
+    if (token) {
+      login();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   return (

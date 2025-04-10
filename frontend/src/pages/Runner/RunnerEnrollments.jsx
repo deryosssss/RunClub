@@ -1,8 +1,7 @@
-// Updated EnrollmentsPage.jsx
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import { useApp } from '../../context/AppContext'
-import { Spinner, Form } from 'react-bootstrap'
+import { Spinner, Form, Button } from 'react-bootstrap'
 
 const EnrollmentsPage = () => {
   const { user, loading: userLoading } = useApp()
@@ -38,6 +37,20 @@ const EnrollmentsPage = () => {
     } catch (err) {
       console.error('❌ Failed to update status:', err)
       alert('⚠️ Could not update status. Try again later.')
+    }
+  }
+
+  const handleDeleteEnrollment = async (enrollmentId) => {
+    const confirm = window.confirm('🗑️ Are you sure you want to delete this enrollment?')
+    if (!confirm) return
+
+    try {
+      await api.delete(`/enrollments/${enrollmentId}`)
+      setEnrollments(prev => prev.filter(e => e.enrollmentId !== enrollmentId))
+      alert('✅ Enrollment deleted.')
+    } catch (err) {
+      console.error('❌ Failed to delete enrollment:', err)
+      alert('⚠️ Could not delete enrollment.')
     }
   }
 
@@ -90,6 +103,7 @@ const EnrollmentsPage = () => {
                 <h5>📅 Event ID: {e.eventId}</h5>
                 <p className="mb-1">Enrollment Date: <strong>{e.enrollmentDate}</strong></p>
                 <p className="mb-2">Status: {e.isCompleted ? '✅ Completed' : '🕒 Ongoing'}</p>
+
                 <Form.Check
                   type="switch"
                   id={`status-${e.enrollmentId}`}
@@ -97,6 +111,15 @@ const EnrollmentsPage = () => {
                   checked={e.isCompleted}
                   onChange={() => handleStatusChange(e.enrollmentId, !e.isCompleted)}
                 />
+
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => handleDeleteEnrollment(e.enrollmentId)}
+                >
+                  🗑️ Delete
+                </Button>
               </div>
             </div>
           ))}
@@ -107,4 +130,3 @@ const EnrollmentsPage = () => {
 }
 
 export default EnrollmentsPage
-

@@ -8,7 +8,10 @@ namespace RunClubAPI.DTOs
         public int? Age { get; set; }
         public string? Location { get; set; }
         public string? RoleId { get; set; } // ✅ bring this back
-        public string Role { get; set; }  = "Runner";// ✅ Flat role string for frontend
+        public string Role { get; set; } = "Runner";// ✅ Flat role string for frontend
+
+        public int EnrollmentsCount { get; set; }
+        public int CompletedCount { get; set; }
     }
 }
 

@@ -34,7 +34,6 @@ namespace RunClubAPI.Controllers
             _userManager = userManager;
         }
 
-        // POST: api/account/register
         [HttpPost("register")]
         [ProducesResponseType(typeof(UserDTO), 201)]
         [ProducesResponseType(400)]
@@ -63,28 +62,34 @@ namespace RunClubAPI.Controllers
             return CreatedAtAction(nameof(GetProfile), new { id = createdUser.UserId }, createdUser);
         }
 
-        // GET: api/account/me
         [Authorize]
         [HttpGet("me")]
-        [ProducesResponseType(typeof(UserDTO), 200)]
-        [ProducesResponseType(404)]
         public async Task<ActionResult<UserDTO>> GetProfile()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
                 return BadRequest(new { message = "Invalid token or user ID missing" });
 
-            var user = await _userService.GetUserByIdAsync(userId);
-            if (user == null)
-            {
-                _logger.LogWarning("User with ID {UserId} not found", userId);
-                return NotFound(new { message = $"User with ID {userId} not found." });
-            }
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return NotFound();
 
-            return Ok(user);
+            var enrollments = await _context.Enrollments
+                .Where(e => e.UserId == userId)
+                .ToListAsync();
+
+            return Ok(new UserDTO
+            {
+                UserId = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Runner",
+                Location = user.Location,
+                Age = user.Age,
+                EnrollmentsCount = enrollments.Count,
+                CompletedCount = enrollments.Count(e => e.IsCompleted)
+            });
         }
 
-        // GET: api/account/stats/{userId}
         [HttpGet("stats/{userId}")]
         [ProducesResponseType(typeof(AccountDto), 200)]
         [ProducesResponseType(404)]
@@ -100,20 +105,17 @@ namespace RunClubAPI.Controllers
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return NotFound(new { message = "User not found." });
 
-            var stats = new AccountDto
+            return Ok(new AccountDto
             {
                 Id = int.TryParse(userId, out var uid) ? uid : 0,
                 Name = user.Name,
                 Email = user.Email,
                 Age = user.Age,
                 TotalEnrollments = enrollments.Count,
-                CompletedEvents = enrollments.Count(e => e.IsCompleted) // Ensure Enrollment has a 'Completed' property
-            };
-
-            return Ok(stats);
+                CompletedEvents = enrollments.Count(e => e.IsCompleted)
+            });
         }
 
-        // PUT: api/account/profile
         [Authorize]
         [HttpPut("profile")]
         [ProducesResponseType(204)]
@@ -123,11 +125,10 @@ namespace RunClubAPI.Controllers
             var user = await _context.Users.FindAsync(updated.UserId);
             if (user == null) return NotFound();
 
-            user.Name = updated.Name;
-            user.Email = updated.Email;
-            user.Location = updated.Location;
-            user.Age = user.Age;
-
+            user.Name = updated.Name ?? user.Name;
+            user.Email = updated.Email ?? user.Email;
+            user.Location = updated.Location ?? user.Location;
+            user.Age = updated.Age ?? user.Age;
 
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
@@ -135,7 +136,6 @@ namespace RunClubAPI.Controllers
             return NoContent();
         }
 
-        // PUT: api/account/password
         [Authorize]
         [HttpPut("password")]
         [ProducesResponseType(204)]
@@ -158,9 +158,6 @@ namespace RunClubAPI.Controllers
         }
     }
 }
-
-
-
 
 /*📝 Summary of Key Security Features
 ✔ Prevents Role Manipulation – Users cannot assign themselves admin privileges.

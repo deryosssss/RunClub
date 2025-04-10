@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using RunClubAPI.DTOs;
 using RunClubAPI.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace RunClubAPI.Controllers
@@ -21,7 +23,8 @@ namespace RunClubAPI.Controllers
             _logger = logger;
         }
 
-        /// <summary>Get all progress records</summary>
+        /// <summary>Get all progress records (admin use)</summary>
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<ProgressRecordDTO>), 200)]
         [ProducesResponseType(404)]
@@ -40,7 +43,22 @@ namespace RunClubAPI.Controllers
             return Ok(records);
         }
 
-        /// <summary>Get progress record by ID</summary>
+        /// <summary>Get current user's progress records</summary>
+        [Authorize(Roles = "Runner")]
+        [HttpGet("my")]
+        [ProducesResponseType(typeof(IEnumerable<ProgressRecordDTO>), 200)]
+        public async Task<IActionResult> GetMyProgressRecords()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized("User ID missing in token.");
+
+            var allRecords = await _progressRecordService.GetAllProgressRecordsAsync();
+            var myRecords = allRecords.Where(r => r.UserId == userId).ToList();
+
+            return Ok(myRecords);
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ProgressRecordDTO), 200)]
         [ProducesResponseType(404)]
@@ -58,13 +76,19 @@ namespace RunClubAPI.Controllers
             return Ok(record);
         }
 
-        /// <summary>Create a new progress record</summary>
+        [Authorize]
         [HttpPost]
         [ProducesResponseType(typeof(ProgressRecordDTO), 201)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> PostProgressRecord([FromBody] ProgressRecordDTO dto)
         {
-            _logger.LogInformation("Attempting to add a new progress record...");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User ID not found in token");
+
+            dto.UserId = userId;
+
+            _logger.LogInformation("Adding new progress record for user {UserId}", userId);
 
             if (string.IsNullOrWhiteSpace(dto.ProgressDate) || string.IsNullOrWhiteSpace(dto.ProgressTime))
                 return BadRequest(new { message = "ProgressDate and ProgressTime are required." });
@@ -72,12 +96,12 @@ namespace RunClubAPI.Controllers
             var created = await _progressRecordService.AddProgressRecordAsync(dto);
 
             if (created == null)
-                return BadRequest(new { message = "Invalid User ID. Cannot add progress record." });
+                return BadRequest(new { message = "Invalid data. Could not add progress record." });
 
             return CreatedAtAction(nameof(GetProgressRecord), new { id = created.ProgressRecordId }, created);
         }
 
-        /// <summary>Update a progress record</summary>
+        [Authorize]
         [HttpPut("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
@@ -99,7 +123,7 @@ namespace RunClubAPI.Controllers
                 : NotFound($"Progress record with ID {id} not found.");
         }
 
-        /// <summary>Delete a progress record</summary>
+        [Authorize]
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
@@ -115,7 +139,6 @@ namespace RunClubAPI.Controllers
         }
     }
 }
-
 
 /* 
 ✔ DTO Usage – Separates internal models from API responses (ProgressRecordDTO).
