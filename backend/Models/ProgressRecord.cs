@@ -1,16 +1,21 @@
 namespace RunClubAPI.Models
 {
-    public class ProgressRecord
-    {
-        public int ProgressRecordId { get; set; }
-        public string UserId { get; set; } = string.Empty;
-        public DateOnly ProgressDate { get; set; }
-        public TimeOnly ProgressTime { get; set; }
-        public double DistanceCovered { get; set; }
-        public TimeSpan TimeTaken { get; set; }
+public class ProgressRecord
+{
+    public int ProgressRecordId { get; set; }
+    public string UserId { get; set; } = string.Empty;
+    public DateOnly ProgressDate { get; set; }
+    public TimeOnly ProgressTime { get; set; }
+    public double DistanceCovered { get; set; }
+    public TimeSpan TimeTaken { get; set; }
 
-        public User? User { get; set; }
-    }
+    public string? CoachName { get; set; }  // ✅ Add this line
+
+    public User? User { get; set; }
+}
+
+
+
 }
 
 

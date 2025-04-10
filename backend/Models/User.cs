@@ -13,6 +13,8 @@ namespace RunClubAPI.Models
         // Navigation properties
         public ICollection<Enrollment> Enrollments { get; set; } = new HashSet<Enrollment>();
         public ICollection<ProgressRecord> ProgressRecords { get; set; } = new HashSet<ProgressRecord>();
+        public ICollection<ProgressFeedbackRequest> FeedbackRequests { get; set; } = new List<ProgressFeedbackRequest>();
+
 
         // Token-based auth
         public string RefreshToken { get; set; } = string.Empty;

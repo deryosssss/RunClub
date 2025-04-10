@@ -58,7 +58,7 @@ function App() {
           <Route path="/runner/enrollments/my" element={<EnrollmentsPage />} />
           <Route path="/runner/events" element={<SearchEventsPage />} />
           <Route path="/runner/events/:eventId" element={< EventDetailPage/>} />
-          <Route path="/runner/progress" element={<ProgressPage />} />
+          <Route path="/runner/progress/my" element={<ProgressPage />} />
           <Route path="/runner/account" element={<AccountPage />} />
         </Route>
 

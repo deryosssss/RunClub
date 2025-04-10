@@ -256,11 +256,38 @@ namespace RunClubAPI.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("RunClubAPI.Models.ProgressFeedbackRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProgressFeedbackRequests");
+                });
+
             modelBuilder.Entity("RunClubAPI.Models.ProgressRecord", b =>
                 {
                     b.Property<int>("ProgressRecordId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("CoachName")
+                        .HasColumnType("TEXT");
 
                     b.Property<double>("DistanceCovered")
                         .HasColumnType("REAL");
@@ -446,6 +473,17 @@ namespace RunClubAPI.Migrations
                     b.Navigation("Coach");
                 });
 
+            modelBuilder.Entity("RunClubAPI.Models.ProgressFeedbackRequest", b =>
+                {
+                    b.HasOne("RunClubAPI.Models.User", "User")
+                        .WithMany("FeedbackRequests")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("RunClubAPI.Models.ProgressRecord", b =>
                 {
                     b.HasOne("RunClubAPI.Models.User", "User")
@@ -465,6 +503,8 @@ namespace RunClubAPI.Migrations
             modelBuilder.Entity("RunClubAPI.Models.User", b =>
                 {
                     b.Navigation("Enrollments");
+
+                    b.Navigation("FeedbackRequests");
 
                     b.Navigation("ProgressRecords");
                 });

@@ -29,8 +29,10 @@ namespace RunClubAPI.Services
                 ProgressDate = pr.ProgressDate.ToString("yyyy-MM-dd"),
                 ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),
                 DistanceCovered = pr.DistanceCovered,
-                TimeTaken = pr.TimeTaken.ToString("c")
+                TimeTaken = pr.TimeTaken.ToString("c"),
+                CoachName = pr.CoachName // 👈 this line is missing
             });
+
         }
 
         public async Task<ProgressRecordDTO?> GetProgressRecordByIdAsync(int id)
@@ -101,8 +103,10 @@ namespace RunClubAPI.Services
             ProgressDate = pr.ProgressDate.ToString("yyyy-MM-dd"),
             ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),
             DistanceCovered = pr.DistanceCovered,
-            TimeTaken = pr.TimeTaken.ToString("c")
+            TimeTaken = pr.TimeTaken.ToString("c"),
+            CoachName = pr.CoachName  // ✅ directly from string property
         };
+
 
         private static bool TryParseDto(ProgressRecordDTO dto, out ProgressRecord entity)
         {
@@ -120,13 +124,15 @@ namespace RunClubAPI.Services
             entity.ProgressTime = time;
             entity.DistanceCovered = dto.DistanceCovered;
             entity.TimeTaken = timeTaken;
+            entity.CoachName = dto.CoachName; // ✅ ADD THIS LINE
 
             return true;
         }
+
     }
 }
 
 
 
 
- /* The ProgressRecordService is a key component of the RunClubAPI, responsible for managing users' progress records. It implements IProgressRecordService and follows asynchronous programming with Entity Framework Core (EF Core) to optimize database interactions. It provides CRUD operations, ensuring that data integrity and validation are maintained before inserting or updating records. The use of logging (ILogger) allows efficient debugging and monitoring, while error handling prevents crashes and improves API stability. Additionally, data transformation between entities and DTOs ensures a clean API response structure. By implementing best practices like AsNoTracking(), validation before operations, and exception handling, this service ensures that RunClubAPI remains scalable, efficient, and maintainable for tracking users' progress effectively. */ 
+/* The ProgressRecordService is a key component of the RunClubAPI, responsible for managing users' progress records. It implements IProgressRecordService and follows asynchronous programming with Entity Framework Core (EF Core) to optimize database interactions. It provides CRUD operations, ensuring that data integrity and validation are maintained before inserting or updating records. The use of logging (ILogger) allows efficient debugging and monitoring, while error handling prevents crashes and improves API stability. Additionally, data transformation between entities and DTOs ensures a clean API response structure. By implementing best practices like AsNoTracking(), validation before operations, and exception handling, this service ensures that RunClubAPI remains scalable, efficient, and maintainable for tracking users' progress effectively. */

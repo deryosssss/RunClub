@@ -16,6 +16,8 @@ namespace RunClubAPI.Data
         public DbSet<Enrollment> Enrollments { get; set; }
         public DbSet<ProgressRecord> ProgressRecords { get; set; }
         public DbSet<Coach> Coaches { get; set; }
+        public DbSet<ProgressFeedbackRequest> ProgressFeedbackRequests { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -25,6 +27,12 @@ namespace RunClubAPI.Data
                 new IdentityRole { Id = "2", Name = "Coach", NormalizedName = "COACH" },
                 new IdentityRole { Id = "3", Name = "Runner", NormalizedName = "RUNNER" }
             );
+
+            // ✅ Configure ProgressFeedbackRequest relationship
+            modelBuilder.Entity<ProgressFeedbackRequest>()
+                .HasOne(p => p.User)
+                .WithMany(u => u.FeedbackRequests)
+                .HasForeignKey(p => p.UserId);
         }
     }
 }

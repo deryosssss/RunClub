@@ -23,30 +23,20 @@ namespace RunClubAPI.Controllers
             _logger = logger;
         }
 
-        /// <summary>Get all progress records (admin use)</summary>
+        // ✅ Admin: View all
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<ProgressRecordDTO>), 200)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> GetProgressRecords()
         {
-            _logger.LogInformation("Fetching all progress records...");
-
             var records = await _progressRecordService.GetAllProgressRecordsAsync();
-
             if (records == null || !records.Any())
-            {
-                _logger.LogWarning("No progress records found.");
                 return NotFound("No progress records available.");
-            }
-
             return Ok(records);
         }
 
-        /// <summary>Get current user's progress records</summary>
+        // ✅ Runner: View my own
         [Authorize(Roles = "Runner")]
         [HttpGet("my")]
-        [ProducesResponseType(typeof(IEnumerable<ProgressRecordDTO>), 200)]
         public async Task<IActionResult> GetMyProgressRecords()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -59,83 +49,95 @@ namespace RunClubAPI.Controllers
             return Ok(myRecords);
         }
 
+        // ✅ Get by ID
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(ProgressRecordDTO), 200)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> GetProgressRecord(int id)
         {
-            _logger.LogInformation("Fetching progress record with ID {Id}", id);
-
             var record = await _progressRecordService.GetProgressRecordByIdAsync(id);
-            if (record == null)
-            {
-                _logger.LogWarning("Progress record with ID {Id} not found.", id);
-                return NotFound($"Progress record with ID {id} not found.");
-            }
-
-            return Ok(record);
+            return record == null
+                ? NotFound($"Progress record with ID {id} not found.")
+                : Ok(record);
         }
 
-        [Authorize]
+        // ✅ Coach OR Runner: Create progress
+        [Authorize(Roles = "Coach,Runner")]
         [HttpPost]
-        [ProducesResponseType(typeof(ProgressRecordDTO), 201)]
-        [ProducesResponseType(400)]
         public async Task<IActionResult> PostProgressRecord([FromBody] ProgressRecordDTO dto)
         {
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized("User ID not found in token");
 
-            dto.UserId = userId;
-
-            _logger.LogInformation("Adding new progress record for user {UserId}", userId);
+            if (role == "Coach")
+            {
+                if (string.IsNullOrEmpty(dto.UserId))
+                    return BadRequest("Coach must provide a UserId.");
+            }
+            else
+            {
+                dto.UserId = userId!;
+            }
 
             if (string.IsNullOrWhiteSpace(dto.ProgressDate) || string.IsNullOrWhiteSpace(dto.ProgressTime))
                 return BadRequest(new { message = "ProgressDate and ProgressTime are required." });
 
             var created = await _progressRecordService.AddProgressRecordAsync(dto);
-
-            if (created == null)
-                return BadRequest(new { message = "Invalid data. Could not add progress record." });
-
-            return CreatedAtAction(nameof(GetProgressRecord), new { id = created.ProgressRecordId }, created);
+            return created == null
+                ? BadRequest("Could not create progress record.")
+                : CreatedAtAction(nameof(GetProgressRecord), new { id = created.ProgressRecordId }, created);
         }
 
+        // ✅ PUT (edit)
         [Authorize]
         [HttpPut("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> PutProgressRecord(int id, [FromBody] ProgressRecordDTO dto)
         {
             if (id != dto.ProgressRecordId)
                 return BadRequest("ProgressRecord ID mismatch.");
 
-            _logger.LogInformation("Updating progress record with ID {Id}", id);
-
             if (string.IsNullOrWhiteSpace(dto.ProgressDate) || string.IsNullOrWhiteSpace(dto.ProgressTime))
                 return BadRequest(new { message = "ProgressDate and ProgressTime are required." });
 
             var updated = await _progressRecordService.UpdateProgressRecordAsync(id, dto);
-
-            return updated
-                ? NoContent()
-                : NotFound($"Progress record with ID {id} not found.");
+            return updated ? NoContent() : NotFound($"Progress record with ID {id} not found.");
         }
 
+        // ✅ DELETE
         [Authorize]
         [HttpDelete("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteProgressRecord(int id)
         {
-            _logger.LogInformation("Deleting progress record with ID {Id}", id);
-
             var deleted = await _progressRecordService.DeleteProgressRecordAsync(id);
+            return deleted ? NoContent() : NotFound($"Progress record with ID {id} not found.");
+        }
 
-            return deleted
-                ? NoContent()
-                : NotFound($"Progress record with ID {id} not found.");
+        // ✅ Runner: Request progress feedback
+        [Authorize]
+        [HttpPost("request")]
+        public IActionResult RequestProgressFeedback()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User not identified");
+
+            _logger.LogInformation("Runner {UserId} requested progress feedback", userId);
+
+            return Ok(new
+            {
+                message = "✅ Feedback request sent successfully",
+                userId,
+                requestedAt = DateTime.UtcNow,
+                status = "Pending"
+            });
+        }
+
+        // ✅ Coach: Get runner's progress
+        [Authorize(Roles = "Coach")]
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetProgressForUser(string userId)
+        {
+            var all = await _progressRecordService.GetAllProgressRecordsAsync();
+            var runnerProgress = all.Where(p => p.UserId == userId);
+            return Ok(runnerProgress);
         }
     }
 }
