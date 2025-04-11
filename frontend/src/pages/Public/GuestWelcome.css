@@ -5,16 +5,17 @@
     overflow: hidden;
   }
   
-  .hero-video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    object-fit: cover; /* 👈 Keeps video proportionally cropped */
-    z-index: 0;
-    filter: brightness(0.5); /* Optional: darken background for text contrast */
-  }
+/* Ensure video always fits */
+.hero-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  z-index: 0;
+  filter: brightness(0.5);
+}
   
   .hero-content {
     position: absolute;

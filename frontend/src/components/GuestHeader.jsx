@@ -1,25 +1,35 @@
-// src/components/GuestHeader.jsx
-
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import './GuestHeader.css'
 
 const GuestHeader = () => {
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
     <header className="guest-header">
-      {/* Momentum text logo */}
-      <NavLink to="/guest" className="logo-text">
-        MOMENTUM
-      </NavLink>
+      <div className="guest-header-top">
+        <NavLink to="/guest" className="logo-text">Momentum</NavLink>
 
-      <nav className="guest-nav">
-        <NavLink to="/our-story">Our Story</NavLink>
-        <NavLink to="/gallery">Gallery</NavLink>
-        <NavLink to="/help">FAQ</NavLink>
-        <NavLink to="/coaches">Coaches</NavLink>
-        <NavLink to="/login" className="login-btn">Login</NavLink>
+        <button
+          className="mobile-menu-btn"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          ☰
+        </button>
+      </div>
+
+      <nav className={`guest-nav ${isOpen ? 'open' : ''}`}>
+        <NavLink to="/our-story" onClick={() => setIsOpen(false)}>Our Story</NavLink>
+        <NavLink to="/gallery" onClick={() => setIsOpen(false)}>Gallery</NavLink>
+        <NavLink to="/help" onClick={() => setIsOpen(false)}>FAQ</NavLink>
+        <NavLink to="/coaches" onClick={() => setIsOpen(false)}>Coaches</NavLink>
+        <NavLink to="/login" onClick={() => setIsOpen(false)} className="login-btn">
+          Login
+        </NavLink>
       </nav>
     </header>
   )
 }
 
 export default GuestHeader
+
