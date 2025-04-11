@@ -114,4 +114,15 @@
   .upload-button:hover {
     background-color: #e0e0e0;
   }
+  .input-field {
+    border: 1px solid #ddd;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .input-field:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
   

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5187/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL, // ✅ Uses .env value
   withCredentials: false, // make sure this is false unless you're using cookies
 });
 

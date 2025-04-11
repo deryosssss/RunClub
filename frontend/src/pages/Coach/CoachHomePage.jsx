@@ -41,7 +41,7 @@ const CoachHomePage = () => {
                         <ul className="record-list">
                             {recentRecords.map((record) => (
                                 <li key={record.progressRecordId}>
-                                    🏃 {record.distanceCovered} km on {record.progressDate}
+                                     {record.distanceCovered} km on {record.progressDate}
                                 </li>
                             ))}
                         </ul>

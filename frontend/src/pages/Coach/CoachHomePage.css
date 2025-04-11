@@ -1,53 +1,66 @@
 .coach-home {
-    padding: 2rem;
-    max-width: 900px;
-    margin: auto;
-  }
-  
-  .page-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-  
-  .text-muted {
-    color: #6b7280;
-    margin-bottom: 1.5rem;
-  }
-  
-  .coach-home-grid {
-    display: grid;
-    gap: 1.5rem;
-    grid-template-columns: 1fr 2fr;
-  }
-  
-  .dashboard-card {
-    background: white;
-    padding: 1.25rem 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    border-left: 4px solid #4f46e5;
-  }
-  
-  .dashboard-card h4 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    color: #374151;
-  }
-  
-  .big-number {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #4f46e5;
-  }
-  
-  .record-list {
-    padding-left: 1rem;
-    font-size: 0.95rem;
-    color: #1f2937;
-  }
-  
-  .record-list li {
-    margin-bottom: 0.4rem;
-  }
-  
+  padding: 2rem;
+  max-width: 960px;
+  margin: auto;
+}
+
+.page-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.text-muted {
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+.coach-home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+.dashboard-card {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  border-left: 6px solid #6366f1;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-card h4 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: #4b5563;
+}
+
+.big-number {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: #4f46e5;
+}
+
+.record-list {
+  padding-left: 1rem;
+  font-size: 0.95rem;
+  color: #374151;
+  list-style: none;
+}
+
+.record-list li::before {
+  content: "🏃‍♂️ ";
+  margin-right: 6px;
+  font-size: 1rem;
+}
+
+.record-list li {
+  margin-bottom: 0.5rem;
+}
