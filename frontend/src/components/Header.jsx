@@ -13,7 +13,8 @@ const Header = () => {
   }
 
 
-  if (!user || !user.role) return null
+  if (!user || user.role.toLowerCase() !== 'runner') return null
+
 
   const role = user.role.toLowerCase()
   const isRunner = role === 'runner'
@@ -41,7 +42,7 @@ const Header = () => {
             { to: '/runner/events', label: 'Events' },
             { to: '/runner/enrollments/my', label: 'Enrollments' },
             { to: '/runner/progress/my', label: 'Progress' },
-            { to: '/runner/account', label: 'Account' },
+            { to: '/runner/account/me', label: 'Account' },
           ].map(({ to, label }) => (
             <NavLink
               key={to}

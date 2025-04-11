@@ -1,0 +1,53 @@
+.coach-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background-color: white;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .logo-text {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #111827;
+    text-decoration: none;
+    font-family: 'Segoe UI', 'Inter', sans-serif;
+  }
+  
+  .coach-nav {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  
+  .coach-nav a {
+    text-decoration: none;
+    font-weight: 500;
+    color: #374151;
+    transition: 0.2s ease;
+  }
+  
+  .coach-nav a:hover {
+    color: #4f46e5;
+  }
+  
+  .logout-btn {
+    background: none;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: 0.2s;
+  }
+  
+  .logout-btn:hover {
+    background-color: #ef4444;
+    color: white;
+  }
+  

@@ -4,6 +4,7 @@ using RunClubAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RunClubAPI.Data;
+using System.Security.Claims;
 
 namespace RunClubAPI.Services
 {
@@ -11,11 +12,16 @@ namespace RunClubAPI.Services
     {
         private readonly RunClubContext _context;
         private readonly ILogger<ProgressRecordService> _logger;
+        private readonly IHttpContextAccessor _httpContext;
 
-        public ProgressRecordService(RunClubContext context, ILogger<ProgressRecordService> logger)
+        public ProgressRecordService(
+            RunClubContext context,
+            ILogger<ProgressRecordService> logger,
+            IHttpContextAccessor httpContext)
         {
             _context = context;
             _logger = logger;
+            _httpContext = httpContext;
         }
 
         public async Task<IEnumerable<ProgressRecordDTO>> GetAllProgressRecordsAsync()
@@ -30,9 +36,9 @@ namespace RunClubAPI.Services
                 ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),
                 DistanceCovered = pr.DistanceCovered,
                 TimeTaken = pr.TimeTaken.ToString("c"),
-                CoachName = pr.CoachName // 👈 this line is missing
+                CoachName = pr.CoachName,
+                CoachId = pr.CoachId
             });
-
         }
 
         public async Task<ProgressRecordDTO?> GetProgressRecordByIdAsync(int id)
@@ -53,6 +59,17 @@ namespace RunClubAPI.Services
             {
                 _logger.LogWarning("❌ Failed to parse date/time for progress record.");
                 return null;
+            }
+
+            // ✅ Set coach info from logged-in user
+            var userId = _httpContext.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = _httpContext.HttpContext?.User.FindFirstValue(ClaimTypes.Role);
+            var name = _httpContext.HttpContext?.User.FindFirstValue(ClaimTypes.Name);
+
+            if (role == "Coach")
+            {
+                entity.CoachId = userId;
+                entity.CoachName = name ?? "Coach";
             }
 
             _context.ProgressRecords.Add(entity);
@@ -81,6 +98,7 @@ namespace RunClubAPI.Services
             pr.ProgressTime = parsed.ProgressTime;
             pr.DistanceCovered = parsed.DistanceCovered;
             pr.TimeTaken = parsed.TimeTaken;
+            pr.CoachName = parsed.CoachName; // Optional
 
             await _context.SaveChangesAsync();
             return true;
@@ -104,9 +122,9 @@ namespace RunClubAPI.Services
             ProgressTime = pr.ProgressTime.ToString("HH:mm:ss"),
             DistanceCovered = pr.DistanceCovered,
             TimeTaken = pr.TimeTaken.ToString("c"),
-            CoachName = pr.CoachName  // ✅ directly from string property
+            CoachName = pr.CoachName,
+            CoachId = pr.CoachId
         };
-
 
         private static bool TryParseDto(ProgressRecordDTO dto, out ProgressRecord entity)
         {
@@ -124,15 +142,12 @@ namespace RunClubAPI.Services
             entity.ProgressTime = time;
             entity.DistanceCovered = dto.DistanceCovered;
             entity.TimeTaken = timeTaken;
-            entity.CoachName = dto.CoachName; // ✅ ADD THIS LINE
+            entity.CoachName = dto.CoachName;
 
             return true;
         }
-
     }
 }
-
-
 
 
 /* The ProgressRecordService is a key component of the RunClubAPI, responsible for managing users' progress records. It implements IProgressRecordService and follows asynchronous programming with Entity Framework Core (EF Core) to optimize database interactions. It provides CRUD operations, ensuring that data integrity and validation are maintained before inserting or updating records. The use of logging (ILogger) allows efficient debugging and monitoring, while error handling prevents crashes and improves API stability. Additionally, data transformation between entities and DTOs ensures a clean API response structure. By implementing best practices like AsNoTracking(), validation before operations, and exception handling, this service ensures that RunClubAPI remains scalable, efficient, and maintainable for tracking users' progress effectively. */

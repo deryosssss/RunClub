@@ -39,23 +39,23 @@ namespace RunClubAPI.Controllers
         [ProducesResponseType(400)]
         public async Task<ActionResult<UserDTO>> Register([FromBody] CreateUserDTO createUserDto)
         {
-            _logger.LogInformation("Registering new user");
+            _logger.LogInformation("➡️ Registering new user: {Email}", createUserDto.Email);
 
             if (string.IsNullOrWhiteSpace(createUserDto.Password))
                 return BadRequest(new { message = "Password is required." });
 
-            var newUser = new UserDTO
+            var userDto = new UserDTO
             {
                 Name = createUserDto.Name,
                 Email = createUserDto.Email,
-                Role = createUserDto.RoleId
+                RoleId = createUserDto.RoleId
             };
 
-            var createdUser = await _userService.CreateUserAsync(newUser, createUserDto.Password);
+            var createdUser = await _userService.CreateUserAsync(userDto, createUserDto.Password);
 
             if (createdUser == null)
             {
-                _logger.LogWarning("User registration failed.");
+                _logger.LogWarning("❌ User registration failed for {Email}", createUserDto.Email);
                 return BadRequest(new { message = "User registration failed." });
             }
 
@@ -67,7 +67,7 @@ namespace RunClubAPI.Controllers
         public async Task<ActionResult<UserDTO>> GetProfile()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
+            if (string.IsNullOrWhiteSpace(userId))
                 return BadRequest(new { message = "Invalid token or user ID missing" });
 
             var user = await _context.Users.FindAsync(userId);
@@ -77,12 +77,14 @@ namespace RunClubAPI.Controllers
                 .Where(e => e.UserId == userId)
                 .ToListAsync();
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             return Ok(new UserDTO
             {
                 UserId = user.Id,
                 Name = user.Name,
                 Email = user.Email,
-                Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Runner",
+                Role = roles.FirstOrDefault() ?? "Runner",
                 Location = user.Location,
                 Age = user.Age,
                 EnrollmentsCount = enrollments.Count,
@@ -95,19 +97,17 @@ namespace RunClubAPI.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetStats(string userId)
         {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound(new { message = "User not found." });
+
             var enrollments = await _context.Enrollments
                 .Where(e => e.UserId == userId)
                 .ToListAsync();
 
-            if (!enrollments.Any())
-                return NotFound(new { message = "No enrollments found for this user." });
-
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null) return NotFound(new { message = "User not found." });
-
             return Ok(new AccountDto
             {
-                Id = int.TryParse(userId, out var uid) ? uid : 0,
+                Id = 0, // optional: parse to int if needed
                 Name = user.Name,
                 Email = user.Email,
                 Age = user.Age,
@@ -156,6 +156,19 @@ namespace RunClubAPI.Controllers
 
             return NoContent();
         }
+        // [Authorize(Roles = "Admin")] // or "Coach", or remove if you want users to delete themselves
+        [HttpDelete("{userId}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            var deleted = await _userService.DeleteUserAsync(userId);
+            if (!deleted)
+                return NotFound(new { message = $"User with ID {userId} not found." });
+
+            return NoContent();
+        }
+
     }
 }
 

@@ -2,6 +2,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout'
 import GuestLayout from './layouts/GuestLayout'
+import CoachLayout from './layouts/CoachLayout'
 import PrivateRoute from './routes/PrivateRoute'
 
 // Auth & Entry
@@ -21,6 +22,7 @@ import AdminEventsPage from './pages/Admin/AdminEventsPage'
 
 // Coach
 import CoachProgressPage from './pages/Coach/CoachProgressPage'
+import CoachHomePage from './pages/Coach/CoachHomePage'
 
 // Runner
 import RunnerHomePage from './pages/Runner/RunnerHomePage'
@@ -55,8 +57,13 @@ function App() {
 
         {/* Coach */}
         <Route element={<PrivateRoute allowedRoles={['coach']} />}>
-          <Route path="/coach/progress" element={<CoachProgressPage />} />
+          <Route element={<CoachLayout />}>
+            <Route path="/coach/home" element={<CoachHomePage />} />
+            <Route path="/coach/progress/my" element={<CoachProgressPage />} />
+            <Route path="/coach/account/me" element={<AccountPage />} />
+          </Route>
         </Route>
+
 
         {/* Runner */}
         <Route element={<PrivateRoute allowedRoles={['runner']} />}>
@@ -65,7 +72,7 @@ function App() {
           <Route path="/runner/events" element={<SearchEventsPage />} />
           <Route path="/runner/events/:eventId" element={<EventDetailPage />} />
           <Route path="/runner/progress/my" element={<ProgressPage />} />
-          <Route path="/runner/account" element={<AccountPage />} />
+          <Route path="/runner/account/me" element={<AccountPage />} />
         </Route>
       </Route>
 

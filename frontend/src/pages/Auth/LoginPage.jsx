@@ -59,7 +59,7 @@ const LoginPage = () => {
             navigate('/admin/events');
             break;
           case 'coach':
-            navigate('/coach/progress');
+            navigate('/coach/home');
             break;
           case 'runner':
             navigate('/runner/home');

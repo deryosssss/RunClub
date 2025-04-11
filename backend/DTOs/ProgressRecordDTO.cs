@@ -1,17 +1,18 @@
 namespace RunClubAPI.DTOs
 {
-    public class ProgressRecordDTO
-    {
-        public int ProgressRecordId { get; set; }
+public class ProgressRecordDTO
+{
+    public int ProgressRecordId { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
-        public string UserId { get; set; } = string.Empty;
-        public string? CoachName { get; set; }       // ✅ Optional for frontend display
+    public string ProgressDate { get; set; } = string.Empty;
+    public string ProgressTime { get; set; } = string.Empty;
+    public double DistanceCovered { get; set; }
+    public string TimeTaken { get; set; } = string.Empty;
 
-        public string ProgressDate { get; set; } = string.Empty;
-        public string ProgressTime { get; set; } = string.Empty;
-        public double DistanceCovered { get; set; }
-        public string TimeTaken { get; set; } = string.Empty;
-    }
+    public string? CoachName { get; set; }
+    public string? CoachId { get; set; } // ✅ Add this
+}
 
 }
 

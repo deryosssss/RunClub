@@ -34,20 +34,29 @@ namespace RunClubAPI.Controllers
             return Ok(records);
         }
 
-        // ✅ Runner: View my own
-        [Authorize(Roles = "Runner")]
+        // ✅ Runner & Coach: View my own records
+        [Authorize(Roles = "Runner,Coach")]
         [HttpGet("my")]
         public async Task<IActionResult> GetMyProgressRecords()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
             if (string.IsNullOrWhiteSpace(userId))
                 return Unauthorized("User ID missing in token.");
 
             var allRecords = await _progressRecordService.GetAllProgressRecordsAsync();
-            var myRecords = allRecords.Where(r => r.UserId == userId).ToList();
+
+            var myRecords = role switch
+            {
+                "Runner" => allRecords.Where(r => r.UserId == userId).ToList(),
+                "Coach" => allRecords.Where(r => r.CoachId == userId).ToList(),
+                _ => new List<ProgressRecordDTO>()
+            };
 
             return Ok(myRecords);
         }
+
 
         // ✅ Get by ID
         [HttpGet("{id}")]

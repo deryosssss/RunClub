@@ -10,6 +10,7 @@ public class ProgressRecord
     public TimeSpan TimeTaken { get; set; }
 
     public string? CoachName { get; set; }  // ✅ Add this line
+    public string? CoachId { get; set; }  // ✅ New field
 
     public User? User { get; set; }
 }

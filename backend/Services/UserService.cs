@@ -16,6 +16,30 @@ namespace RunClubAPI.Services
             _roleManager = roleManager;
         }
 
+        // 🔁 Helper: Get RoleId from Role Name
+        private string? GetRoleIdFromName(string roleName)
+        {
+            return roleName.ToLower() switch
+            {
+                "admin" => "1",
+                "coach" => "2",
+                "runner" => "3",
+                _ => null
+            };
+        }
+
+        // 🔁 Helper: Get Role Name from RoleId
+        private string GetRoleNameFromId(string? roleId)
+        {
+            return roleId switch
+            {
+                "1" => "Admin",
+                "2" => "Coach",
+                "3" => "Runner",
+                _ => "Runner"
+            };
+        }
+
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync(int pageNumber, int pageSize)
         {
             var users = _userManager.Users
@@ -27,7 +51,7 @@ namespace RunClubAPI.Services
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                var roleName = roles.FirstOrDefault() ?? "";
+                var roleName = roles.FirstOrDefault() ?? "Runner";
 
                 userDtos.Add(new UserDTO
                 {
@@ -36,7 +60,8 @@ namespace RunClubAPI.Services
                     Email = user.Email ?? "",
                     Age = user.Age,
                     Location = user.Location,
-                    Role = roleName
+                    Role = roleName,
+                    RoleId = GetRoleIdFromName(roleName)
                 });
             }
 
@@ -49,7 +74,7 @@ namespace RunClubAPI.Services
             if (user == null) return null;
 
             var roles = await _userManager.GetRolesAsync(user);
-            var roleName = roles.FirstOrDefault() ?? "";
+            var roleName = roles.FirstOrDefault() ?? "Runner";
 
             return new UserDTO
             {
@@ -58,7 +83,8 @@ namespace RunClubAPI.Services
                 Email = user.Email ?? "",
                 Age = user.Age,
                 Location = user.Location,
-                Role = roleName
+                Role = roleName,
+                RoleId = GetRoleIdFromName(roleName)
             };
         }
 
@@ -74,11 +100,10 @@ namespace RunClubAPI.Services
             var result = await _userManager.CreateAsync(user, password);
             if (!result.Succeeded) return null;
 
-            // Default to "Runner" role if RoleId is empty or null
-            var roleName = string.IsNullOrEmpty(userDto.Role) ? "Runner" : userDto.Role;
+            var roleName = GetRoleNameFromId(userDto.RoleId);
 
             var role = await _roleManager.FindByNameAsync(roleName);
-            if (role != null && !string.IsNullOrEmpty(role.Name))
+            if (role != null)
             {
                 await _userManager.AddToRoleAsync(user, role.Name);
             }
@@ -112,10 +137,10 @@ namespace RunClubAPI.Services
 
         public async Task<IEnumerable<UserDTO>> GetUsersByRoleAsync(string roleId)
         {
-            var role = await _roleManager.FindByIdAsync(roleId);
-            if (role == null || string.IsNullOrEmpty(role.Name)) return Enumerable.Empty<UserDTO>();
+            var roleName = GetRoleNameFromId(roleId);
+            if (string.IsNullOrEmpty(roleName)) return Enumerable.Empty<UserDTO>();
 
-            var users = await _userManager.GetUsersInRoleAsync(role.Name);
+            var users = await _userManager.GetUsersInRoleAsync(roleName);
             return users.Select(user => new UserDTO
             {
                 UserId = user.Id,
@@ -123,11 +148,13 @@ namespace RunClubAPI.Services
                 Email = user.Email ?? "",
                 Age = user.Age,
                 Location = user.Location,
-                Role = role.Name
+                Role = roleName,
+                RoleId = roleId
             });
         }
     }
 }
+
 
 
 

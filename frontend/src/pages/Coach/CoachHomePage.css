@@ -1,0 +1,53 @@
+.coach-home {
+    padding: 2rem;
+    max-width: 900px;
+    margin: auto;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .text-muted {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+  }
+  
+  .coach-home-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: 1fr 2fr;
+  }
+  
+  .dashboard-card {
+    background: white;
+    padding: 1.25rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #4f46e5;
+  }
+  
+  .dashboard-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #374151;
+  }
+  
+  .big-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #4f46e5;
+  }
+  
+  .record-list {
+    padding-left: 1rem;
+    font-size: 0.95rem;
+    color: #1f2937;
+  }
+  
+  .record-list li {
+    margin-bottom: 0.4rem;
+  }
+  
