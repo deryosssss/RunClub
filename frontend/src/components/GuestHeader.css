@@ -1,0 +1,57 @@
+.guest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .logo-text {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827; /* Slate gray — clean and modern */
+    font-family: 'Segoe UI', 'Inter', 'Helvetica Neue', sans-serif;
+    text-decoration: none;
+    cursor: pointer;
+    letter-spacing: -0.5px;
+  }
+  
+  .logo-text:hover {
+    color: #4f46e5; /* Optional: brand purple on hover */
+  }
+  
+  
+  .guest-nav {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  
+  .guest-nav a {
+    text-decoration: none;
+    font-weight: 500;
+    color: #374151;
+    transition: 0.2s ease;
+  }
+  
+  .guest-nav a:hover {
+    color: #4f46e5;
+  }
+  
+  .login-btn {
+    border: 1px solid #ef4444;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    color: #ef4444 !important;
+    transition: 0.3s ease;
+  }
+  
+  .login-btn:hover {
+    background-color: #ef4444;
+    color: white !important;
+  }
+  

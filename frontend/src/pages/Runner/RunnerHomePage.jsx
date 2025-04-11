@@ -24,13 +24,13 @@ const RunnerHomePage = () => {
             {
               label: 'My Enrollments',
               desc: 'View and manage the races you’ve signed up for.',
-              path: '/runner/enrollments',
+              path: '/runner/enrollments/my',
               icon: '📝',
             },
             {
               label: 'Progress Tracker',
               desc: 'Track your running stats and coach feedback.',
-              path: '/runner/progress',
+              path: '/runner/progress/my',
               icon: '📊',
             },
             {

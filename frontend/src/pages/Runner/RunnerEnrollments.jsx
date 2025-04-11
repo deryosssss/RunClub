@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import { useApp } from '../../context/AppContext'
 import { Spinner, Form, Button } from 'react-bootstrap'
+import './RunnerEnrollments.css'
 
 const EnrollmentsPage = () => {
   const { user, loading: userLoading } = useApp()
@@ -80,7 +81,7 @@ const EnrollmentsPage = () => {
 
   return (
     <div className="container mt-5">
-      <h2>📋 My Enrollments</h2>
+      <h2 className="mb-1">📋 My Enrollments</h2>
       <p className="text-muted">View or update your enrollments here.</p>
 
       <Form.Select
@@ -96,30 +97,35 @@ const EnrollmentsPage = () => {
       {filtered.length === 0 ? (
         <p className="mt-4 text-muted">No enrollments found.</p>
       ) : (
-        <div className="row g-3 mt-4">
+        <div className="row g-4 mt-3">
           {filtered.map(e => (
             <div key={e.enrollmentId} className="col-md-6">
-              <div className="card shadow-sm p-3 rounded-4">
-                <h5>📅 Event ID: {e.eventId}</h5>
-                <p className="mb-1">Enrollment Date: <strong>{e.enrollmentDate}</strong></p>
-                <p className="mb-2">Status: {e.isCompleted ? '✅ Completed' : '🕒 Ongoing'}</p>
+              <div className="enrollment-card">
+                <div>
+                  <h5>📅 Event ID: {e.eventId}</h5>
+                  <p>Enrollment Date: <strong>{e.enrollmentDate}</strong></p>
+                  <div className={`status-badge ${e.isCompleted ? 'completed' : 'ongoing'}`}>
+                    {e.isCompleted ? '✅ Completed' : '🕒 Ongoing'}
+                  </div>
+                </div>
 
-                <Form.Check
-                  type="switch"
-                  id={`status-${e.enrollmentId}`}
-                  label="Mark as Completed"
-                  checked={e.isCompleted}
-                  onChange={() => handleStatusChange(e.enrollmentId, !e.isCompleted)}
-                />
+                <div className="enrollment-actions">
+                  <Form.Check
+                    type="switch"
+                    id={`status-${e.enrollmentId}`}
+                    label="Mark as Completed"
+                    checked={e.isCompleted}
+                    onChange={() => handleStatusChange(e.enrollmentId, !e.isCompleted)}
+                  />
 
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() => handleDeleteEnrollment(e.enrollmentId)}
-                >
-                  🗑️ Delete
-                </Button>
+                  <Button
+                    variant="outline-danger"
+                    size="sm"
+                    onClick={() => handleDeleteEnrollment(e.enrollmentId)}
+                  >
+                    🗑️ Delete
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

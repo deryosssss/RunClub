@@ -1,4 +1,5 @@
 // src/pages/Runner/RunnerProgress.jsx
+
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useApp } from "../../context/AppContext";
@@ -9,6 +10,7 @@ const RunnerProgress = () => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [feedbackStatus, setFeedbackStatus] = useState("");
+  const [sort, setSort] = useState("newest");
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -35,6 +37,17 @@ const RunnerProgress = () => {
     }
   };
 
+  const handleSortChange = (e) => {
+    setSort(e.target.value);
+  };
+
+  const sortedRecords = [...records].sort((a, b) => {
+    if (sort === "newest") return new Date(b.progressDate) - new Date(a.progressDate);
+    if (sort === "oldest") return new Date(a.progressDate) - new Date(b.progressDate);
+    if (sort === "coach") return (a.coachName || "").localeCompare(b.coachName || "");
+    return 0;
+  });
+
   return (
     <div className="progress-page">
       <h2 className="page-title">📈 My Progress</h2>
@@ -47,18 +60,41 @@ const RunnerProgress = () => {
         {feedbackStatus && <p className="feedback-status">{feedbackStatus}</p>}
       </div>
 
+      <div className="filter-bar">
+        <label>
+          Sort by:
+          <select onChange={handleSortChange} value={sort}>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="coach">Coach Name</option>
+          </select>
+        </label>
+      </div>
+
       {loading ? (
         <p>Loading progress records...</p>
-      ) : records.length === 0 ? (
+      ) : sortedRecords.length === 0 ? (
         <p>No progress records yet.</p>
       ) : (
         <div className="progress-grid">
-          {records.map((record) => (
+          {sortedRecords.map((record) => (
             <div key={record.progressRecordId} className="progress-card">
-              <div className="info">
-                <div><strong>📅 {record.progressDate}</strong> at <strong>{record.progressTime}</strong></div>
-                <div>🏃 <strong>{record.distanceCovered} km</strong> in ⏱️ <strong>{record.timeTaken}</strong></div>
-                <div>🧑‍🏫 Coach: <span className="coach-name">{record.coachName || "Coach Unknown"}</span></div>
+              <div className="card-left">
+                <div className="coach-avatar">
+                  {record.coachName ? record.coachName.charAt(0).toUpperCase() : "?"}
+                </div>
+                <div className="info">
+                  <div>
+                    <strong>📅 {record.progressDate}</strong> at <strong>{record.progressTime}</strong>
+                  </div>
+                  <div>
+                    🏃 <strong>{record.distanceCovered} km</strong> in ⏱️{" "}
+                    <strong>{record.timeTaken}</strong>
+                  </div>
+                  <div>
+                    🧑‍🏫 Coach: <span className="coach-name">{record.coachName || "Coach Unknown"}</span>
+                  </div>
+                </div>
               </div>
               <div className="meta">
                 <div>Progress ID: #{record.progressRecordId}</div>
@@ -66,10 +102,10 @@ const RunnerProgress = () => {
             </div>
           ))}
         </div>
-
       )}
     </div>
   );
 };
 
 export default RunnerProgress;
+

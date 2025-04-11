@@ -1,4 +1,4 @@
-// Header.jsx
+// src/components/Header.jsx
 
 import { useApp } from '../context/AppContext'
 import { useNavigate, NavLink } from 'react-router-dom'
@@ -9,10 +9,10 @@ const Header = () => {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/guest') // ✅ Redirect to guest landing page
   }
 
-  // Don't render header until user is available and has a role
+
   if (!user || !user.role) return null
 
   const role = user.role.toLowerCase()
@@ -21,7 +21,14 @@ const Header = () => {
   return (
     <header className="bg-white border-bottom shadow-sm py-3 px-4">
       <div className="d-flex justify-content-between align-items-center mb-2">
-        <h5 className="mb-0 fw-bold">🏃‍♂️ RunClub | {role?.toUpperCase() || 'USER'}</h5>
+        {/* Momentum text logo */}
+        <NavLink to="/runner/home" className="logo-text d-flex align-items-center">
+          Momentum
+          <span className="text-muted ms-2" style={{ fontSize: '0.9rem' }}>
+            | {role.toUpperCase()}
+          </span>
+        </NavLink>
+
         <button onClick={handleLogout} className="btn btn-outline-danger">
           Logout
         </button>
@@ -40,10 +47,9 @@ const Header = () => {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `fw-semibold px-4 py-2 rounded-pill text-decoration-none transition ${
-                  isActive
-                    ? 'bg-light text-dark shadow-sm'
-                    : 'text-secondary hover:bg-body-tertiary'
+                `fw-semibold px-4 py-2 rounded-pill text-decoration-none transition ${isActive
+                  ? 'bg-light text-dark shadow-sm'
+                  : 'text-secondary hover:bg-body-tertiary'
                 }`
               }
               style={{ transition: 'all 0.2s ease-in-out' }}

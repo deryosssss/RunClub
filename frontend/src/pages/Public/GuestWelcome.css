@@ -1,0 +1,55 @@
+.hero-section {
+    position: relative;
+    height: 100vh; /* 👈 FULL SCREEN HEIGHT */
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .hero-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover; /* 👈 Keeps video proportionally cropped */
+    z-index: 0;
+    filter: brightness(0.5); /* Optional: darken background for text contrast */
+  }
+  
+  .hero-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    text-align: center;
+    color: white;
+    padding: 1rem;
+  }
+  
+  .hero-content h1 {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  
+  .hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .hero-button {
+    background-color: #6366f1;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+  }
+  
+  .hero-button:hover {
+    background-color: #4f46e5;
+  }
+  
