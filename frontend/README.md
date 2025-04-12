@@ -50,6 +50,7 @@ src/
 ├── services/         # Axios API setup
 └── App.jsx           # Main app routing
 
+---
 
 ## 📦 Getting Started
 
