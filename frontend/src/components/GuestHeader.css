@@ -1,15 +1,13 @@
 .guest-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end; /* 👈 key line to pull logo down */
-  padding: 0.75rem 2rem 1rem; /* top, sides, bottom */
+  flex-direction: column;
+  padding: 0.75rem 2rem 1rem;
   border-bottom: 1px solid #e5e7eb;
   background-color: white;
   position: sticky;
   top: 0;
   z-index: 10;
 }
-
 
 .guest-header-top {
   display: flex;
@@ -35,6 +33,7 @@
   align-items: center;
   justify-content: flex-end;
   margin-top: 0.5rem;
+  transition: all 0.3s ease;
 }
 
 .guest-nav a {
@@ -66,7 +65,7 @@
   display: none;
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   color: #374151;
   cursor: pointer;
 }

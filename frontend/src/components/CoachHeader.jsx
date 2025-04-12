@@ -1,10 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { useState } from 'react'
 import './CoachHeader.css'
 
 const CoachHeader = () => {
   const { logout } = useApp()
   const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -13,16 +15,31 @@ const CoachHeader = () => {
 
   return (
     <header className="coach-header">
-      <NavLink to="/coach/home" className="logo-text">Momentum</NavLink>
+      <div className="coach-header-inner">
+        <NavLink to="/coach/home" className="logo-text">Momentum <span className="role-badge">| COACH</span></NavLink>
 
-      <nav className="coach-nav">
-        <NavLink to="/coach/home">Home</NavLink>
-        <NavLink to="/coach/progress/my">Progress</NavLink>
-        <NavLink to="/coach/account/me">Account</NavLink>
-        <button className="logout-btn" onClick={handleLogout}>Logout</button>
-      </nav>
+        <button className="hamburger" onClick={() => setMenuOpen(prev => !prev)}>
+          ☰
+        </button>
+
+        <nav className={`coach-nav ${menuOpen ? 'show' : ''}`}>
+          <NavLink to="/coach/home" onClick={() => setMenuOpen(false)}>Home</NavLink>
+          <NavLink to="/coach/progress/my" onClick={() => setMenuOpen(false)}>Progress</NavLink>
+          <NavLink to="/coach/account/me" onClick={() => setMenuOpen(false)}>Account</NavLink>
+          <button
+            className="logout-btn"
+            onClick={() => {
+              handleLogout()
+              setMenuOpen(false)
+            }}
+          >
+            Logout
+          </button>
+        </nav>
+      </div>
     </header>
   )
 }
 
 export default CoachHeader
+

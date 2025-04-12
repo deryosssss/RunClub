@@ -5,26 +5,27 @@ import './GuestHeader.css'
 const GuestHeader = () => {
   const [isOpen, setIsOpen] = useState(false)
 
+  const handleNavClick = () => {
+    setIsOpen(false)
+  }
+
   return (
     <header className="guest-header">
       <div className="guest-header-top">
         <NavLink to="/guest" className="logo-text">Momentum</NavLink>
 
-        <button
-          className="mobile-menu-btn"
-          onClick={() => setIsOpen(!isOpen)}
-        >
+        <button className="mobile-menu-btn" onClick={() => setIsOpen(prev => !prev)}>
           ☰
         </button>
       </div>
 
       <nav className={`guest-nav ${isOpen ? 'open' : ''}`}>
-      <NavLink to="/guest" onClick={() => setIsOpen(false)}>Home</NavLink>
-        <NavLink to="/our-story" onClick={() => setIsOpen(false)}>Our Story</NavLink>
-        <NavLink to="/gallery" onClick={() => setIsOpen(false)}>Gallery</NavLink>
-        <NavLink to="/help" onClick={() => setIsOpen(false)}>FAQ</NavLink>
-        <NavLink to="/coaches" onClick={() => setIsOpen(false)}>Coaches</NavLink>
-        <NavLink to="/login" onClick={() => setIsOpen(false)} className="login-btn">
+        <NavLink to="/guest" onClick={handleNavClick}>Home</NavLink>
+        <NavLink to="/our-story" onClick={handleNavClick}>Our Story</NavLink>
+        <NavLink to="/gallery" onClick={handleNavClick}>Gallery</NavLink>
+        <NavLink to="/help" onClick={handleNavClick}>FAQ</NavLink>
+        <NavLink to="/coaches" onClick={handleNavClick}>Coaches</NavLink>
+        <NavLink to="/login" onClick={handleNavClick} className="login-btn">
           Login
         </NavLink>
       </nav>

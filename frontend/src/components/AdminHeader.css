@@ -24,6 +24,19 @@
   color: #6366f1;
 }
 
+.menu-toggle {
+  display: none;
+  background: none;
+  font-size: 1.4rem;
+  border: none;
+  cursor: pointer;
+}
+
+.admin-nav {
+  display: flex;
+  align-items: center;
+}
+
 .admin-nav a {
   margin: 0 10px;
   color: #374151;
@@ -43,5 +56,40 @@
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.9rem;
+  margin-left: 10px;
   cursor: pointer;
+}
+
+/* 🔽 Mobile Styles */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .admin-nav {
+    display: none;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background-color: #ffffff;
+    padding: 1rem 2rem;
+    border-top: 1px solid #eee;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .admin-nav.show {
+    display: flex;
+  }
+
+  .admin-nav a {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+  }
+
+  .logout-button {
+    margin-top: 1rem;
+    width: 100%;
+  }
 }

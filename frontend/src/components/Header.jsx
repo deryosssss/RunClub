@@ -1,65 +1,65 @@
 // src/components/Header.jsx
-
 import { useApp } from '../context/AppContext'
 import { useNavigate, NavLink } from 'react-router-dom'
+import { useState } from 'react'
+import './Header.css' // you'll create this
 
 const Header = () => {
   const { logout, user } = useApp()
   const navigate = useNavigate()
-
-  const handleLogout = () => {
-    logout()
-    navigate('/guest') // ✅ Redirect to guest landing page
-  }
-
+  const [isOpen, setIsOpen] = useState(false)
 
   if (!user || user.role.toLowerCase() !== 'runner') return null
 
+  const handleLogout = () => {
+    logout()
+    navigate('/guest')
+  }
 
   const role = user.role.toLowerCase()
-  const isRunner = role === 'runner'
+
+  const navLinks = [
+    { to: '/runner/home', label: 'Home' },
+    { to: '/runner/events', label: 'Events' },
+    { to: '/runner/enrollments/my', label: 'Enrollments' },
+    { to: '/runner/progress/my', label: 'Progress' },
+    { to: '/runner/account/me', label: 'Account' },
+  ]
 
   return (
-    <header className="bg-white border-bottom shadow-sm py-3 px-4">
-      <div className="d-flex justify-content-between align-items-center mb-2">
-        {/* Momentum text logo */}
-        <NavLink to="/runner/home" className="logo-text d-flex align-items-center">
-          Momentum
-          <span className="text-muted ms-2" style={{ fontSize: '0.9rem' }}>
-            | {role.toUpperCase()}
-          </span>
+    <header className="runner-header">
+      <div className="runner-header-top">
+        <NavLink to="/runner/home" className="logo-text">
+          Momentum <span className="role-badge">| RUNNER</span>
         </NavLink>
 
-        <button onClick={handleLogout} className="btn btn-outline-danger">
+        <button className="mobile-menu-btn" onClick={() => setIsOpen(!isOpen)}>
+          ☰
+        </button>
+
+        <button onClick={handleLogout} className="logout-btn d-none d-md-inline">
           Logout
         </button>
       </div>
 
-      {isRunner && (
-        <nav className="d-flex justify-content-center flex-wrap gap-3 py-2">
-          {[
-            { to: '/runner/home', label: 'Home' },
-            { to: '/runner/events', label: 'Events' },
-            { to: '/runner/enrollments/my', label: 'Enrollments' },
-            { to: '/runner/progress/my', label: 'Progress' },
-            { to: '/runner/account/me', label: 'Account' },
-          ].map(({ to, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `fw-semibold px-4 py-2 rounded-pill text-decoration-none transition ${isActive
-                  ? 'bg-light text-dark shadow-sm'
-                  : 'text-secondary hover:bg-body-tertiary'
-                }`
-              }
-              style={{ transition: 'all 0.2s ease-in-out' }}
-            >
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-      )}
+      <nav className={`runner-nav ${isOpen ? 'open' : ''}`}>
+        {navLinks.map(({ to, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) =>
+              `runner-link ${isActive ? 'active' : ''}`
+            }
+          >
+            {label}
+          </NavLink>
+        ))}
+
+        <button className="logout-btn d-md-none mt-3" onClick={() => { setIsOpen(false); handleLogout(); }}>
+          Logout
+        </button>
+      </nav>
     </header>
   )
 }
