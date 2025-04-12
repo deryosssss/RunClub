@@ -44,7 +44,6 @@ const FaqHelpPage = () => {
 
   return (
     <div>
-      <Header />
 
       <div className="container py-5">
         <h2 className="fw-bold text-center mb-4">❓ FAQ & Help Center</h2>

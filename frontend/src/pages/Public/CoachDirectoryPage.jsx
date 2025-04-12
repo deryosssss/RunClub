@@ -59,7 +59,6 @@ const CoachDirectoryPage = () => {
 
   return (
     <div>
-      <Header />
 
       <div className="py-5 px-3" style={{ background: 'linear-gradient(to right, #f8f9fa, #e8f0fe)' }}>
         <div className="container-xl">

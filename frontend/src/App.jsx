@@ -92,6 +92,10 @@ function App() {
           <Route path="/runner/events/:eventId" element={<EventDetailPage />} />
           <Route path="/runner/progress/my" element={<ProgressPage />} />
           <Route path="/runner/account/me" element={<UserAccount />} />
+          <Route path="runner/our-story" element={<OurStoryPage />} />
+          <Route path="runner/coaches" element={<CoachDirectoryPage />} />
+        <Route path="runner/help" element={<FaqHelpPage />} />
+        <Route path="runner/gallery" element={<MediaGalleryPage />} />
         </Route>
       </Route>
 

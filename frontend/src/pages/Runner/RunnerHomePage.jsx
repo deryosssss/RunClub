@@ -36,7 +36,7 @@ const RunnerHomePage = () => {
             {
               label: 'Account Settings',
               desc: 'Update your profile or change your preferences.',
-              path: '/runner/account',
+              path: '/runner/account/me',
               icon: '👤',
             },
           ].map((card) => (
@@ -65,25 +65,25 @@ const RunnerHomePage = () => {
             {
               label: 'Our Story',
               desc: 'Learn about RunClub’s mission and founders.',
-              path: '/our-story',
+              path: '/runner/our-story',
               icon: '🧾',
             },
             {
               label: 'Media Gallery',
               desc: 'Browse photos and memories from past events.',
-              path: '/gallery',
+              path: '/runner/gallery',
               icon: '🖼️',
             },
             {
               label: 'Help Center',
               desc: 'Find answers to common questions or contact us.',
-              path: '/help',
+              path: '/runner/help',
               icon: '❓',
             },
             {
               label: 'Coach Directory',
               desc: 'Find a coach and request guidance or support.',
-              path: '/coaches',
+              path: '/runner/coaches',
               icon: '🧑‍🏫',
             },
           ].map((card) => (

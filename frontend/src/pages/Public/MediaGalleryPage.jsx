@@ -42,7 +42,6 @@ const MediaGalleryPage = () => {
 
   return (
     <div>
-      <Header />
 
       <div className="container py-5">
         <h2 className="fw-bold mb-4 text-center">🖼️ Media Gallery</h2>

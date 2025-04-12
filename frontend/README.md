@@ -1,70 +1,91 @@
-# Getting Started with Create React App
+# 🏃‍♀️ RunClub Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Welcome to the **RunClub Frontend** — a modern, single-page React application built to power a running club's digital experience for **runners**, **coaches**, and **admins**. This app is connected to a .NET Core backend API and provides users with event discovery, enrollment, coach support, and administrative tools.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+### 👥 User Roles
+- **Runners**: Browse events, enroll, track progress, and manage accounts.
+- **Coaches**: Support runners, track their progress, and manage accounts.
+- **Admins**: Create/edit events and coaches, manage FAQs, media gallery, and the club's story.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🧩 Functionality
+- Event search and quick enrollment
+- Coach directory with dynamic rating & bio display
+- Editable media gallery (admin-only)
+- Custom FAQ and contact section
+- Profile management for all roles
+- Route protection with role-based access
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## 🛠️ Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **React 18+**
+- **React Router DOM**
+- **Bootstrap 5** + custom styles
+- **Framer Motion** (for animations)
+- **Axios** for API calls
+- **Context API** for global user/auth state
+- **Vite** for blazing-fast development
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 📁 Project Structure
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+src/ 
+│├── components/ 
+ # Shared UI components (Header, Protected Routes, etc.)
+├── context/ # Global AppContext (auth, user info) 
+├── layouts/ # Layouts for Main, Guest, Admin, Coach
+├── pages/ 
+│ ├── Admin/ # Admin-specific tools and dashboards 
+│ ├── Auth/ # Login Page 
+│ ├── Coach/ # Coach-specific pages 
+│ ├── Public/ # Publicly accessible pages (Story, Gallery, Help) 
+│ ├── Runner/ # Runner dashboard, enrollments, etc. 
+│ ├── routes/ # Custom route protections 
+├── services/ # Axios API setup 
+└── App.jsx # Main app routing
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 📦 Getting Started
 
-### `npm run eject`
+### 1️⃣ Clone the Repo
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+git clone https://github.com/your-username/runclub-frontend.git
+cd runclub-frontend
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 2️⃣ Install Dependencies
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+npm install
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 3️⃣ Configure API Base URL
 
-## Learn More
+Update the API base URL in:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+src/services/api.js
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api', // change to your backend URL
+});
 
-### Code Splitting
+### 4️⃣ Run the Dev Server
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+npm run dev
 
-### Analyzing the Bundle Size
+##✅ Authentication
+- Auth is managed through a login form and persisted via global context.
+- Role-based access (admin, coach, runner) determines which routes/pages a user can access.
+- Protected routes are implemented using <PrivateRoute />.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+##✨ Admin Tools
+Admins can:
+- ✅ Add, edit, delete events
+- ✅ Manage coaches
+- ✅ Edit the FAQ and club story
+- ✅ Manage a dynamic media gallery
+- All features are accessible via the /admin section.

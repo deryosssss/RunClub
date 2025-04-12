@@ -38,7 +38,7 @@ const AdminHomePage = () => {
     {
       title: 'Account',
       description: 'View and edit your profile.',
-      path: '/admin/account',
+      path: '/admin/account/me',
       emoji: '👤',
     },
   ]

@@ -124,9 +124,13 @@ const UserAccountPage = () => {
             <span>{form.age || "Not specified"}</span>
           )}
         </p>
+        {user?.role?.toLowerCase() === 'runner' && (
+          <>
+            <p><span className="detail-label">📊 Enrollments:</span> {user?.enrollmentsCount}</p>
+            <p><span className="detail-label">🏁 Completed:</span> {user?.completedCount}</p>
+          </>
+        )}
 
-        <p><span className="detail-label">📊 Enrollments:</span> {user?.enrollmentsCount}</p>
-        <p><span className="detail-label">🏁 Completed:</span> {user?.completedCount}</p>
       </div>
 
       <div className="actions">

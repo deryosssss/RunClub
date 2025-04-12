@@ -19,6 +19,7 @@ const GuestHeader = () => {
       </div>
 
       <nav className={`guest-nav ${isOpen ? 'open' : ''}`}>
+      <NavLink to="/guest" onClick={() => setIsOpen(false)}>Home</NavLink>
         <NavLink to="/our-story" onClick={() => setIsOpen(false)}>Our Story</NavLink>
         <NavLink to="/gallery" onClick={() => setIsOpen(false)}>Gallery</NavLink>
         <NavLink to="/help" onClick={() => setIsOpen(false)}>FAQ</NavLink>
