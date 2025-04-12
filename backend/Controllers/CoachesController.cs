@@ -5,6 +5,7 @@ using RunClubAPI.DTOs;
 using RunClubAPI.Models;
 using RunClubAPI.Services;
 using RunClubAPI.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -36,6 +37,7 @@ public class CoachesController : ControllerBase
     }
 
     // ✅ POST: api/coaches
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public ActionResult<CoachDto> Create([FromBody] CoachDto coachDto)
     {
@@ -44,6 +46,7 @@ public class CoachesController : ControllerBase
     }
 
     // ✅ PUT: api/coaches/5
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public IActionResult Update(int id, [FromBody] CoachDto coachDto)
     {
@@ -55,6 +58,7 @@ public class CoachesController : ControllerBase
     }
 
     // ✅ DELETE: api/coaches/5
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public IActionResult Delete(int id)
     {

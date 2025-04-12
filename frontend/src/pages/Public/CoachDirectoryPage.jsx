@@ -1,16 +1,25 @@
+// src/pages/Public/CoachDirectoryPage.jsx
+
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import { motion } from 'framer-motion'
 import { Modal, Button } from 'react-bootstrap'
 import Masonry from 'react-masonry-css'
 import './CoachDirectoryPage.css'
-import Header from '../../components/Header'  // Add this import
+import Header from '../../components/Header'
+import { useApp } from '../../context/AppContext'
 
 const CoachDirectoryPage = () => {
   const [coaches, setCoaches] = useState([])
   const [sortOption, setSortOption] = useState('rating')
   const [gridView, setGridView] = useState(true)
   const [selectedCoach, setSelectedCoach] = useState(null)
+  const { user } = useApp()
+  const navigate = useNavigate()
+
+  const isAdmin = user?.role?.toLowerCase() === 'admin'
+  console.log('👤 User role:', user?.role)
 
   useEffect(() => {
     const fetchCoaches = async () => {
@@ -25,6 +34,18 @@ const CoachDirectoryPage = () => {
     fetchCoaches()
   }, [])
 
+  const handleDelete = async (coachId) => {
+    if (!window.confirm('Are you sure you want to delete this coach?')) return
+    try {
+      await api.delete(`/coaches/${coachId}`)
+      setCoaches(prev => prev.filter(c => c.id !== coachId))
+      alert('✅ Coach deleted.')
+    } catch (err) {
+      console.error('❌ Failed to delete coach:', err)
+      alert('Failed to delete coach')
+    }
+  }
+
   const sortedCoaches = [...coaches].sort((a, b) =>
     sortOption === 'name' ? a.name.localeCompare(b.name) : b.rating - a.rating
   )
@@ -38,7 +59,6 @@ const CoachDirectoryPage = () => {
 
   return (
     <div>
-      {/* Add the Header here */}
       <Header />
 
       <div className="py-5 px-3" style={{ background: 'linear-gradient(to right, #f8f9fa, #e8f0fe)' }}>
@@ -76,6 +96,14 @@ const CoachDirectoryPage = () => {
             </div>
           </div>
 
+          {isAdmin && (
+            <div className="mb-4 text-end">
+              <button className="btn btn-success" onClick={() => navigate('/admin/coaches/create')}>
+                ➕ Add New Coach
+              </button>
+            </div>
+          )}
+
           {gridView ? (
             <Masonry
               breakpointCols={breakpointColumns}
@@ -102,6 +130,29 @@ const CoachDirectoryPage = () => {
                     <h6 className="fw-bold mb-1">{coach.name}</h6>
                     <p className="text-muted small mb-2">{coach.bio}</p>
                     <span className="badge bg-warning text-dark">⭐ {coach.rating}</span>
+
+                    {isAdmin && (
+                      <div className="d-flex gap-2 mt-2">
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/admin/coaches/edit/${coach.id}`)
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(coach.id)
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -128,6 +179,29 @@ const CoachDirectoryPage = () => {
                     <h6 className="fw-bold mb-1">{coach.name}</h6>
                     <p className="text-muted small mb-2">{coach.bio}</p>
                     <span className="badge bg-warning text-dark">⭐ {coach.rating}</span>
+
+                    {isAdmin && (
+                      <div className="d-flex gap-2 mt-2">
+                        <button
+                          className="btn btn-sm btn-outline-primary"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/admin/coaches/edit/${coach.id}`)
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete(coach.id)
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}

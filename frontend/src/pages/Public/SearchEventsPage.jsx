@@ -14,6 +14,7 @@ const SearchEventsPage = () => {
   const navigate = useNavigate()
 
   const isRunner = user?.role?.toLowerCase() === 'runner'
+  const isAdmin = user?.role?.toLowerCase() === 'admin'
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -72,11 +73,38 @@ const SearchEventsPage = () => {
     }
   }
 
+  const handleDelete = async (eventId) => {
+    const confirm = window.confirm('❗ Are you sure you want to delete this event?')
+    if (!confirm) return
+
+    try {
+      await api.delete(`/events/${eventId}`)
+      alert('🗑️ Event deleted successfully.')
+      setEvents(prev => prev.filter(e => e.eventId !== eventId))
+    } catch (err) {
+      console.error('❌ Delete failed:', err)
+      alert('Failed to delete event. Try again.')
+    }
+  }
+
   return (
     <div className="container py-5">
-      <h2 className="fw-bold text-center mb-2">🏃‍♂️ Upcoming Events</h2>
-      <p className="text-center text-muted mb-4">Search, enroll, and explore upcoming runs.</p>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h2 className="fw-bold">🏃‍♂️ Upcoming Events</h2>
+          <p className="text-muted">Search, view, and explore upcoming runs.</p>
+        </div>
+        {isAdmin && (
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate('/admin/events/create')}
+          >
+            ➕ Add New Event
+          </button>
+        )}
+      </div>
 
+      {/* Filters */}
       <div className="row g-2 mb-4">
         <div className="col-md-6">
           <input
@@ -139,18 +167,42 @@ const SearchEventsPage = () => {
 
                 <div className="d-flex justify-content-between gap-2 mt-3">
                   <button
-                    className="btn btn-outline-primary w-50"
+                    className="btn btn-outline-primary w-100"
                     onClick={() => navigate(`/events/${event.eventId}`)}
                   >
-                    Details
-                  </button>
-                  <button
-                    className="btn btn-success w-50"
-                    onClick={() => handleQuickEnroll(event.eventId)}
-                  >
-                    Enroll
+                    View Details
                   </button>
                 </div>
+
+                {/* 🔧 Admin-only controls */}
+                {isAdmin && (
+                  <div className="d-flex justify-content-between gap-2 mt-2">
+                    <button
+                      className="btn btn-outline-warning w-50"
+                      onClick={() => navigate(`/admin/events/edit/${event.eventId}`)}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      className="btn btn-outline-danger w-50"
+                      onClick={() => handleDelete(event.eventId)}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                )}
+
+                {/* 🏃 Runner-only enroll button */}
+                {isRunner && (
+                  <div className="mt-2">
+                    <button
+                      className="btn btn-success w-100"
+                      onClick={() => handleQuickEnroll(event.eventId)}
+                    >
+                      Enroll
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -161,3 +213,4 @@ const SearchEventsPage = () => {
 }
 
 export default SearchEventsPage
+

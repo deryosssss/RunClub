@@ -1,0 +1,43 @@
+.admin-home {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: auto;
+  }
+  
+  .admin-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .admin-subtitle {
+    color: #6b7280;
+    margin-bottom: 2rem;
+  }
+  
+  .admin-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  
+  .admin-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  
+  .admin-card:hover {
+    background-color: #f3f4f6;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+  
+  .admin-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.75rem;
+  }
+  

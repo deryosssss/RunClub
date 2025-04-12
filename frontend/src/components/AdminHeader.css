@@ -1,0 +1,47 @@
+.admin-header {
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.admin-header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.role-badge {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #6366f1;
+}
+
+.admin-nav a {
+  margin: 0 10px;
+  color: #374151;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.admin-nav a.active {
+  border-bottom: 2px solid #4f46e5;
+  padding-bottom: 4px;
+}
+
+.logout-button {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}

@@ -16,9 +16,16 @@ import EventDetailPage from './pages/Public/EventDetailPage'
 import FaqHelpPage from './pages/Public/FaqHelpPage'
 import MediaGalleryPage from './pages/Public/MediaGalleryPage'
 import CoachDirectoryPage from './pages/Public/CoachDirectoryPage'
+import UserAccount from './pages/Public/UserAccount'
 
 // Admin
-import AdminEventsPage from './pages/Admin/AdminEventsPage'
+import AdminLayout from './layouts/AdminLayout'
+import AdminHomePage from './pages/Admin/AdminHomePage'
+import AdminCreateCoachPage from './pages/Admin/AdminCreateCoachPage'
+import AdminEditCoachPage from './pages/Admin/AdminEditCoachPage'
+import AdminCreateEventPage from './pages/Admin/AdminCreateEventPage'
+import AdminEditEventPage from './pages/Admin/AdminEditEventPage'
+
 
 // Coach
 import CoachProgressPage from './pages/Coach/CoachProgressPage'
@@ -28,7 +35,7 @@ import CoachHomePage from './pages/Coach/CoachHomePage'
 import RunnerHomePage from './pages/Runner/RunnerHomePage'
 import EnrollmentsPage from './pages/Runner/RunnerEnrollments'
 import ProgressPage from './pages/Runner/RunnerProgress'
-import AccountPage from './pages/Runner/RunnerAccount'
+
 
 function App() {
   return (
@@ -52,7 +59,19 @@ function App() {
       <Route element={<MainLayout />}>
         {/* Admin */}
         <Route element={<PrivateRoute allowedRoles={['admin']} />}>
-          <Route path="/admin/events" element={<AdminEventsPage />} />
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/home" element={<AdminHomePage />} />
+            <Route path="/admin/faq" element={<FaqHelpPage />} />
+            <Route path="/admin/gallery" element={<MediaGalleryPage />} />
+            <Route path="/admin/our-story" element={<OurStoryPage />} />
+            <Route path="/admin/account/me" element={<UserAccount />} />
+            <Route path="/admin/events" element={<SearchEventsPage />} />
+            <Route path="/admin/events/create" element={<AdminCreateEventPage />} />
+            <Route path="/admin/events/edit/:eventId" element={<AdminEditEventPage />} />
+            <Route path="/admin/coaches" element={<CoachDirectoryPage />} />
+            <Route path="/admin/coaches/create" element={<AdminCreateCoachPage />} />
+            <Route path="/admin/coaches/edit/:coachId" element={<AdminEditCoachPage />} />
+          </Route>
         </Route>
 
         {/* Coach */}
@@ -60,7 +79,7 @@ function App() {
           <Route element={<CoachLayout />}>
             <Route path="/coach/home" element={<CoachHomePage />} />
             <Route path="/coach/progress/my" element={<CoachProgressPage />} />
-            <Route path="/coach/account/me" element={<AccountPage />} />
+            <Route path="/coach/account/me" element={<UserAccount />} />
           </Route>
         </Route>
 
@@ -72,7 +91,7 @@ function App() {
           <Route path="/runner/events" element={<SearchEventsPage />} />
           <Route path="/runner/events/:eventId" element={<EventDetailPage />} />
           <Route path="/runner/progress/my" element={<ProgressPage />} />
-          <Route path="/runner/account/me" element={<AccountPage />} />
+          <Route path="/runner/account/me" element={<UserAccount />} />
         </Route>
       </Route>
 

@@ -56,7 +56,7 @@ const LoginPage = () => {
 
         switch (role) {
           case 'admin':
-            navigate('/admin/events');
+            navigate('/admin/home');
             break;
           case 'coach':
             navigate('/coach/home');

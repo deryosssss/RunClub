@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useApp } from "../../context/AppContext";
 import api from "../../services/api";
-import "./RunnerAccountPage.css";
+import "./UserAccountPage.css";
 
 const DEFAULT_AVATAR =
   "https://raw.githubusercontent.com/johnmccants002/runclub-frontend/refs/heads/main/assets/images/profile.png";
 
-const RunnerAccountPage = () => {
+const UserAccountPage = () => {
   const { user, logout } = useApp();
   const [form, setForm] = useState({
     name: "",
@@ -159,4 +159,4 @@ const RunnerAccountPage = () => {
   );
 };
 
-export default RunnerAccountPage;
+export default UserAccountPage;
