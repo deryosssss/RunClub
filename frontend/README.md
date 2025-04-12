@@ -35,21 +35,21 @@ Welcome to the **RunClub Frontend** — a modern, single-page React application 
 
 ## 📁 Project Structure
 
-src/ 
-│├── components/ 
- # Shared UI components (Header, Protected Routes, etc.)
-├── context/ # Global AppContext (auth, user info) 
-├── layouts/ # Layouts for Main, Guest, Admin, Coach
-├── pages/ 
-│ ├── Admin/ # Admin-specific tools and dashboards 
-│ ├── Auth/ # Login Page 
-│ ├── Coach/ # Coach-specific pages 
-│ ├── Public/ # Publicly accessible pages (Story, Gallery, Help) 
-│ ├── Runner/ # Runner dashboard, enrollments, etc. 
-│ ├── routes/ # Custom route protections 
-├── services/ # Axios API setup 
-└── App.jsx # Main app routing
----
+```plaintext
+src/
+├── components/       # Shared UI components (Header, ProtectedRoute, etc.)
+├── context/          # Global AppContext (auth, user info)
+├── layouts/          # Layouts for Main, Guest, Admin, Coach
+├── pages/
+│   ├── Admin/        # Admin-specific tools and dashboards
+│   ├── Auth/         # Login page
+│   ├── Coach/        # Coach-specific views
+│   ├── Public/       # Publicly accessible pages (Story, Gallery, Help)
+│   ├── Runner/       # Runner dashboard, enrollments, etc.
+├── routes/           # Custom route protection components
+├── services/         # Axios API setup
+└── App.jsx           # Main app routing
+
 
 ## 📦 Getting Started
 
@@ -59,11 +59,11 @@ src/
 git clone https://github.com/your-username/runclub-frontend.git
 cd runclub-frontend
 
-### 2️⃣ Install Dependencies
+ 2️⃣ Install Dependencies
 
 npm install
 
-### 3️⃣ Configure API Base URL
+3️⃣ Configure API Base URL
 
 Update the API base URL in:
 
@@ -73,7 +73,7 @@ const api = axios.create({
   baseURL: 'http://localhost:5000/api', // change to your backend URL
 });
 
-### 4️⃣ Run the Dev Server
+4️⃣ Run the Dev Server
 
 npm run dev
 
