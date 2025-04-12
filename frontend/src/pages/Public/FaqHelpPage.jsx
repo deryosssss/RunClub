@@ -46,7 +46,7 @@ const FaqHelpPage = () => {
     <div>
 
       <div className="container py-5">
-        <h2 className="fw-bold text-center mb-4">❓ FAQ & Help Center</h2>
+        <h2 className="fw-bold text-center mb-4"> FAQ & Help Center</h2>
 
         <div className="mb-5">
           <div className="d-flex justify-content-between align-items-center mb-2">
@@ -57,7 +57,7 @@ const FaqHelpPage = () => {
                   className={`btn btn-sm ${editing ? 'btn-secondary' : 'btn-warning'}`}
                   onClick={() => setEditing(!editing)}
                 >
-                  {editing ? 'Cancel Edit' : '✏️ Edit FAQs'}
+                  {editing ? 'Cancel Edit' : ' Edit FAQs'}
                 </button>
                 {editing && (
                   <button className="btn btn-sm btn-success" onClick={handleAddFaq}>
@@ -105,7 +105,7 @@ const FaqHelpPage = () => {
         </div>
 
         <div>
-          <h4>📬 Contact Us</h4>
+          <h4> Contact Us</h4>
           <form className="mt-3" onSubmit={(e) => { e.preventDefault(); alert('✅ Message sent!') }}>
             <div className="mb-3">
               <label htmlFor="name" className="form-label">Your Name</label>

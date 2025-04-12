@@ -8,11 +8,11 @@ const RunnerHomePage = () => {
 
   return (
     <div className="container py-5">
-      <h2 className="mb-4 text-center fw-bold">Welcome, {user?.name || 'Runner'} 🏃</h2>
+      <h2 className="mb-4 text-center fw-bold">Welcome, {user?.name || 'Runner'} </h2>
 
       {/* Dashboard Section */}
       <section className="mb-5">
-        <h4 className="mb-3">🛠️ My Dashboard</h4>
+        <h4 className="mb-3"> My Dashboard</h4>
         <div className="row g-4">
           {[
             {
@@ -59,7 +59,7 @@ const RunnerHomePage = () => {
 
       {/* Explore Section */}
       <section>
-        <h4 className="mb-3">🌍 Explore RunClub</h4>
+        <h4 className="mb-3">Explore RunClub</h4>
         <div className="row g-4">
           {[
             {

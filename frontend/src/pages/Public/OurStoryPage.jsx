@@ -14,11 +14,11 @@ const AdminStoryPage = () => {
     mission: 'Empower, support, and inspire runners of all levels through mentorship, community, and world-class events.',
     vision: 'A world where running unites people and builds healthier, happier lives.',
     timeline: [
-      '2021 – RunClub founded in a small local park 🏞️',
-      '2022 – First 500-member milestone 🎉',
-      '2023 – Partnered with city marathon 🏁',
-      '2024 – Launch of the RunClub App 📱',
-      '2025 – You joined us! ❤️'
+      '2021 – Momentum founded in a small local park ',
+      '2022 – First 500-member milestone ',
+      '2023 – Partnered with city marathon ',
+      '2024 – Launch of the Momentum App ',
+      '2025 – You joined us! '
     ],
     imageUrl: 'https://images.unsplash.com/photo-1739051261848-fdf6c43fe0d4?q=80&w=3268&auto=format&fit=crop',
   })
@@ -50,11 +50,11 @@ const AdminStoryPage = () => {
     <div>
       <div className="container py-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="fw-bold text-center flex-grow-1">🧾 Our Story</h2>
+          <h2 className="fw-bold text-center flex-grow-1">Our Story</h2>
           {isAdmin && (
             !editMode ? (
               <button className="btn btn-outline-primary ms-3" onClick={toggleEdit}>
-                ✏️ Edit
+                 Edit
               </button>
             ) : (
               <div className="d-flex gap-2">
@@ -84,21 +84,21 @@ const AdminStoryPage = () => {
           </div>
 
           <div className="col-md-6">
-            <h4 className="fw-semibold">📍 How it started</h4>
+            <h4 className="fw-semibold"> How it started</h4>
             {editMode ? (
               <textarea name="howItStarted" className="form-control mb-4" value={form.howItStarted} onChange={handleChange} />
             ) : (
               <p>{form.howItStarted}</p>
             )}
 
-            <h4 className="fw-semibold mt-4">🎯 Our Mission</h4>
+            <h4 className="fw-semibold mt-4"> Our Mission</h4>
             {editMode ? (
               <textarea name="mission" className="form-control mb-4" value={form.mission} onChange={handleChange} />
             ) : (
               <p>{form.mission}</p>
             )}
 
-            <h4 className="fw-bold mt-5 mb-3">🕒 Our Timeline</h4>
+            <h4 className="fw-bold mt-5 mb-3"> Our Timeline</h4>
             <ul className="timeline list-unstyled">
               {form.timeline.map((entry, i) => (
                 <li key={i}>

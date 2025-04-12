@@ -45,7 +45,7 @@ const AdminHomePage = () => {
 
   return (
     <div className="admin-home">
-      <h2 className="admin-title">👋 Welcome, Admin</h2>
+      <h2 className="admin-title"> Welcome, Admin</h2>
       <p className="admin-subtitle">Manage and monitor key areas of the platform below.</p>
 
       <div className="admin-grid">

@@ -56,14 +56,14 @@ const RunnerProgress = () => {
 
   return (
     <div className="progress-page">
-      <h2 className="page-title">📈 My Progress</h2>
+      <h2 className="page-title"> My Progress</h2>
       <p className="text-muted">
         Track your training and request feedback from your coach.
       </p>
 
       <div className="feedback-section">
         <button className="button feedback-button" onClick={requestFeedback}>
-          🧠 Request Feedback
+           Request Feedback
         </button>
         {feedbackStatus && <p className="feedback-status">{feedbackStatus}</p>}
       </div>
@@ -87,7 +87,7 @@ const RunnerProgress = () => {
         <>
           {/* Line Chart */}
           <div className="chart-container mb-5">
-            <h5>📊 Distance Over Time</h5>
+            <h5> Distance Over Time</h5>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={sortedRecords}>
                 <XAxis dataKey="progressDate" />
@@ -113,15 +113,15 @@ const RunnerProgress = () => {
                   </div>
                   <div className="info">
                     <div>
-                      <strong>📅 {record.progressDate}</strong> at{" "}
+                      <strong> {record.progressDate}</strong> at{" "}
                       <strong>{record.progressTime}</strong>
                     </div>
                     <div>
-                      🏃 <strong>{record.distanceCovered} km</strong> in ⏱️{" "}
+                       <strong>{record.distanceCovered} km</strong> in {" "}
                       <strong>{record.timeTaken}</strong>
                     </div>
                     <div>
-                      🧑‍🏫 Coach:{" "}
+                       Coach:{" "}
                       <span className="coach-name">
                         {record.coachName || "Coach Unknown"}
                       </span>

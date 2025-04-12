@@ -74,14 +74,14 @@ const EnrollmentsPage = () => {
   if (!user) {
     return (
       <div className="container mt-5 text-center">
-        <h3>🔐 Please log in to view your enrollments.</h3>
+        <h3> Please log in to view your enrollments.</h3>
       </div>
     )
   }
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-1">📋 My Enrollments</h2>
+      <h2 className="mb-1"> My Enrollments</h2>
       <p className="text-muted">View or update your enrollments here.</p>
 
       <Form.Select
@@ -102,10 +102,10 @@ const EnrollmentsPage = () => {
             <div key={e.enrollmentId} className="col-md-6">
               <div className="enrollment-card">
                 <div>
-                  <h5>📅 Event ID: {e.eventId}</h5>
+                  <h5> Event ID: {e.eventId}</h5>
                   <p>Enrollment Date: <strong>{e.enrollmentDate}</strong></p>
                   <div className={`status-badge ${e.isCompleted ? 'completed' : 'ongoing'}`}>
-                    {e.isCompleted ? '✅ Completed' : '🕒 Ongoing'}
+                    {e.isCompleted ? ' Completed' : ' Ongoing'}
                   </div>
                 </div>
 

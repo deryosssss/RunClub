@@ -91,7 +91,7 @@ const SearchEventsPage = () => {
     <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <h2 className="fw-bold">🏃‍♂️ Upcoming Events</h2>
+          <h2 className="fw-bold"> Upcoming Events</h2>
           <p className="text-muted">Search, view, and explore upcoming runs.</p>
         </div>
         {isAdmin && (
@@ -150,9 +150,9 @@ const SearchEventsPage = () => {
                 <h5 className="fw-semibold mb-1">{event.eventName}</h5>
                 <p className="text-muted mb-2 small">{event.description}</p>
 
-                <div>📍 <strong>{event.location}</strong></div>
-                <div>📅 <strong>{event.eventDate}</strong> ⏰ <strong>{event.eventTime}</strong></div>
-                <div className="text-success mt-1">👟 Enrolled: {event.enrollmentCount ?? 0}</div>
+                <div> <strong>{event.location}</strong></div>
+                <div> <strong>{event.eventDate}</strong>  <strong>{event.eventTime}</strong></div>
+                <div className="text-success mt-1">Enrolled: {event.enrollmentCount ?? 0}</div>
 
                 {event.coachName && (
                   <div className="d-flex align-items-center gap-2 mt-2">
@@ -161,14 +161,21 @@ const SearchEventsPage = () => {
                       alt={event.coachName}
                       style={{ width: 32, height: 32, borderRadius: '50%' }}
                     />
-                    <span className="small">👤 Coach: {event.coachName}</span>
+                    <span className="small"> Coach: {event.coachName}</span>
                   </div>
                 )}
 
                 <div className="d-flex justify-content-between gap-2 mt-3">
                   <button
                     className="btn btn-outline-primary w-100"
-                    onClick={() => navigate(`/events/${event.eventId}`)}
+                    onClick={() => {
+                      if (user?.role?.toLowerCase() === 'runner') {
+                        navigate(`/runner/events/${event.eventId}`)
+                      } else {
+                        navigate(`/events/${event.eventId}`)
+                      }
+                    }}
+
                   >
                     View Details
                   </button>
@@ -181,28 +188,29 @@ const SearchEventsPage = () => {
                       className="btn btn-outline-warning w-50"
                       onClick={() => navigate(`/admin/events/edit/${event.eventId}`)}
                     >
-                      ✏️ Edit
+                      Edit
                     </button>
                     <button
                       className="btn btn-outline-danger w-50"
                       onClick={() => handleDelete(event.eventId)}
                     >
-                      🗑️ Delete
+                       Delete
                     </button>
                   </div>
                 )}
 
                 {/* 🏃 Runner-only enroll button */}
-                {isRunner && (
+                {!user && (
                   <div className="mt-2">
                     <button
-                      className="btn btn-success w-100"
-                      onClick={() => handleQuickEnroll(event.eventId)}
+                      className="btn btn-outline-secondary w-100"
+                      onClick={() => navigate('/login')}
                     >
-                      Enroll
+                      Log in to Enroll
                     </button>
                   </div>
                 )}
+
               </div>
             </div>
           ))}

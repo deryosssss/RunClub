@@ -24,7 +24,7 @@ const CoachHomePage = () => {
 
     return (
         <div className="coach-home">
-            <h2 className="page-title">Welcome back, {user?.name} 👋</h2>
+            <h2 className="page-title">Welcome back, {user?.name} </h2>
             <p className="text-muted">Here’s what’s happening in your world.</p>
 
             <div className="coach-home-grid">

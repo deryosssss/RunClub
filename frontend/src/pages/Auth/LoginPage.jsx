@@ -78,7 +78,7 @@ const LoginPage = () => {
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
       <div className="card shadow-lg p-5" style={{ maxWidth: 400, width: '100%' }}>
         <h3 className="text-center mb-4">
-          {isRegister ? 'Create Your Account' : 'Welcome to RunClub 🏃‍♀️'}
+          {isRegister ? 'Create Your Account' : 'Welcome to Momentum'}
         </h3>
 
         {isVerified && (

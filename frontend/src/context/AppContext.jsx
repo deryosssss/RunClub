@@ -1,54 +1,53 @@
-// src/context/AppContext.jsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import api from '../services/api'
 
-const AppContext = createContext();
+// ✅ Export AppContext so test files can access .Provider
+export const AppContext = createContext()
 
 export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   const login = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token')
       if (!token) {
-        setLoading(false);
-        return;
+        setLoading(false)
+        return
       }
 
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-      const res = await api.get('/account/me');
-      setUser(res.data);
+      const res = await api.get('/account/me')
+      setUser(res.data)
     } catch (err) {
-      console.error('❌ Failed to load user info:', err);
-      logout();
+      console.error('❌ Failed to load user info:', err)
+      logout()
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('token');
-    delete api.defaults.headers.common['Authorization'];
-  };
+    setUser(null)
+    localStorage.removeItem('token')
+    delete api.defaults.headers.common['Authorization']
+  }
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     if (token) {
-      login();
+      login()
     } else {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   return (
     <AppContext.Provider value={{ user, loading, login, logout }}>
       {children}
     </AppContext.Provider>
-  );
-};
+  )
+}
 
-export const useApp = () => useContext(AppContext);
-
+export const useApp = () => useContext(AppContext)

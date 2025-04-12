@@ -66,7 +66,7 @@ const CoachProgressPage = () => {
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-4">📈 Coach Progress Overview</h2>
+      <h2 className="mb-4"> Coach Progress Overview</h2>
 
       {/* Add Progress */}
       <button className="btn btn-primary mb-3" onClick={() => setShowForm(!showForm)}>
@@ -167,7 +167,7 @@ const CoachProgressPage = () => {
       {filtered.length > 0 ? (
         <>
           <div className="mb-5">
-            <h5>📊 Distance Over Time</h5>
+            <h5> Distance Over Time</h5>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={filtered}>
                 <XAxis dataKey="progressDate" />

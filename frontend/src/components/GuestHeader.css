@@ -1,12 +1,13 @@
 .guest-header {
   display: flex;
   flex-direction: column;
-  padding: 0.75rem 2rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  justify-content: center;
+  padding: 0.75rem 2rem; /* Reduced bottom padding */
   background-color: white;
   position: sticky;
   top: 0;
   z-index: 10;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .guest-header-top {

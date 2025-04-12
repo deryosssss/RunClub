@@ -52,7 +52,6 @@ const EventDetailPage = () => {
 
   return (
     <div>
-      <Header />
       <div className="container py-5">
         <h2 className="fw-bold">{event.eventName}</h2>
         <p className="text-muted">{event.description}</p>
@@ -68,10 +67,10 @@ const EventDetailPage = () => {
         )}
 
         <ul className="list-unstyled mb-4">
-          <li><strong>📍 Location:</strong> {event.location}</li>
-          <li><strong>📅 Date:</strong> {event.eventDate}</li>
-          <li><strong>⏰ Time:</strong> {event.eventTime}</li>
-          <li><strong>👥 Enrolled:</strong> {event.enrollmentCount}</li>
+          <li><strong> Location:</strong> {event.location}</li>
+          <li><strong> Date:</strong> {event.eventDate}</li>
+          <li><strong> Time:</strong> {event.eventTime}</li>
+          <li><strong> Enrolled:</strong> {event.enrollmentCount}</li>
         </ul>
 
         {/* 👨‍🏫 Coach Info */}
@@ -97,7 +96,7 @@ const EventDetailPage = () => {
           onClick={handleEnroll}
           disabled={!isRunner || enrolling}
         >
-          {enrolling ? 'Enrolling...' : isRunner ? '✅ Enroll Now' : '🔒 Login to Enroll'}
+          {enrolling ? 'Enrolling...' : isRunner ? 'Enroll Now' : ' Login to Enroll'}
         </button>
       </div>
     </div>

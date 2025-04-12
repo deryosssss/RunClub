@@ -49,7 +49,7 @@ const AdminEditEventPage = () => {
 
   return (
     <div className="container py-5">
-      <h2 className="mb-4">✏️ Edit Event</h2>
+      <h2 className="mb-4"> Edit Event</h2>
       <form onSubmit={handleSubmit} className="row g-3">
         <div className="col-md-6">
           <input

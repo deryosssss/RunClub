@@ -64,7 +64,7 @@ const CoachDirectoryPage = () => {
         <div className="container-xl">
           <div className="d-flex justify-content-between align-items-center flex-wrap mb-4">
             <div>
-              <h1 className="fw-bold display-5">🧑‍🏫 Meet Our Coaches</h1>
+              <h1 className="fw-bold display-5"> Meet Our Coaches</h1>
               <p className="text-muted">Experts who’ll run the extra mile for you.</p>
             </div>
 
@@ -139,7 +139,7 @@ const CoachDirectoryPage = () => {
                             navigate(`/admin/coaches/edit/${coach.id}`)
                           }}
                         >
-                          ✏️ Edit
+                           Edit
                         </button>
                         <button
                           className="btn btn-sm btn-outline-danger"
@@ -148,7 +148,7 @@ const CoachDirectoryPage = () => {
                             handleDelete(coach.id)
                           }}
                         >
-                          🗑️ Delete
+                           Delete
                         </button>
                       </div>
                     )}

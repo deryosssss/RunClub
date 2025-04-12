@@ -44,7 +44,7 @@ const MediaGalleryPage = () => {
     <div>
 
       <div className="container py-5">
-        <h2 className="fw-bold mb-4 text-center">🖼️ Media Gallery</h2>
+        <h2 className="fw-bold mb-4 text-center"> Media Gallery</h2>
         <p className="text-muted text-center mb-5">A collection of memories and milestones captured from our past events.</p>
 
         {isAdmin && (

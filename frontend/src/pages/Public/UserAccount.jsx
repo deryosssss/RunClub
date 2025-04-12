@@ -68,7 +68,7 @@ const UserAccountPage = () => {
 
   return (
     <div className="account-container">
-      <h1 className="account-title">🏃‍♂️ Runner Account</h1>
+      <h1 className="account-title">Account</h1>
 
       <div className="profile-section">
         <img src={previewImage} alt="Profile" className="profile-image" />
@@ -93,10 +93,10 @@ const UserAccountPage = () => {
       </div>
 
       <div className="details">
-        <p><span className="detail-label">📧 Email:</span> {user?.email}</p>
+        <p><span className="detail-label"> Email:</span> {user?.email}</p>
 
         <p>
-          <span className="detail-label">📍 Location:</span>{" "}
+          <span className="detail-label"> Location:</span>{" "}
           {editing ? (
             <input
               type="text"
@@ -111,7 +111,7 @@ const UserAccountPage = () => {
         </p>
 
         <p>
-          <span className="detail-label">🎂 Age:</span>{" "}
+          <span className="detail-label"> Age:</span>{" "}
           {editing ? (
             <input
               type="number"
@@ -126,8 +126,8 @@ const UserAccountPage = () => {
         </p>
         {user?.role?.toLowerCase() === 'runner' && (
           <>
-            <p><span className="detail-label">📊 Enrollments:</span> {user?.enrollmentsCount}</p>
-            <p><span className="detail-label">🏁 Completed:</span> {user?.completedCount}</p>
+            <p><span className="detail-label"> Enrollments:</span> {user?.enrollmentsCount}</p>
+            <p><span className="detail-label"> Completed:</span> {user?.completedCount}</p>
           </>
         )}
 
@@ -141,7 +141,7 @@ const UserAccountPage = () => {
             disabled={saving}
             style={{ opacity: saving ? 0.6 : 1 }}
           >
-            {saving ? "⏳ Saving..." : "💾 Save Changes"}
+            {saving ? "⏳ Saving..." : " Save Changes"}
           </button>
         ) : (
           <button className="button edit-button" onClick={() => setEditing(true)}>
@@ -149,7 +149,7 @@ const UserAccountPage = () => {
           </button>
         )}
 
-        <button className="button password-button">🔐 Change Password</button>
+        <button className="button password-button"> Change Password</button>
         <button className="button logout-button" onClick={logout}>📤 Logout</button>
       </div>
 

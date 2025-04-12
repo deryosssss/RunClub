@@ -25,7 +25,9 @@ const GuestHeader = () => {
         <NavLink to="/gallery" onClick={handleNavClick}>Gallery</NavLink>
         <NavLink to="/help" onClick={handleNavClick}>FAQ</NavLink>
         <NavLink to="/coaches" onClick={handleNavClick}>Coaches</NavLink>
+        <NavLink to="/search" onClick={handleNavClick}>Events</NavLink>
         <NavLink to="/login" onClick={handleNavClick} className="login-btn">
+        
           Login
         </NavLink>
       </nav>

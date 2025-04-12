@@ -47,7 +47,7 @@ const AdminEditCoachPage = () => {
 
   return (
     <div className="container py-5">
-      <h2>✏️ Edit Coach</h2>
+      <h2>Edit Coach</h2>
       <form onSubmit={handleSubmit} className="row g-3 mt-3">
         <div className="col-md-6">
           <input
