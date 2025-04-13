@@ -25,7 +25,7 @@
 }
 
 .feedback-button {
-  background-color: #000000;
+  background-color: #079c71;
   color: white;
   padding: 0.6rem 1.2rem;
   border: none;
@@ -38,7 +38,7 @@
 }
 
 .feedback-button:hover {
-  background-color: #4338ca;
+  background-color: #09c18d;
   transform: translateY(-1px);
 }
 
@@ -94,7 +94,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: #eec28f;
+  background-color: #858892;
   color: white;
   font-weight: 700;
   display: flex;
@@ -119,6 +119,6 @@
 
 .coach-name {
   font-weight: 600;
-  color: #4e8952;
+  color: #426ac8;
   font-size: 1.05rem;
 }

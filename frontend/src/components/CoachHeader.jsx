@@ -26,6 +26,7 @@ const CoachHeader = () => {
           <NavLink to="/coach/home" onClick={() => setMenuOpen(false)}>Home</NavLink>
           <NavLink to="/coach/progress/my" onClick={() => setMenuOpen(false)}>Progress</NavLink>
           <NavLink to="/coach/account/me" onClick={() => setMenuOpen(false)}>Account</NavLink>
+
           <button
             className="logout-btn"
             onClick={() => {

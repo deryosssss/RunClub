@@ -80,6 +80,7 @@ function App() {
             <Route path="/coach/home" element={<CoachHomePage />} />
             <Route path="/coach/progress/my" element={<CoachProgressPage />} />
             <Route path="/coach/account/me" element={<UserAccount />} />
+
           </Route>
         </Route>
 

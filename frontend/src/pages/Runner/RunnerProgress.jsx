@@ -2,11 +2,12 @@ import React, { useEffect, useState } from "react"
 import api from "../../services/api"
 import { useApp } from "../../context/AppContext"
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts"
 import "./RunnerProgress.css"
@@ -17,6 +18,8 @@ const RunnerProgress = () => {
   const [loading, setLoading] = useState(true)
   const [feedbackStatus, setFeedbackStatus] = useState("")
   const [sort, setSort] = useState("newest")
+
+
 
   useEffect(() => {
     const fetchProgress = async () => {
@@ -54,16 +57,18 @@ const RunnerProgress = () => {
     return 0
   })
 
+  const uniqueCoaches = [...new Set(sortedRecords.map((r) => r.coachName || "Unknown Coach"))]
+
   return (
     <div className="progress-page">
-      <h2 className="page-title"> My Progress</h2>
+      <h2 className="page-title">My Progress</h2>
       <p className="text-muted">
         Track your training and request feedback from your coach.
       </p>
 
       <div className="feedback-section">
         <button className="button feedback-button" onClick={requestFeedback}>
-           Request Feedback
+          Request Feedback
         </button>
         {feedbackStatus && <p className="feedback-status">{feedbackStatus}</p>}
       </div>
@@ -85,23 +90,24 @@ const RunnerProgress = () => {
         <p>No progress records yet.</p>
       ) : (
         <>
-          {/* Line Chart */}
+          {/* Grouped Bar Chart */}
           <div className="chart-container mb-5">
-            <h5> Distance Over Time</h5>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={sortedRecords}>
+            <h5>Distance Over Time ({sortedRecords[0]?.coachName || "Coach Unknown"})</h5>
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={sortedRecords}>
                 <XAxis dataKey="progressDate" />
                 <YAxis />
                 <Tooltip />
-                <Line
-                  type="monotone"
+                <Bar
                   dataKey="distanceCovered"
-                  stroke="#4f46e5"
-                  strokeWidth={2}
+                  fill= "#78b1f5"
+                  barSize={30}
+                  name={sortedRecords[0]?.coachName || "Coach"}
                 />
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
+
 
           {/* Record Cards */}
           <div className="progress-grid">
@@ -113,15 +119,15 @@ const RunnerProgress = () => {
                   </div>
                   <div className="info">
                     <div>
-                      <strong> {record.progressDate}</strong> at{" "}
+                      <strong>{record.progressDate}</strong> at{" "}
                       <strong>{record.progressTime}</strong>
                     </div>
                     <div>
-                       <strong>{record.distanceCovered} km</strong> in {" "}
+                      <strong>{record.distanceCovered} km</strong> in{" "}
                       <strong>{record.timeTaken}</strong>
                     </div>
                     <div>
-                       Coach:{" "}
+                      Coach:{" "}
                       <span className="coach-name">
                         {record.coachName || "Coach Unknown"}
                       </span>

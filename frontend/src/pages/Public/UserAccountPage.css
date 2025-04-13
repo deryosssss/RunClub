@@ -96,31 +96,24 @@ h2 {
 }
 
 .button-group button:first-child {
-  background: #10b981;
+  background: #46957a;
   color: white;
 }
 
 .secondary-btn {
-  background: #6366f1;
+  background: #4143c2;
   color: white;
 }
 
 .gray-btn {
-  background: #e5e7eb;
-  color: #111827;
-}
-
-.danger-zone {
-  margin-top: 2rem;
-  text-align: center;
-  font-size: 0.85rem;
-  color: #dc2626;
+  background: #444545;
+  color: #ffffff;
 }
 
 .delete-btn {
   background: none;
   border: none;
-  color: #ff0000;
+  color: #000000;
   margin-top: 6px;
   font-weight: bold;
   cursor: pointer;

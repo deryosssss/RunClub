@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RunClubAPI.Data;
+using System.Security.Claims;
+
 
 namespace RunClubAPI.Controllers
 {
@@ -156,8 +158,35 @@ namespace RunClubAPI.Controllers
         {
             return await _context.Events.AnyAsync(e => e.EventId == id);
         }
+
+        [Authorize(Roles = "Coach")]
+        [HttpGet("hosted")]
+        public async Task<IActionResult> GetEventsHostedByMe()
+        {
+            var coachId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(coachId))
+                return Unauthorized("Coach ID not found in token.");
+
+            // Match the coach by Id (int). Make sure your coach IDs are stored as string in token or convert.
+            if (!int.TryParse(coachId, out int parsedCoachId))
+                return BadRequest("Invalid Coach ID format.");
+
+            var upcomingMyEvents = await _context.Events
+                .Include(e => e.Enrollments)
+                .Include(e => e.Coach)
+                .Where(e => e.CoachId == parsedCoachId && e.EventDate >= DateOnly.FromDateTime(DateTime.Today))
+                .ToListAsync();
+
+            var dtoList = upcomingMyEvents.Select(e => new EventDTO(e)).ToList();
+
+            return Ok(dtoList);
+        }
+
+
     }
+
 }
+
 
 /* 
 "This controller handles CRUD operations for events while enforcing admin-only access."

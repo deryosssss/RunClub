@@ -129,11 +129,12 @@ namespace RunClubAPI.Services
             var role = roles.FirstOrDefault();
 
             var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-                new Claim(ClaimTypes.Name, user.Name ?? "")
-            };
+{
+    new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+    new Claim(ClaimTypes.NameIdentifier, user.Id), // ✅ Required for .FindFirstValue to work
+    new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+    new Claim(ClaimTypes.Name, user.Name ?? "")
+};
 
             if (!string.IsNullOrEmpty(role))
             {
@@ -164,7 +165,7 @@ namespace RunClubAPI.Services
             return await LoginAsync(email, password);
         }
     }
-} 
+}
 
 
 

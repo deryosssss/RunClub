@@ -1,4 +1,3 @@
-// src/pages/Coach/CoachProgressPage.jsx
 import { useEffect, useState } from 'react'
 import api from '../../services/api'
 import { useApp } from '../../context/AppContext'
@@ -14,6 +13,8 @@ import {
 const CoachProgressPage = () => {
   const { user } = useApp()
   const [records, setRecords] = useState([])
+  const [runners, setRunners] = useState([])
+  const [loadingRunners, setLoadingRunners] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedDate, setSelectedDate] = useState('')
   const [showForm, setShowForm] = useState(false)
@@ -28,6 +29,7 @@ const CoachProgressPage = () => {
 
   useEffect(() => {
     fetchRecords()
+    fetchRunners()
   }, [])
 
   const fetchRecords = async () => {
@@ -39,9 +41,22 @@ const CoachProgressPage = () => {
     }
   }
 
+  const fetchRunners = async () => {
+    try {
+      const res = await api.get('/users/role/Runner') // ✅ This matches your backend
+      setRunners(res.data)
+    } catch (err) {
+      console.error('❌ Failed to fetch runners', err)
+    } finally {
+      setLoadingRunners(false)
+    }
+  }
+  
+
   const filtered = records.filter((r) => {
+    const runnerName = runners.find((run) => run.userId === r.userId)?.name || ''
     const matchesSearch =
-      r.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      runnerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.coachName?.toLowerCase().includes(searchTerm.toLowerCase())
 
     const recordDate = r.progressDate
@@ -55,7 +70,13 @@ const CoachProgressPage = () => {
     try {
       await api.post('/progressrecords', form)
       setMessage('✅ Progress added successfully!')
-      setForm({ userId: '', progressDate: '', progressTime: '', distanceCovered: '', timeTaken: '' })
+      setForm({
+        userId: '',
+        progressDate: '',
+        progressTime: '',
+        distanceCovered: '',
+        timeTaken: '',
+      })
       setShowForm(false)
       fetchRecords()
     } catch (err) {
@@ -66,9 +87,8 @@ const CoachProgressPage = () => {
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-4"> Coach Progress Overview</h2>
+      <h2 className="mb-4">Coach Progress Overview</h2>
 
-      {/* Add Progress */}
       <button className="btn btn-primary mb-3" onClick={() => setShowForm(!showForm)}>
         {showForm ? 'Cancel' : '➕ Add Progress'}
       </button>
@@ -77,14 +97,22 @@ const CoachProgressPage = () => {
         <form className="border rounded p-4 mb-4 bg-light" onSubmit={handleSubmit}>
           <div className="row g-3 mb-3">
             <div className="col-md-6">
-              <label className="form-label">Runner ID</label>
-              <input
+              <label className="form-label">Runner</label>
+              <select
                 className="form-control"
                 required
                 value={form.userId}
                 onChange={(e) => setForm({ ...form, userId: e.target.value })}
-              />
+              >
+                <option value="">Select Runner</option>
+                {runners.map((r) => (
+                  <option key={r.userId} value={r.userId}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
             </div>
+
             <div className="col-md-3">
               <label className="form-label">Date</label>
               <input
@@ -137,7 +165,6 @@ const CoachProgressPage = () => {
       <div className="d-flex flex-wrap gap-3 mb-4">
         <input
           type="text"
-          id="search"
           className="form-control"
           style={{ maxWidth: '200px' }}
           placeholder="Search for runner"
@@ -163,11 +190,12 @@ const CoachProgressPage = () => {
         </button>
       </div>
 
-      {/* Chart */}
-      {filtered.length > 0 ? (
+      {loadingRunners ? (
+        <p>Loading runners...</p>
+      ) : filtered.length > 0 ? (
         <>
           <div className="mb-5">
-            <h5> Distance Over Time</h5>
+            <h5>Distance Over Time</h5>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={filtered}>
                 <XAxis dataKey="progressDate" />
@@ -183,7 +211,6 @@ const CoachProgressPage = () => {
             </ResponsiveContainer>
           </div>
 
-          {/* Table */}
           <table className="table table-bordered table-striped small">
             <thead>
               <tr>
@@ -197,7 +224,7 @@ const CoachProgressPage = () => {
             <tbody>
               {filtered.map((r) => (
                 <tr key={r.progressRecordId}>
-                  <td>{r.userId}</td>
+                  <td>{runners.find((run) => run.userId === r.userId)?.name || 'N/A'}</td>
                   <td>{r.progressDate}</td>
                   <td>{r.distanceCovered}</td>
                   <td>{r.timeTaken}</td>
