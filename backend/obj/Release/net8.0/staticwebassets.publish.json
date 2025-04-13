@@ -1,11 +1,12 @@
 {
   "Version": 1,
-  "Hash": "DmEcW1dRagG3WSJLaC4DfiP+ZLSfev1s2iufGf4G4sg=",
+  "Hash": "km1jNtDNBLJffvr9cwFGgMLSp3tIN3KbAQ4E1+teeDk=",
   "Source": "RunClubAPI",
   "BasePath": "_content/RunClubAPI",
   "Mode": "Default",
   "ManifestType": "Publish",
   "ReferencedProjectsConfiguration": [],
   "DiscoveryPatterns": [],
-  "Assets": []
+  "Assets": [],
+  "Endpoints": []
 }
