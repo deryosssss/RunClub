@@ -1,128 +1,127 @@
-.account-container {
-    max-width: 700px;
-    margin: 40px auto;
-    padding: 24px;
-    border: 2px solid #ddd;
-    border-radius: 12px;
-    background-color: #fff;
-  }
-  
-  .account-title {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 8px;
-  }
-  
-  .profile-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .profile-image {
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-    object-fit: cover;
-    margin-bottom: 12px;
-  }
-  
-  .profile-name {
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 20px;
-  }
-  
-  .details {
-    margin: 0 auto;
-    font-size: 16px;
-    line-height: 1.8;
-  }
-  
-  .detail-label {
-    font-weight: bold;
-  }
-  
-  .location {
-    color: purple;
-  }
-  
-  .stats {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-    font-size: 14px;
-  }
-  
-  .actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 24px;
-    justify-content: center;
-  }
-  
-  .button {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-    border: 1px solid;
-  }
-  
-  .edit-button {
-    border-color: #d97706;
-    color: #d97706;
-  }
-  
-  .password-button {
-    border-color: #8b5cf6;
-    color: #8b5cf6;
-  }
-  
-  .logout-button {
-    border-color: #6b7280;
-    color: #6b7280;
-  }
-  
-  .danger-zone {
-    text-align: center;
-    margin-top: 32px;
-    font-size: 14px;
-    color: #dc2626;
-  }
-  .upload-photo {
-    margin-top: 10px;
-  }
-  
-  .upload-button {
-    cursor: pointer;
-    background: #f1f1f1;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 0.9rem;
-    transition: 0.2s ease;
-    display: inline-block;
-  }
-  
-  .upload-button:hover {
-    background-color: #e0e0e0;
-  }
-  .input-field {
-    border: 1px solid #ddd;
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-  }
-  
-  .input-field:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-  }
-  
+.runclub-profile-container {
+  background: linear-gradient(to top, #dde1e6, #ffffff);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 4rem 1rem;
+}
+
+.runclub-card {
+  background: #fff;
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  border-radius: 24px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  position: relative;
+}
+
+.avatar-section {
+  margin-top: -70px;
+}
+
+.profile-img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid #fff;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+}
+
+.upload-btn {
+  font-size: 0.85rem;
+  display: inline-block;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+h2 {
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+}
+
+.role {
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.runclub-stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 1rem 0;
+}
+
+.runclub-stats h3 {
+  margin: 0;
+  color: #111827;
+}
+
+.runclub-stats p {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.details-box {
+  text-align: left;
+  background: #fcfcfc;
+  padding: 1rem;
+  border-top: 1px solid #d1d1d1;
+  border-bottom: 1px solid #d1d1d1;
+  border-radius: 0; /* optional: remove rounded corners if you're not using left/right borders */
+  margin-bottom: 1rem;
+}
+
+
+
+.details-box input {
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  border-radius: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.button-group button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+.button-group button:first-child {
+  background: #10b981;
+  color: white;
+}
+
+.secondary-btn {
+  background: #6366f1;
+  color: white;
+}
+
+.gray-btn {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.danger-zone {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #ff0000;
+  margin-top: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}

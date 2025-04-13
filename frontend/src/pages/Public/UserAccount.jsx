@@ -41,7 +41,6 @@ const UserAccountPage = () => {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setPreviewImage(imageUrl);
-      // Optional future: upload to cloud and save actual URL
     }
   };
 
@@ -58,7 +57,6 @@ const UserAccountPage = () => {
       });
       alert("✅ Profile updated successfully!");
     } catch (err) {
-      console.error(err);
       alert("❌ Failed to update profile");
     } finally {
       setSaving(false);
@@ -67,96 +65,89 @@ const UserAccountPage = () => {
   };
 
   return (
-    <div className="account-container">
-      <h1 className="account-title">Account</h1>
+    <div className="runclub-profile-container">
+      <div className="runclub-card">
+        <div className="avatar-section">
+          <img src={previewImage} alt="Profile" className="profile-img" />
+          {editing && (
+            <>
+              <label htmlFor="photoUpload" className="upload-btn">
+                📸 Change Photo
+              </label>
+              <input
+                type="file"
+                id="photoUpload"
+                name="photoUpload"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                style={{ display: "none" }}
+              />
+            </>
+          )}
+        </div>
 
-      <div className="profile-section">
-        <img src={previewImage} alt="Profile" className="profile-image" />
+        <h2>{form.name || "Runner Name"}</h2>
+        <p className="role">{user?.role}</p>
 
-        {editing && (
-          <div className="upload-photo">
-            <label htmlFor="photoUpload" className="upload-button">
-              📸 Upload New Photo
-            </label>
-            <input
-              type="file"
-              id="photoUpload"
-              name="photoUpload"
-              accept="image/*"
-              onChange={handlePhotoChange}
-              style={{ display: "none" }}
-            />
+        {user?.role?.toLowerCase() === 'runner' && (
+          <div className="runclub-stats">
+            <div>
+              <h3>{user?.enrollmentsCount ?? 0}</h3>
+              <p>Enrollments</p>
+            </div>
+            <div>
+              <h3>{user?.completedCount ?? 0}</h3>
+              <p>Completed</p>
+            </div>
           </div>
         )}
 
-        <div className="profile-name">{form.name}</div>
-      </div>
 
-      <div className="details">
-        <p><span className="detail-label"> Email:</span> {user?.email}</p>
+        <div className="details-box">
 
-        <p>
-          <span className="detail-label"> Location:</span>{" "}
+          <p>
+            <strong>Email:</strong> {user?.email || "Not set"}
+          </p>
+          <p>
+            <strong>Location:</strong>{" "}
+            {editing ? (
+              <input
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+              />
+            ) : (
+              form.location || "Not set"
+            )}
+          </p>
+          <p>
+            <strong>Age:</strong>{" "}
+            {editing ? (
+              <input
+                name="age"
+                type="number"
+                value={form.age}
+                onChange={handleChange}
+              />
+            ) : (
+              form.age || "Not set"
+            )}
+          </p>
+        </div>
+
+        <div className="button-group">
           {editing ? (
-            <input
-              type="text"
-              name="location"
-              value={form.location}
-              onChange={handleChange}
-              className="input-field"
-            />
+            <button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "💾 Save Changes"}
+            </button>
           ) : (
-            <span className="location">{form.location || "Not set"}</span>
+            <button onClick={() => setEditing(true)}>Edit Profile</button>
           )}
-        </p>
-
-        <p>
-          <span className="detail-label"> Age:</span>{" "}
-          {editing ? (
-            <input
-              type="number"
-              name="age"
-              value={form.age}
-              onChange={handleChange}
-              className="input-field"
-            />
-          ) : (
-            <span>{form.age || "Not specified"}</span>
-          )}
-        </p>
-        {user?.role?.toLowerCase() === 'runner' && (
-          <>
-            <p><span className="detail-label"> Enrollments:</span> {user?.enrollmentsCount}</p>
-            <p><span className="detail-label"> Completed:</span> {user?.completedCount}</p>
-          </>
-        )}
-
-      </div>
-
-      <div className="actions">
-        {editing ? (
-          <button
-            className="button save-button"
-            onClick={handleSave}
-            disabled={saving}
-            style={{ opacity: saving ? 0.6 : 1 }}
-          >
-            {saving ? "⏳ Saving..." : " Save Changes"}
+          <button className="secondary-btn"> Change Password</button>
+          <button className="gray-btn" onClick={logout}>
+            Logout
           </button>
-        ) : (
-          <button className="button edit-button" onClick={() => setEditing(true)}>
-            ✏️ Edit Profile
-          </button>
-        )}
-
-        <button className="button password-button"> Change Password</button>
-        <button className="button logout-button" onClick={logout}>📤 Logout</button>
-      </div>
-
-      <div className="danger-zone">
-        ⚠️ <span className="font-semibold">Danger Zone:</span> Delete Account ❌
-        <div>
-          <button className="mt-2 underline">Delete My Account</button>
+          <button className="delete-btn">Delete My Account</button>
         </div>
       </div>
     </div>

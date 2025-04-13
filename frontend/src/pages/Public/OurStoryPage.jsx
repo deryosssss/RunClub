@@ -9,8 +9,8 @@ const AdminStoryPage = () => {
   const [editMode, setEditMode] = useState(false)
 
   const [form, setForm] = useState({
-    intro: 'RunClub began as a small group of passionate runners who wanted to build something more than just a community — a movement.',
-    howItStarted: 'Founded in 2021, RunClub was built around the idea that everyone — regardless of background or experience — should feel welcome to start running and growing.',
+    intro: 'Momentum began as a small group of passionate runners who wanted to build something more than just a community — a movement.',
+    howItStarted: 'Founded in 2021, Momentum was built around the idea that everyone — regardless of background or experience — should feel welcome to start running and growing.',
     mission: 'Empower, support, and inspire runners of all levels through mentorship, community, and world-class events.',
     vision: 'A world where running unites people and builds healthier, happier lives.',
     timeline: [
