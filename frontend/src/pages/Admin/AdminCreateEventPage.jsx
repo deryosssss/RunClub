@@ -1,7 +1,7 @@
 // src/pages/Admin/AdminCreateEventPage.jsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../../services/api'
+import api from '../../services/Api'
 
 const AdminCreateEventPage = () => {
   const navigate = useNavigate()

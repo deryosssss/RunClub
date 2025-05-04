@@ -4,14 +4,14 @@ Welcome to the **RunClub Frontend** — a modern, single-page React application 
 
 ---
 
-## 🚀 Features
+##  Features
 
-### 👥 User Roles
+###  User Roles
 - **Runners**: Browse events, enroll, track progress, and manage accounts.
 - **Coaches**: Support runners, track their progress, and manage accounts.
 - **Admins**: Create/edit events and coaches, manage FAQs, media gallery, and the club's story.
 
-### 🧩 Functionality
+###  Functionality
 - Event search and quick enrollment
 - Coach directory with dynamic rating & bio display
 - Editable media gallery (admin-only)
@@ -21,7 +21,7 @@ Welcome to the **RunClub Frontend** — a modern, single-page React application 
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **React 18+**
 - **React Router DOM**
@@ -33,7 +33,7 @@ Welcome to the **RunClub Frontend** — a modern, single-page React application 
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```plaintext
 src/
@@ -52,7 +52,7 @@ src/
 
 ---
 
-## 📦 Getting Started
+##  Getting Started
 
 ### 1️⃣ Clone the Repo
 

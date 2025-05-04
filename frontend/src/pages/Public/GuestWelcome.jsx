@@ -1,6 +1,5 @@
 // src/pages/Public/GuestWelcome.jsx
 
-import GuestHeader from '../../components/GuestHeader'
 import './GuestWelcome.css'
 
 const GuestWelcome = () => {

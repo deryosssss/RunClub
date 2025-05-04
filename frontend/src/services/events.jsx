@@ -1,4 +1,4 @@
-import api from './api'
+import api from './Api'
 
 export const getEvents = () => api.get('/events').then(res => res.data)
 export const getEventById = (id) => api.get(`/events/${id}`).then(res => res.data)

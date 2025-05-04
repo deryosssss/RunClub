@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../../services/api'
+import api from '../../services/Api'
 import { Spinner, Form } from 'react-bootstrap'
 import { useApp } from '../../context/AppContext'
 

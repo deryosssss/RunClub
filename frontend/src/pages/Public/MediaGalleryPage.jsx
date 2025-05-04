@@ -1,6 +1,5 @@
 // src/pages/Public/MediaGalleryPage.jsx
 import React, { useState } from 'react'
-import Header from '../../components/Header'
 import { Modal, Button, Form } from 'react-bootstrap'
 import { useApp } from '../../context/AppContext'
 import './MediaGalleryPage.css'

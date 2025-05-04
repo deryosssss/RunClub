@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import api from '../../services/api'
-import Header from '../../components/Header'
+import api from '../../services/Api'
 import { useApp } from '../../context/AppContext'
 import { Spinner } from 'react-bootstrap'
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import api from '../../services/api'
+import api from '../../services/Api'
 import { useApp } from '../../context/AppContext'
 import { Spinner, Form, Button } from 'react-bootstrap'
 import './RunnerEnrollments.css'

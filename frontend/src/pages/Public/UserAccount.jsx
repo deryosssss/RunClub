@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useApp } from "../../context/AppContext";
-import api from "../../services/api";
+import api from "../../services/Api";
 import "./UserAccountPage.css";
 
 const DEFAULT_AVATAR =

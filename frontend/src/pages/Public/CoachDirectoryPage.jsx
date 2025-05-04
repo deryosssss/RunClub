@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../../services/api'
+import api from '../../services/Api'
 import { motion } from 'framer-motion'
 import { Modal, Button } from 'react-bootstrap'
 import Masonry from 'react-masonry-css'
 import './CoachDirectoryPage.css'
-import Header from '../../components/Header'
 import { useApp } from '../../context/AppContext'
 
 const CoachDirectoryPage = () => {

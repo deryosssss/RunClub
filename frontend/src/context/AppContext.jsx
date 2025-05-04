@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import api from '../services/api'
+import api from '../services/Api'
 
 // ✅ Export AppContext so test files can access .Provider
 export const AppContext = createContext()

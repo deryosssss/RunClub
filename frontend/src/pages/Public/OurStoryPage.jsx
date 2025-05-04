@@ -1,6 +1,5 @@
 // src/pages/Admin/AdminStoryPage.jsx
 import React, { useState } from 'react'
-import Header from '../../components/Header'
 import { useApp } from '../../context/AppContext'
 
 const AdminStoryPage = () => {
