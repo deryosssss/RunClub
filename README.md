@@ -4,7 +4,7 @@ A full-stack web platform designed to empower runners, coaches, and administrato
 
 ---
 
-## 📌 Table of Contents
+## Table of Contents
 
 1. [Project Title](#1-project-title)  
 2. [Project Description](#2-project-description)  
@@ -20,26 +20,26 @@ A full-stack web platform designed to empower runners, coaches, and administrato
 
 ---
 
-## 1. 🎯 Project Title
+## 1. Project Title
 
 **Momentum** – A modern full-stack platform for managing running club memberships, event enrollments, coaching, and progress tracking.
 
 ---
 
-## 2. 📖 Project Description
+## 2. Project Description
 
 Momentum combines a fast React frontend with a robust .NET Core RESTful API to deliver a seamless experience for runners, coaches, and administrators. It includes event discovery, enrollments, progress logs, role-based dashboards, and admin tools — all with secure JWT authentication and responsive design.
 
 ---
 
-## 3. 🚀 Features
+## 3. Features
 
-### 🧍 User Roles
+### User Roles
 - **Runners**: Enroll in events, track progress, manage profiles.
 - **Coaches**: Support runners, monitor stats, manage users.
 - **Admins**: Full control over events, coaches, media, and FAQs.
 
-### 🧰 Platform Capabilities
+### Platform Capabilities
 - Event search & enrollment
 - Coach directory with ratings
 - Media gallery & FAQ (admin-controlled)
@@ -50,9 +50,9 @@ Momentum combines a fast React frontend with a robust .NET Core RESTful API to d
 
 ---
 
-## 4. 🖥️ Frontend Setup
+## 4. Frontend Setup
 
-### 📁 Tech Stack
+### Tech Stack
 - React 18+
 - React Router DOM
 - Axios
@@ -61,7 +61,7 @@ Momentum combines a fast React frontend with a robust .NET Core RESTful API to d
 - Vite
 - Context API
 
-### ▶️ Getting Started
+###  Getting Started
 
 ```bash
 git clone https://github.com/deryosssss/RunClub-frontend.git
@@ -69,7 +69,7 @@ cd RunClub-frontend
 npm install
 ```
 
-### ⚙️ Configure API
+### Configure API
 
 Update `src/services/Api.js`:
 
@@ -79,16 +79,16 @@ const api = axios.create({
 });
 ```
 
-### ▶️ Run Frontend
+###  Run Frontend
 ```bash
 npm run dev
 ```
 
 ---
 
-## 5. 🧪 Backend Setup
+## 5. Backend Setup
 
-### 📁 Tech Stack
+### Tech Stack
 - ASP.NET Core 7+
 - Entity Framework Core
 - SQLite / SQL Server
@@ -96,7 +96,7 @@ npm run dev
 - JWT Auth
 - IP Rate Limiting
 
-### ▶️ Setup
+### Setup
 
 ```bash
 git clone https://github.com/deryosssss/RunClub.git
@@ -106,7 +106,7 @@ dotnet ef database update
 dotnet run
 ```
 
-### 🌱 .env Setup (backend)
+### .env Setup (backend)
 
 Create a `.env` or use appsettings:
 
@@ -120,7 +120,7 @@ AllowedOrigins="http://localhost:5173"
 
 ---
 
-## 6. 🔐 Authentication & Roles
+## 6. Authentication & Roles
 
 - Login handled via JWT token stored in localStorage
 - Token automatically added to requests via Axios interceptor
@@ -129,9 +129,9 @@ AllowedOrigins="http://localhost:5173"
 
 ---
 
-## 7. 🧪 Running Tests
+## 7. Running Tests
 
-### ✅ Frontend (using Vitest + Testing Library)
+### Frontend (using Vitest + Testing Library)
 
 ```bash
 npm run test
@@ -141,7 +141,7 @@ npm run test
 - Mocked API calls with axios
 - Role-based logic tests
 
-### ✅ Backend (using xUnit)
+### Backend (using xUnit)
 
 ```bash
 dotnet test
@@ -151,15 +151,15 @@ dotnet test
 
 ---
 
-## 8. 📚 API Documentation
+## 8. API Documentation
 
-### 🔍 Swagger UI:
+### Swagger UI:
 - Local: [http://localhost:5187/swagger](http://localhost:5187/swagger)
 - Production: [https://runclub-api.azurewebsites.net/swagger](https://runclub-api.azurewebsites.net/swagger)
 
 ---
 
-## 9. 🚀 Production Deployment (Azure)
+## 9. Production Deployment (Azure)
 
 - **Frontend**: Vite React app hosted on Azure Static Web Apps or Netlify
 - **Backend**: Deployed to Azure App Service
@@ -168,7 +168,7 @@ dotnet test
 
 ---
 
-## 10. 🤝 Contributing
+## 10. Contributing
 
 We welcome contributions!  
 Steps to contribute:
@@ -182,7 +182,7 @@ For major features or questions, please open an issue first.
 
 ---
 
-## 11. 📬 Contact
+## 11. Contact
 
 - Issues: [RunClub GitHub Issues](https://github.com/deryosss/runclub/issues)
 - Author: [@deryosssss](https://github.com/deryosssss)
