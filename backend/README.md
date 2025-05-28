@@ -1,4 +1,4 @@
-# RunClub Web Application
+# RunClub Backend
 
 ## 1. Project Title
 

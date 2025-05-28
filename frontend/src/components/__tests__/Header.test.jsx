@@ -48,8 +48,16 @@ describe('Header component', () => {
   })
 })
 
-/* 🔍 Why it matters:
+/*  Why it matters:
 This confirms your component renders what you expect when a runner is logged in. If it ever breaks in future updates, this test will fail — alerting you before your users notice.
 
-🔍 Why this matters:
+ Why this matters:
 You isolated the test. Instead of calling a real backend or full app, you mocked just what was needed.*/
+
+//  Header component test checks:
+
+// Whether the user’s role appears
+
+// Whether the logout button shows
+
+// Whether clicking logout triggers the function

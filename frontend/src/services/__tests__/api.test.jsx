@@ -24,7 +24,7 @@ vi.mock('axios', () => {
 })
 
 // ✅ Import api AFTER mocking axios
-import api from '../api'
+import api from '../Api'
 // ✅ Grab mockAxios from the mocked module
 import { mockAxios } from 'axios'
 
@@ -48,7 +48,7 @@ describe('API - Events', () => {
     }
   })
 })
-/* 🔍 Why this matters:
-✅ You're testing how your logic handles both success and failure
-✅ No real API calls = fast, reliable tests
-✅ You covered edge cases (e.g., server offline)*/
+/*  Why this matters:
+testing how logic handles both success and failure
+No real API calls = fast, reliable tests
+covered edge cases (e.g., server offline)*/

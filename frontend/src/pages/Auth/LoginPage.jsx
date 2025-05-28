@@ -12,10 +12,13 @@ const LoginPage = () => {
   const { login } = useApp();
   const [mode, setMode] = useState('login');
 
+
   const params = new URLSearchParams(location.search);
   const isVerified = params.get('verified') === 'true';
   const isRegister = mode === 'register';
+  //  let users switch between creating an account and logging in
 
+  // using Formik to manage the form and Yup to validate the input fields.
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -36,6 +39,11 @@ const LoginPage = () => {
             name: values.name,
             role: 'Runner',
           });
+// This creates a new user by calling your backend's
+// Validates user input
+// Updates the form’s state
+// Calls onSubmit when the form is submitted
+
           alert('✅ Registration successful! You can now log in.');
           setMode('login');
           return;
@@ -45,9 +53,12 @@ const LoginPage = () => {
           email: values.email,
           password: values.password,
         });
+//  This logs the user in and receives a JWT token.
+
 
         localStorage.setItem('token', data.token);
         localStorage.setItem('refreshToken', data.refreshToken);
+// Saves the tokens so the user stays logged in across page refreshes.
 
         await login();
 
@@ -71,8 +82,10 @@ const LoginPage = () => {
         console.error('❌ Login/Register failed:', err);
         alert('❌ Something went wrong. Please check your email and password.');
       }
+      // Catches any backend errors (like wrong password) and shows a friendly alert.
     },
   });
+  // After logging in, this fetches user info and sends them to the correct dashboard depending on their role.
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">

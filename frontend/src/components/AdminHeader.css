@@ -92,4 +92,14 @@
     margin-top: 1rem;
     width: 100%;
   }
+
+  /* 
+- Only apply the styles inside this block if the screen is 768px wide or smaller — i.e., tablets and phones
+- On larger screens, .menu-toggle (likely a hamburger icon) is probably hidden (display: none by default).
+- On mobile, it becomes visible so users can open the menu. 
+- The main navigation is hidden to save space on small screens.
+-  after clicking the hamburger, it shows the mobile menu vertically using flex
+- Makes each nav link spaced out and easier to tap with a finger.
+- Ensures the logout button stretches across the screen for easier tapping
+*/
 }

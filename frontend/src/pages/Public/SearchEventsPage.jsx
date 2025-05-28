@@ -10,6 +10,8 @@ const SearchEventsPage = () => {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterMonth, setFilterMonth] = useState('')
+  const [showPastEvents, setShowPastEvents] = useState(false)
+
   const { user, logout } = useApp()
   const navigate = useNavigate()
 
@@ -33,7 +35,18 @@ const SearchEventsPage = () => {
   }, [])
 
   useEffect(() => {
+    const isFutureEvent = (eventDateStr) => {
+      if (!eventDateStr) return false
+      const today = new Date()
+      const eventDate = new Date(eventDateStr)
+      return eventDate >= today
+    }
+
     let result = [...events]
+
+    if (!showPastEvents) {
+      result = result.filter(e => isFutureEvent(e.eventDate))
+    }
 
     if (search.trim()) {
       result = result.filter(e =>
@@ -47,7 +60,7 @@ const SearchEventsPage = () => {
     }
 
     setFiltered(result)
-  }, [search, filterMonth, events])
+  }, [search, filterMonth, events, showPastEvents])
 
   const handleQuickEnroll = async (eventId) => {
     if (!isRunner) {
@@ -91,7 +104,7 @@ const SearchEventsPage = () => {
     <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <h2 className="fw-bold"> Upcoming Events</h2>
+          <h2 className="fw-bold">Upcoming Events</h2>
           <p className="text-muted">Search, view, and explore upcoming runs.</p>
         </div>
         {isAdmin && (
@@ -119,12 +132,35 @@ const SearchEventsPage = () => {
             value={filterMonth}
             onChange={e => setFilterMonth(e.target.value)}
           >
-            <option value="">Filter by Month</option>
+            <option value="">All Months</option>
+            <option value="01">January</option>
+            <option value="02">February</option>
+            <option value="03">March</option>
+            <option value="04">April</option>
             <option value="05">May</option>
             <option value="06">June</option>
             <option value="07">July</option>
             <option value="08">August</option>
+            <option value="09">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
           </Form.Select>
+
+          {isAdmin && (
+            <div className="form-check mt-2">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="togglePastEvents"
+                checked={showPastEvents}
+                onChange={e => setShowPastEvents(e.target.checked)}
+              />
+              <label className="form-check-label" htmlFor="togglePastEvents">
+                Show Past Events
+              </label>
+            </div>
+          )}
         </div>
       </div>
 
@@ -150,8 +186,8 @@ const SearchEventsPage = () => {
                 <h5 className="fw-semibold mb-1">{event.eventName}</h5>
                 <p className="text-muted mb-2 small">{event.description}</p>
 
-                <div> <strong>{event.location}</strong></div>
-                <div> <strong>{event.eventDate}</strong>  <strong>{event.eventTime}</strong></div>
+                <div><strong>{event.location}</strong></div>
+                <div><strong>{event.eventDate}</strong> <strong>{event.eventTime}</strong></div>
                 <div className="text-success mt-1">Enrolled: {event.enrollmentCount ?? 0}</div>
 
                 {event.coachName && (
@@ -161,7 +197,7 @@ const SearchEventsPage = () => {
                       alt={event.coachName}
                       style={{ width: 32, height: 32, borderRadius: '50%' }}
                     />
-                    <span className="small"> Coach: {event.coachName}</span>
+                    <span className="small">Coach: {event.coachName}</span>
                   </div>
                 )}
 
@@ -175,13 +211,12 @@ const SearchEventsPage = () => {
                         navigate(`/events/${event.eventId}`)
                       }
                     }}
-
                   >
                     View Details
                   </button>
                 </div>
 
-                {/* 🔧 Admin-only controls */}
+                {/* Admin-only controls */}
                 {isAdmin && (
                   <div className="d-flex justify-content-between gap-2 mt-2">
                     <button
@@ -194,12 +229,12 @@ const SearchEventsPage = () => {
                       className="btn btn-outline-danger w-50"
                       onClick={() => handleDelete(event.eventId)}
                     >
-                       Delete
+                      Delete
                     </button>
                   </div>
                 )}
 
-                {/* 🏃 Runner-only enroll button */}
+                {/* Guest-only button */}
                 {!user && (
                   <div className="mt-2">
                     <button
@@ -210,7 +245,6 @@ const SearchEventsPage = () => {
                     </button>
                   </div>
                 )}
-
               </div>
             </div>
           ))}
@@ -221,4 +255,3 @@ const SearchEventsPage = () => {
 }
 
 export default SearchEventsPage
-
